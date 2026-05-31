@@ -1,8 +1,19 @@
 import {
   findAllOpportunities,
+  findOpportunityById,
   countOpportunitiesByStage,
 } from "@/lib/repositories/opportunity-repository";
+import { findTransitionsByOpportunity } from "@/lib/repositories/stage-transition-repository";
+import { findOutcomeEventsByOpportunity } from "@/lib/repositories/outcome-repository";
+import { findAttributionsByOpportunity } from "@/lib/repositories/attribution-repository";
+import { findMissedByOpportunity } from "@/lib/repositories/missed-opportunity-repository";
 import type { Opportunity, OpportunityStage } from "@/lib/types/opportunity";
+import type {
+  MissedOpportunityRecord,
+  OutcomeEventRecord,
+  RevenueAttributionRecord,
+  StageTransitionRecord,
+} from "@/lib/types/outcome-records";
 
 const STAGE_ORDER: OpportunityStage[] = [
   "new",
@@ -23,6 +34,30 @@ export interface PipelineColumn {
 
 export async function listOpportunities(): Promise<Opportunity[]> {
   return findAllOpportunities();
+}
+
+export interface OpportunityDetail {
+  opportunity: Opportunity;
+  transitions: StageTransitionRecord[];
+  outcomeEvents: OutcomeEventRecord[];
+  attributions: RevenueAttributionRecord[];
+  missed: MissedOpportunityRecord[];
+}
+
+export async function getOpportunityDetail(
+  id: string,
+): Promise<OpportunityDetail | null> {
+  const opportunity = await findOpportunityById(id);
+  if (!opportunity) return null;
+
+  const [transitions, outcomeEvents, attributions, missed] = await Promise.all([
+    findTransitionsByOpportunity(id),
+    findOutcomeEventsByOpportunity(id),
+    findAttributionsByOpportunity(id),
+    findMissedByOpportunity(id),
+  ]);
+
+  return { opportunity, transitions, outcomeEvents, attributions, missed };
 }
 
 export async function getPipeline(): Promise<PipelineColumn[]> {

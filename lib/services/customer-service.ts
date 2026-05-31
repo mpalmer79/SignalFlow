@@ -7,7 +7,11 @@ import { findOpportunitiesByCustomer } from "@/lib/repositories/opportunity-repo
 import { findCommunicationsByCustomer } from "@/lib/repositories/communication-repository";
 import { findAuditEventsByCustomer } from "@/lib/repositories/audit-repository";
 import { findWorkflowRunsByCustomer } from "@/lib/repositories/workflow-repository";
+import { findOutcomeEventsByCustomer } from "@/lib/repositories/outcome-repository";
+import { findAttributionsByCustomer } from "@/lib/repositories/attribution-repository";
+import { findMissedByCustomer } from "@/lib/repositories/missed-opportunity-repository";
 import { buildIntelligenceProfile } from "@/lib/intelligence/graph-summary";
+import { outcomeLabel } from "@/lib/config/outcome-status";
 import type { Customer } from "@/lib/types/customer";
 import type { Signal } from "@/lib/types/signal";
 import type { Opportunity } from "@/lib/types/opportunity";
@@ -15,6 +19,11 @@ import type { Communication } from "@/lib/types/communication";
 import type { AuditEvent } from "@/lib/types/audit";
 import type { CustomerIntelligenceProfile } from "@/lib/types/intelligence";
 import type { WorkflowRunRecord } from "@/lib/types/workflow-run";
+import type {
+  MissedOpportunityRecord,
+  OutcomeEventRecord,
+  RevenueAttributionRecord,
+} from "@/lib/types/outcome-records";
 
 export type TimelineKind =
   | "signal"
@@ -24,7 +33,10 @@ export type TimelineKind =
   | "detected-opportunity"
   | "recommendation"
   | "risk"
-  | "workflow";
+  | "workflow"
+  | "outcome"
+  | "attribution"
+  | "missed-opportunity";
 
 export interface CustomerTimelineEntry {
   id: string;
@@ -41,6 +53,9 @@ export interface CustomerProfile {
   communications: Communication[];
   auditEvents: AuditEvent[];
   workflowRuns: WorkflowRunRecord[];
+  outcomeEvents: OutcomeEventRecord[];
+  attributions: RevenueAttributionRecord[];
+  missed: MissedOpportunityRecord[];
   intelligence: CustomerIntelligenceProfile;
   timeline: CustomerTimelineEntry[];
 }
@@ -55,14 +70,25 @@ export async function getCustomerProfile(
   const customer = await findCustomerById(id);
   if (!customer) return null;
 
-  const [signals, opportunities, communications, auditEvents, workflowRuns] =
-    await Promise.all([
-      findSignalsByCustomer(id),
-      findOpportunitiesByCustomer(id),
-      findCommunicationsByCustomer(id),
-      findAuditEventsByCustomer(id),
-      findWorkflowRunsByCustomer(id),
-    ]);
+  const [
+    signals,
+    opportunities,
+    communications,
+    auditEvents,
+    workflowRuns,
+    outcomeEvents,
+    attributions,
+    missed,
+  ] = await Promise.all([
+    findSignalsByCustomer(id),
+    findOpportunitiesByCustomer(id),
+    findCommunicationsByCustomer(id),
+    findAuditEventsByCustomer(id),
+    findWorkflowRunsByCustomer(id),
+    findOutcomeEventsByCustomer(id),
+    findAttributionsByCustomer(id),
+    findMissedByCustomer(id),
+  ]);
 
   const intelligence = buildIntelligenceProfile({
     customer,
@@ -71,14 +97,17 @@ export async function getCustomerProfile(
     communications,
   });
 
-  const timeline = buildTimeline(
+  const timeline = buildTimeline({
     signals,
     opportunities,
     communications,
     auditEvents,
     intelligence,
     workflowRuns,
-  );
+    outcomeEvents,
+    attributions,
+    missed,
+  });
 
   return {
     customer,
@@ -87,22 +116,43 @@ export async function getCustomerProfile(
     communications,
     auditEvents,
     workflowRuns,
+    outcomeEvents,
+    attributions,
+    missed,
     intelligence,
     timeline,
   };
 }
 
-// The timeline merges persisted activity with derived intelligence. Detected
-// opportunities, recommendations, and risk flags are anchored to the most
-// recent signal time so they surface alongside the activity that produced them.
-function buildTimeline(
-  signals: Signal[],
-  opportunities: Opportunity[],
-  communications: Communication[],
-  auditEvents: AuditEvent[],
-  intelligence: CustomerIntelligenceProfile,
-  workflowRuns: WorkflowRunRecord[],
-): CustomerTimelineEntry[] {
+interface TimelineInput {
+  signals: Signal[];
+  opportunities: Opportunity[];
+  communications: Communication[];
+  auditEvents: AuditEvent[];
+  intelligence: CustomerIntelligenceProfile;
+  workflowRuns: WorkflowRunRecord[];
+  outcomeEvents: OutcomeEventRecord[];
+  attributions: RevenueAttributionRecord[];
+  missed: MissedOpportunityRecord[];
+}
+
+// The timeline merges persisted activity with derived intelligence and revenue
+// outcomes. Detected opportunities, recommendations, and risk flags are
+// anchored to the most recent signal time so they surface alongside the
+// activity that produced them.
+function buildTimeline(input: TimelineInput): CustomerTimelineEntry[] {
+  const {
+    signals,
+    opportunities,
+    communications,
+    auditEvents,
+    intelligence,
+    workflowRuns,
+    outcomeEvents,
+    attributions,
+    missed,
+  } = input;
+
   const latestSignalAt =
     intelligence.normalizedSignals[0]?.receivedAt ??
     signals[0]?.receivedAt ??
@@ -179,6 +229,33 @@ function buildTimeline(
         title: run.title,
         detail: `Outcome: ${run.outcome.replace(/-/g, " ")} (${run.actionsExecuted} executed, ${run.actionsBlocked} blocked)`,
         occurredAt: run.createdAt,
+      }),
+    ),
+    ...outcomeEvents.map(
+      (event): CustomerTimelineEntry => ({
+        id: event.id,
+        kind: "outcome",
+        title: outcomeLabel(event.outcomeType),
+        detail: `${event.reason} (${event.confidence}% confidence)`,
+        occurredAt: event.occurredAt,
+      }),
+    ),
+    ...attributions.map(
+      (attribution): CustomerTimelineEntry => ({
+        id: attribution.id,
+        kind: "attribution",
+        title: `${attribution.attributionType} attribution`,
+        detail: `${attribution.reason} Estimated ${attribution.attributedAmount} gross influence.`,
+        occurredAt: attribution.createdAt,
+      }),
+    ),
+    ...missed.map(
+      (item): CustomerTimelineEntry => ({
+        id: item.id,
+        kind: "missed-opportunity",
+        title: `Missed opportunity (${item.severity})`,
+        detail: `${item.reason} Estimated ${item.estimatedValue}. ${item.recommendedRecoveryAction}`,
+        occurredAt: item.createdAt,
       }),
     ),
   ];

@@ -13,6 +13,8 @@ import {
 } from "@/components/intelligence/score-badges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WorkflowOutcomeBadge } from "@/components/workflow/workflow-outcome-badge";
+import { AttributionList } from "@/components/revenue/attribution-list";
+import { MissedOpportunityList } from "@/components/revenue/missed-opportunity-list";
 import { getCustomerProfile } from "@/lib/services/customer-service";
 
 export const metadata: Metadata = { title: "Customer" };
@@ -29,8 +31,15 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
-  const { customer, opportunities, timeline, intelligence, workflowRuns } =
-    profile;
+  const {
+    customer,
+    opportunities,
+    timeline,
+    intelligence,
+    workflowRuns,
+    attributions,
+    missed,
+  } = profile;
 
   return (
     <>
@@ -124,6 +133,37 @@ export default async function CustomerDetailPage({
                   No workflow runs for this customer.
                 </p>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between gap-2">
+                Revenue impact
+                <Link
+                  href={`/revenue-engine/${customer.id}`}
+                  className="inline-flex items-center gap-1 text-xs font-normal text-primary hover:underline"
+                >
+                  Full story
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Attribution
+                </p>
+                <AttributionList attributions={attributions} />
+              </div>
+              {missed.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Missed opportunity
+                  </p>
+                  <MissedOpportunityList missed={missed} />
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 

@@ -1,10 +1,13 @@
 import {
   AlertTriangle,
+  Banknote,
   Bell,
   GitBranch,
   MessageSquare,
   ScrollText,
   Sparkles,
+  Target,
+  TrendingDown,
   Wand2,
   Workflow,
 } from "lucide-react";
@@ -51,6 +54,21 @@ const kindMeta: Record<
     label: "Workflow run",
     icon: Workflow,
     tone: "bg-primary/15 text-primary",
+  },
+  outcome: {
+    label: "Outcome",
+    icon: Target,
+    tone: "bg-success/15 text-success",
+  },
+  attribution: {
+    label: "Revenue",
+    icon: Banknote,
+    tone: "bg-success/15 text-success",
+  },
+  "missed-opportunity": {
+    label: "Missed revenue",
+    icon: TrendingDown,
+    tone: "bg-warning/15 text-warning",
   },
 };
 

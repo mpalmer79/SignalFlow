@@ -49,7 +49,20 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Dashboard workflow metrics, intelligence workflow preview, and enriched timelines
 - No outbound communication, no scheduling infrastructure, no external model calls
 
-## Phase 4: Access and authentication
+## Phase 4: Outcome memory and revenue attribution (complete)
+
+- Outcome Engine that classifies workflow runs into deterministic outcome events
+- Stage Transition Engine that advances opportunities and persists transitions
+- Revenue Attribution Engine with influenced, assisted, recovered, prevented loss, and missed types
+- Missed Opportunity Engine with value estimates, severity, and recovery actions
+- Workflow Effectiveness scoring from a centralized configuration
+- Outcome Memory summaries across signals, actions, and verticals
+- Flagship Revenue Engine page and opportunity outcome history
+- Dashboard revenue metrics and revenue enriched customer timelines
+- New audit events for outcome and attribution activity
+- No external model calls, no live communication, no secrets
+
+## Phase 5: Access and authentication
 
 - Add Clerk authentication and organization scoping
 - Enforce organization-level data isolation in the repository layer
@@ -57,7 +70,7 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Protected routes and server-side authorization
 - Keep all outbound communication mocked
 
-## Phase 5: Live providers behind interfaces
+## Phase 6: Live providers behind interfaces
 
 - Implement AI provider adapters (OpenAI, Anthropic Claude, Google Gemini)
 - Implement SMS and telephony adapters (Twilio)
@@ -66,21 +79,21 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Add provider configuration and credential handling
 - Gate live sends behind explicit organization settings
 
-## Phase 6: Live orchestration
+## Phase 7: Live orchestration
 
 - Real workflow execution with wait windows and fallbacks
 - Quiet hours and rate limiting enforced at send time
 - Human task queue with assignment and resolution
 - Opt-out handling that halts active workflows immediately
 
-## Phase 7: Outcomes and analytics
+## Phase 8: Outcomes intelligence
 
-- Outcome tracking tied to revenue
-- Reporting and analytics on signals, actions, and results
-- Feedback loops that improve next best action
-- Vertical-specific scoring refinements
+- Feedback loops that improve next best action from recorded outcomes
+- Vertical-specific scoring refinements driven by outcome memory
+- Predictive close probability and best time to contact
+- Reporting and export of attribution and effectiveness
 
-## Phase 8: Vertical expansion
+## Phase 9: Vertical expansion
 
 - Promote additional packs from research and design to production
 - Vertical-specific compliance rules and message libraries

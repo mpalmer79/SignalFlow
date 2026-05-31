@@ -4,6 +4,7 @@ import {
   BrainCircuit,
   GitBranch,
   LayoutDashboard,
+  LineChart,
   MessageSquare,
   Package,
   ScrollText,
@@ -63,6 +64,12 @@ export const primaryNav: NavItem[] = [
     href: "/orchestrator",
     icon: Workflow,
     description: "Simulated multi-channel workflows",
+  },
+  {
+    label: "Revenue Engine",
+    href: "/revenue-engine",
+    icon: LineChart,
+    description: "Outcomes, attribution, and missed revenue",
   },
   {
     label: "Communications",

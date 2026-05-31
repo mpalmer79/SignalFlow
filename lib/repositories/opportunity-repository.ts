@@ -15,6 +15,16 @@ export async function findAllOpportunities(): Promise<Opportunity[]> {
   return rows.map(mapOpportunity);
 }
 
+export async function findOpportunityById(
+  id: string,
+): Promise<Opportunity | null> {
+  const row = await prisma.opportunity.findUnique({
+    where: { id },
+    include: withCustomer,
+  });
+  return row ? mapOpportunity(row) : null;
+}
+
 export async function findOpportunitiesByCustomer(
   customerId: string,
 ): Promise<Opportunity[]> {
