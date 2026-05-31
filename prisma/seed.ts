@@ -27,6 +27,10 @@ import {
 import type { GeneratedCustomer } from "../lib/simulation/synthetic-data";
 import { DEMO_ORG_SLUG } from "../lib/repositories/organization-repository";
 import type { Role } from "../lib/types/auth";
+import { generateRecommendation } from "../lib/ai/ai-engine";
+import { determineReviewRequirement } from "../lib/review/review-engine";
+import { persistRecommendation, recordReviewDecision } from "../lib/repositories/ai-repository";
+import type { ReviewDecision } from "../lib/types/ai";
 
 const prisma = new PrismaClient();
 
@@ -522,6 +526,82 @@ async function seedWorkflowRuns() {
   }
 }
 
+// Generate and persist an AI recommendation per customer, then apply a
+// deterministic spread of review decisions so the queue shows approved,
+// rejected, pending, and escalated states. Reviewers are the seeded demo users.
+async function seedAIRecommendations() {
+  const persistedCustomers = await findAllCustomers(DEMO_ORG_ID);
+  const reviewers = [
+    { id: "demo-manager", name: "Demo Manager" },
+    { id: "demo-owner", name: "Demo Owner" },
+  ];
+
+  let index = 0;
+  for (const customer of persistedCustomers) {
+    const [customerSignals, customerOpportunities, customerCommunications] =
+      await Promise.all([
+        findSignalsByCustomer(DEMO_ORG_ID, customer.id),
+        findOpportunitiesByCustomer(DEMO_ORG_ID, customer.id),
+        findCommunicationsByCustomer(DEMO_ORG_ID, customer.id),
+      ]);
+
+    const profile = buildIntelligenceProfile({
+      customer,
+      signals: customerSignals,
+      opportunities: customerOpportunities,
+      communications: customerCommunications,
+    });
+
+    const recommendation = generateRecommendation(profile);
+    const review = determineReviewRequirement(recommendation);
+
+    const openOpportunity = customerOpportunities.find(
+      (opp) => !["won", "lost", "dormant"].includes(opp.stage),
+    );
+
+    const recommendationId = await persistRecommendation({
+      organizationId: DEMO_ORG_ID,
+      recommendation,
+      opportunityId: openOpportunity?.id ?? null,
+      status: review.requiresReview ? "pending-review" : "generated",
+      reviewState: review.recommendedState,
+      reviewReasons: review.reasons,
+    });
+
+    // Apply a deterministic review decision to recommendations that do not
+    // require review, and to a rotating subset of those that do, so the queue
+    // shows every state. Recommendations that require review and are not acted
+    // on remain pending.
+    let decision: ReviewDecision | null = null;
+    if (!review.requiresReview) {
+      decision = "approved";
+    } else if (index % 4 === 0) {
+      decision = "rejected";
+    } else if (index % 4 === 1) {
+      decision = "escalated";
+    }
+
+    if (decision) {
+      const reviewer = reviewers[index % reviewers.length];
+      await recordReviewDecision({
+        organizationId: DEMO_ORG_ID,
+        recommendationId,
+        reviewerId: reviewer.id,
+        reviewerName: reviewer.name,
+        decision,
+        notes:
+          decision === "approved"
+            ? "Confidence and consent support the recommendation."
+            : decision === "rejected"
+              ? "Held back pending more signal."
+              : "Escalated to a senior reviewer.",
+      });
+    }
+
+    index += 1;
+  }
+}
+
 async function main() {
   await reset();
   await seedOrganization();
@@ -534,6 +614,7 @@ async function main() {
   await seedPolicyDecisions();
   await seedGeneratedPopulations();
   await seedWorkflowRuns();
+  await seedAIRecommendations();
 
   const [
     customerCount,
@@ -543,6 +624,8 @@ async function main() {
     outcomeCount,
     attributionCount,
     missedCount,
+    recommendationCount,
+    reviewDecisionCount,
   ] = await Promise.all([
     prisma.customer.count(),
     prisma.signal.count(),
@@ -551,10 +634,12 @@ async function main() {
     prisma.outcomeEvent.count(),
     prisma.revenueAttribution.count(),
     prisma.missedOpportunityEstimate.count(),
+    prisma.aIRecommendation.count(),
+    prisma.aIReviewDecision.count(),
   ]);
 
   console.log(
-    `Seed complete: ${customerCount} customers, ${signalCount} signals, ${opportunityCount} opportunities, ${workflowCount} workflow runs, ${outcomeCount} outcome events, ${attributionCount} attributions, ${missedCount} missed estimates.`,
+    `Seed complete: ${customerCount} customers, ${signalCount} signals, ${opportunityCount} opportunities, ${workflowCount} workflow runs, ${outcomeCount} outcome events, ${attributionCount} attributions, ${missedCount} missed estimates, ${recommendationCount} AI recommendations, ${reviewDecisionCount} review decisions.`,
   );
 }
 

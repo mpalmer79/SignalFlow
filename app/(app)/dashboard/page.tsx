@@ -3,11 +3,15 @@ import Link from "next/link";
 import {
   Banknote,
   Bell,
+  BrainCircuit,
   CheckCircle2,
+  Gauge,
   RotateCcw,
   Sparkles,
   ShieldAlert,
+  ShieldQuestion,
   Target,
+  ThumbsDown,
   TrendingDown,
   TrendingUp,
   Workflow,
@@ -53,6 +57,7 @@ export default async function DashboardPage() {
     intelligence,
     workflow,
     revenue,
+    ai,
   } = await getDashboardData(context);
 
   const showcase = await getShowcaseSummary(context);
@@ -321,6 +326,60 @@ export default async function DashboardPage() {
             label="Policy blocks with revenue impact"
             value={String(revenue.criticalMissed)}
             hint="Critical missed estimates"
+            icon={ShieldAlert}
+            tone="warning"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">AI recommendations</h2>
+          <Link
+            href="/ai-center"
+            className="text-xs text-primary hover:underline"
+          >
+            View AI center
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <MetricCard
+            label="Recommendations generated"
+            value={String(ai.total)}
+            hint="Deterministic, provider free"
+            icon={BrainCircuit}
+          />
+          <MetricCard
+            label="Pending review"
+            value={String(ai.pendingReview)}
+            hint="Awaiting a human decision"
+            icon={ShieldQuestion}
+            tone="warning"
+          />
+          <MetricCard
+            label="Average confidence"
+            value={String(ai.averageConfidence)}
+            hint="0 to 100"
+            icon={Gauge}
+          />
+          <MetricCard
+            label="Approved recommendations"
+            value={String(ai.approved)}
+            hint="Cleared by human review"
+            icon={CheckCircle2}
+            tone="success"
+          />
+          <MetricCard
+            label="Rejected recommendations"
+            value={String(ai.rejected)}
+            hint="Declined by human review"
+            icon={ThumbsDown}
+            tone="warning"
+          />
+          <MetricCard
+            label="High-risk recommendations"
+            value={String(ai.highRisk)}
+            hint="Confidence below 50"
             icon={ShieldAlert}
             tone="warning"
           />

@@ -170,3 +170,71 @@ Links a user to an organization with a role. Fields: id, userId, organizationId,
 Every business model carries an organizationId with an index and a foreign key relation to Organization with onDelete Cascade: Customer, ContactMethod, ConsentRecord, Signal, Opportunity, Communication, AuditEvent, PolicyDecision, RiskFlag, WorkflowRun, WorkflowAction, WorkflowResult, OutcomeEvent, RevenueAttribution, StageTransition, WorkflowEffectivenessSnapshot, and MissedOpportunityEstimate. VerticalPack is intentionally global shared configuration and is not organization scoped. AuditEvent customerId is nullable so organization lifecycle events (membership and authorization) can be recorded without a customer.
 
 The Phase 6 migration is backfill safe: it inserts the demo organization, adds organizationId as nullable, backfills existing rows, then enforces NOT NULL. A follow up migration adds the foreign key relations. See MULTI_TENANCY.md and AUTHORIZATION.md for the access model.
+
+## Phase 7 AI entities
+
+Phase 7 adds three organization scoped AI entities. Every record carries an
+organizationId and cascades on organization delete. Domain enums use hyphens and
+Prisma enums use underscores, with converters in the AI repository.
+
+### AIRecommendation
+
+```text
+id                stable identifier
+organizationId    owning organization
+customerId        customer the recommendation is about
+opportunityId     related opportunity, optional
+recommendationType one of the deterministic recommendation types
+recommendationLabel human readable action label
+confidence        integer score from 0 to 100
+confidenceTier    Very High, High, Moderate, or Low
+provider          producing provider, deterministic.mock today
+status            lifecycle status (draft to archived)
+reviewState       pending_review, approved, rejected, needs_revision, escalated
+createdAt         creation timestamp
+```
+
+### AIExplanation
+
+```text
+id                stable identifier
+organizationId    owning organization
+recommendationId  the explained recommendation
+explanation       the recommended action statement
+reasoningFactors  ordered reasoning factors
+supportingSignals signals that support the recommendation
+riskConsiderations risks a reviewer should weigh
+createdAt         creation timestamp
+```
+
+### AIReviewDecision
+
+```text
+id                stable identifier
+organizationId    owning organization
+recommendationId  the reviewed recommendation
+reviewerId        reviewer identity from server context
+reviewerName      reviewer display name
+decision          approved, rejected, needs-revision, or escalated
+notes             reviewer notes
+createdAt         decision timestamp
+```
+
+### Enums
+
+```text
+AIRecommendationStatus   draft, generated, pending_review, approved, rejected, executed, archived
+AIReviewState            pending_review, approved, rejected, needs_revision, escalated
+AIReviewDecisionType     approved, rejected, needs_revision, escalated
+```
+
+### Audit event types
+
+```text
+AI_RECOMMENDATION_CREATED
+AI_RECOMMENDATION_APPROVED
+AI_RECOMMENDATION_REJECTED
+AI_EXPLANATION_GENERATED
+AI_REVIEW_REQUIRED
+AI_REVIEW_COMPLETED
+```

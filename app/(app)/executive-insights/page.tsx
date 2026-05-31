@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import {
   Banknote,
+  BrainCircuit,
   Crown,
   Droplets,
   Gauge,
   RotateCcw,
+  ShieldQuestion,
   Signal,
+  ThumbsUp,
   TriangleAlert,
 } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
@@ -26,7 +29,13 @@ export default async function ExecutiveInsightsPage() {
   if (denied) return denied;
 
   const insights = await getExecutiveInsights(context);
-  const { summary } = insights;
+  const { summary, ai } = insights;
+  const trustedTypeLabel = ai.mostTrustedType
+    ? `${ai.mostTrustedType.recommendationType.replace(/_/g, " ").toLowerCase()} (${ai.mostTrustedType.approvalRate}%)`
+    : "Not enough data";
+  const topVerticalLabel = ai.highestConfidenceVertical
+    ? `${ai.highestConfidenceVertical.vertical.replace("-", " ")} (${ai.highestConfidenceVertical.averageConfidence})`
+    : "Not enough data";
 
   return (
     <>
@@ -221,6 +230,124 @@ export default async function ExecutiveInsightsPage() {
             ))}
           </CardContent>
         </Card>
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-sm font-semibold">AI governance</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard
+            label="Recommendations generated"
+            value={String(ai.total)}
+            hint="Deterministic, provider free"
+            icon={BrainCircuit}
+          />
+          <MetricCard
+            label="Approval rate"
+            value={`${ai.approvalRate}%`}
+            hint="Of reviewed recommendations"
+            icon={ThumbsUp}
+            tone="success"
+          />
+          <MetricCard
+            label="Average confidence"
+            value={String(ai.averageConfidence)}
+            hint="0 to 100"
+            icon={Gauge}
+          />
+          <MetricCard
+            label="Review bottleneck"
+            value={String(ai.reviewBottleneck)}
+            hint={`${ai.pendingReview} pending, ${ai.escalated} escalated`}
+            icon={ShieldQuestion}
+            tone="warning"
+          />
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card>
+            <CardContent className="space-y-2 p-5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success">
+                <ThumbsUp className="h-5 w-5" />
+              </span>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Most trusted recommendation type
+              </p>
+              <p className="text-sm font-semibold capitalize">
+                {trustedTypeLabel}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="space-y-2 p-5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Crown className="h-5 w-5" />
+              </span>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Highest confidence vertical
+              </p>
+              <p className="text-sm font-semibold capitalize">
+                {topVerticalLabel}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="space-y-2 p-5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-warning/10 text-warning">
+                <ShieldQuestion className="h-5 w-5" />
+              </span>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Recommendations awaiting review
+              </p>
+              <p className="text-sm font-semibold">
+                {ai.pendingReview} pending, {ai.escalated} escalated
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recommendation effectiveness by type</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {ai.byType.map((row) => (
+                <div
+                  key={row.recommendationType}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <span className="text-sm capitalize">
+                    {row.recommendationType.replace(/_/g, " ").toLowerCase()}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {row.approved} of {row.total} approved
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Confidence by vertical</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {ai.byVertical.map((row) => (
+                <div
+                  key={row.vertical}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <span className="text-sm capitalize">
+                    {row.vertical.replace("-", " ")}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {row.averageConfidence} average over {row.count}
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </>
   );

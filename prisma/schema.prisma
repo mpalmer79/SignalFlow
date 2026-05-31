@@ -103,6 +103,37 @@ enum AuditEventType {
   AUTHORIZATION_CHECK_FAILED
   ROLE_ASSIGNED
   MEMBERSHIP_CREATED
+  AI_RECOMMENDATION_CREATED
+  AI_RECOMMENDATION_APPROVED
+  AI_RECOMMENDATION_REJECTED
+  AI_EXPLANATION_GENERATED
+  AI_REVIEW_REQUIRED
+  AI_REVIEW_COMPLETED
+}
+
+enum AIRecommendationStatus {
+  draft
+  generated
+  pending_review
+  approved
+  rejected
+  executed
+  archived
+}
+
+enum AIReviewState {
+  pending_review
+  approved
+  rejected
+  needs_revision
+  escalated
+}
+
+enum AIReviewDecisionType {
+  approved
+  rejected
+  needs_revision
+  escalated
 }
 
 enum OutcomeEventType {
@@ -239,6 +270,9 @@ model Organization {
   stageTransitions       StageTransition[]
   effectivenessSnapshots WorkflowEffectivenessSnapshot[]
   missedOpportunities    MissedOpportunityEstimate[]
+  aiRecommendations      AIRecommendation[]
+  aiExplanations         AIExplanation[]
+  aiReviewDecisions      AIReviewDecision[]
   createdAt              DateTime                        @default(now())
   updatedAt              DateTime                        @updatedAt
 }
@@ -304,6 +338,7 @@ model Customer {
   outcomeEvents       OutcomeEvent[]
   attributions        RevenueAttribution[]
   missedOpportunities MissedOpportunityEstimate[]
+  aiRecommendations   AIRecommendation[]
   createdAt           DateTime                    @default(now())
   updatedAt           DateTime                    @updatedAt
 
@@ -386,6 +421,7 @@ model Opportunity {
   attributions        RevenueAttribution[]
   stageTransitions    StageTransition[]
   missedOpportunities MissedOpportunityEstimate[]
+  aiRecommendations   AIRecommendation[]
   createdAt           DateTime                    @default(now())
   updatedAt           DateTime                    @updatedAt
 
@@ -627,4 +663,60 @@ model MissedOpportunityEstimate {
   @@index([customerId])
   @@index([severity])
   @@index([organizationId])
+}
+
+model AIRecommendation {
+  id                  String                 @id @default(cuid())
+  organizationId      String
+  organization        Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customerId          String
+  customer            Customer               @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  opportunityId       String?
+  opportunity         Opportunity?           @relation(fields: [opportunityId], references: [id])
+  recommendationType  String
+  recommendationLabel String
+  confidence          Int
+  confidenceTier      String
+  provider            String
+  status              AIRecommendationStatus @default(generated)
+  reviewState         AIReviewState          @default(pending_review)
+  explanation         AIExplanation?
+  reviewDecisions     AIReviewDecision[]
+  createdAt           DateTime               @default(now())
+
+  @@index([organizationId])
+  @@index([customerId])
+  @@index([reviewState])
+  @@index([status])
+}
+
+model AIExplanation {
+  id                 String           @id @default(cuid())
+  organizationId     String
+  organization       Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  recommendationId   String           @unique
+  recommendation     AIRecommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  explanation        String
+  reasoningFactors   String[]
+  supportingSignals  String[]
+  riskConsiderations String[]
+  createdAt          DateTime         @default(now())
+
+  @@index([organizationId])
+}
+
+model AIReviewDecision {
+  id               String               @id @default(cuid())
+  organizationId   String
+  organization     Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  recommendationId String
+  recommendation   AIRecommendation     @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  reviewerId       String
+  reviewerName     String
+  decision         AIReviewDecisionType
+  notes            String
+  createdAt        DateTime             @default(now())
+
+  @@index([organizationId])
+  @@index([recommendationId])
 }

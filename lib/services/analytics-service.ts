@@ -8,6 +8,12 @@ import {
 import { findAllOpportunities } from "@/lib/repositories/opportunity-repository";
 import { countReactivations } from "@/lib/repositories/stage-transition-repository";
 import { getRevenueOverview } from "./revenue-engine-service";
+import {
+  aggregateRecommendations,
+  getRecommendationAnalytics,
+  type TypeApproval,
+  type VerticalConfidence,
+} from "@/lib/repositories/ai-repository";
 import { detectRevenueLeaks } from "@/lib/analytics/revenue-leak-engine";
 import { buildExecutiveSummary } from "@/lib/analytics/executive-summary";
 import { computeWorkflowInsights } from "@/lib/analytics/workflow-insights";
@@ -22,6 +28,25 @@ import type {
 } from "@/lib/types/analytics";
 import type { AttributionInsight } from "@/lib/analytics/attribution-insights";
 
+export interface AITrustedType {
+  recommendationType: string;
+  total: number;
+  approvalRate: number;
+}
+
+export interface AIExecutiveInsights {
+  total: number;
+  averageConfidence: number;
+  approvalRate: number;
+  pendingReview: number;
+  escalated: number;
+  reviewBottleneck: number;
+  mostTrustedType: AITrustedType | null;
+  highestConfidenceVertical: VerticalConfidence | null;
+  byType: TypeApproval[];
+  byVertical: VerticalConfidence[];
+}
+
 export interface ExecutiveInsights {
   summary: ExecutiveSummary;
   leaks: RevenueLeak[];
@@ -31,6 +56,7 @@ export interface ExecutiveInsights {
   mostExpensiveFailure: { title: string; missedValue: number } | null;
   opportunityInsights: OpportunityInsight[];
   attributionInsights: AttributionInsight[];
+  ai: AIExecutiveInsights;
 }
 
 export async function getExecutiveInsights(
@@ -46,6 +72,8 @@ export async function getExecutiveInsights(
     opportunities,
     reactivations,
     overview,
+    aiAggregate,
+    aiAnalytics,
   ] = await Promise.all([
     findAllWorkflowRuns(orgId),
     findAllEffectiveness(orgId),
@@ -55,7 +83,37 @@ export async function getExecutiveInsights(
     findAllOpportunities(orgId),
     countReactivations(orgId),
     getRevenueOverview(context),
+    aggregateRecommendations(orgId),
+    getRecommendationAnalytics(orgId),
   ]);
+
+  const decidedRecommendations = aiAggregate.approved + aiAggregate.rejected;
+  const ai: AIExecutiveInsights = {
+    total: aiAggregate.total,
+    averageConfidence: aiAggregate.averageConfidence,
+    approvalRate:
+      decidedRecommendations > 0
+        ? Math.round((aiAggregate.approved / decidedRecommendations) * 100)
+        : 0,
+    pendingReview: aiAggregate.pendingReview,
+    escalated: aiAggregate.escalated,
+    reviewBottleneck: aiAggregate.pendingReview + aiAggregate.escalated,
+    mostTrustedType:
+      aiAnalytics.byType
+        .filter((type) => type.total >= 3)
+        .map((type) => ({
+          recommendationType: type.recommendationType,
+          total: type.total,
+          approvalRate:
+            type.total > 0
+              ? Math.round((type.approved / type.total) * 100)
+              : 0,
+        }))
+        .sort((a, b) => b.approvalRate - a.approvalRate)[0] ?? null,
+    highestConfidenceVertical: aiAnalytics.byVertical[0] ?? null,
+    byType: aiAnalytics.byType,
+    byVertical: aiAnalytics.byVertical,
+  };
 
   const leaks = detectRevenueLeaks(missed);
   const workflowResult = computeWorkflowInsights(runs, effectiveness);
@@ -89,6 +147,7 @@ export async function getExecutiveInsights(
     mostExpensiveFailure: workflowResult.mostExpensiveFailure,
     opportunityInsights,
     attributionInsights,
+    ai,
   };
 }
 

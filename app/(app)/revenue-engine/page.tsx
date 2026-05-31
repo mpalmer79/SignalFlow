@@ -3,10 +3,13 @@ import Link from "next/link";
 import {
   ArrowRight,
   Banknote,
+  BrainCircuit,
+  ClipboardCheck,
   RotateCcw,
   Sparkles,
   TrendingDown,
   TrendingUp,
+  Workflow,
 } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { MetricCard } from "@/components/metric-card";
@@ -82,6 +85,44 @@ export default async function RevenueEnginePage() {
           icon={TrendingUp}
         />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>From AI recommendation to revenue</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/30 px-3 py-2">
+              <BrainCircuit className="h-4 w-4 text-primary" />
+              AI recommendation
+            </span>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/30 px-3 py-2">
+              <ClipboardCheck className="h-4 w-4 text-warning" />
+              Human review outcome
+            </span>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/30 px-3 py-2">
+              <Workflow className="h-4 w-4 text-primary" />
+              Workflow outcome
+            </span>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/30 px-3 py-2">
+              <Banknote className="h-4 w-4 text-success" />
+              Revenue attribution
+            </span>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            AI recommendations never become actions automatically. A human
+            approves each one before a workflow runs, and only executed workflows
+            attribute revenue. Open the{" "}
+            <Link href="/ai-center" className="text-primary hover:underline">
+              AI center
+            </Link>{" "}
+            to trace any recommendation through this path.
+          </p>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
