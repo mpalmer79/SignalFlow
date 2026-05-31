@@ -32,7 +32,31 @@ Key differences from a traditional CRM:
 
 ## Current status
 
-Phase 0 through Phase 5 are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, a workflow engine converts recommendations into governed simulated execution plans, an outcome engine turns those runs into measurable revenue outcomes, and a simulation environment lets a reviewer explore the platform across industries. There are still no live integrations, no authentication, no multi-tenancy, no outbound communication, and no external model calls. Everything is deterministic and computed locally.
+Phase 0 through Phase 6 are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, a workflow engine converts recommendations into governed simulated execution plans, an outcome engine turns those runs into measurable revenue outcomes, and a simulation environment lets a reviewer explore the platform across industries. Phase 6 adds multi-tenancy: organizations, users, memberships, role based access control, server side authorization, and organization scoped persistence, with Clerk as an optional authentication provider and a clearly labeled demo fallback. There are still no AI model calls, no outbound communication, and no provider integrations. Everything outside of optional authentication is deterministic and demo safe.
+
+## Phase 6 scope
+
+Phase 6 turns SignalFlow into a believable multi-tenant SaaS foundation, hardened to production readiness before the next feature phase.
+
+Phase 6 includes:
+
+- Organization, User, and Membership models with eight roles and three membership statuses
+- An organizationId on every business model, with an index and a foreign key relation to Organization
+- A backfill safe migration that succeeds against an empty or a non-empty local database
+- A deterministic, server side authorization layer with a fixed role to permission map
+- A request context resolved on the server, carrying user, organization, role, and source
+- Clerk as an optional auth provider, wired through middleware, the root layout, and client sign-in and sign-up routes
+- A demo auth context fallback so the app stays fully reviewable with no Clerk keys
+- Protected application routes with server side permission checks and clear unauthenticated and forbidden states
+- Organization scoped repositories, with pages reaching data only through services
+- A seeded demo organization with six demo users across the role range
+- A settings page showing organization profile, current auth context, members, roles and permissions, provider status, and security boundaries
+
+Authentication is the only live infrastructure, and it is optional. See AUTHORIZATION.md and MULTI_TENANCY.md for the design.
+
+### Clerk and demo fallback
+
+When NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY are set, Clerk middleware protects the app routes, the layout wraps the app in ClerkProvider, and the request context comes from the Clerk session and the user membership. When the keys are absent, the middleware is a pass through and a clearly labeled demo context resolves to the demo organization owner, so the application stays reviewable. Server side page guards and organization scoped repositories enforce access in both modes.
 
 ## Phase 5 scope
 
@@ -329,3 +353,5 @@ Repositories contain no UI or React code. Services contain business logic only. 
 - SCENARIO_ENGINE.md: scenario builder and storytelling design
 - SIMULATION_CENTER.md: large simulation design
 - EXECUTIVE_INSIGHTS.md: executive view and revenue leak detection
+- AUTHORIZATION.md: roles, permissions, route protection, and demo fallback
+- MULTI_TENANCY.md: organization model, scoping, and migration safety

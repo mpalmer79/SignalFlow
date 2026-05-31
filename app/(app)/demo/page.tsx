@@ -14,6 +14,10 @@ import { formatCurrency } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Demo Walkthrough" };
 
+// This walkthrough is intentionally public. It renders a single deterministic
+// scenario and reads no organization scoped data, so it carries no guard and is
+// excluded from the middleware protected prefixes. It is reachable without a
+// session as public demo content.
 const STEP = "flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 font-mono text-xs text-primary";
 
 export default function DemoPage() {

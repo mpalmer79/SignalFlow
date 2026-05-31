@@ -2,8 +2,17 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Protected application routes. Public routes (marketing home, demo, scenarios,
-// simulation center, sign-in, sign-up) are intentionally excluded.
+// Protected application routes. These require an authenticated session when
+// Clerk is configured, and a permission check on every page in both modes.
+//
+// Intentionally public routes: the marketing home (/), the guided product
+// walkthrough (/demo), and the auth routes (/sign-in, /sign-up). The demo
+// walkthrough renders a single deterministic scenario and reads no organization
+// scoped data, so it stays public.
+//
+// The scenarios and simulation center pages live inside the authenticated
+// workspace shell and are protected here and by page guards, so they are not
+// public even though their underlying engines are deterministic.
 const PROTECTED_PREFIXES = [
   "/dashboard",
   "/intelligence",
@@ -18,6 +27,8 @@ const PROTECTED_PREFIXES = [
   "/audit",
   "/settings",
   "/executive-insights",
+  "/scenarios",
+  "/simulation-center",
 ];
 
 export function isProtected(pathname: string): boolean {

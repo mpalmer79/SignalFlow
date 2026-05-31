@@ -150,3 +150,23 @@ An estimate of revenue at risk.
 - An opportunity has many stage transitions, outcome events, attributions, and missed opportunity estimates.
 - A customer has many outcome events, attributions, and missed opportunity estimates.
 - Outcome and attribution activity also produces audit events for traceability.
+
+## Tenancy entities (Phase 6)
+
+### Organization
+
+A tenant. Fields: id, name, slug (unique), industry, timestamps. Has many memberships and many business records.
+
+### User
+
+An authenticated or demo user. Fields: id, optional clerkUserId (unique), email (unique), name, timestamps. A user may exist without a Clerk account, which supports demo users. Has many memberships.
+
+### Membership
+
+Links a user to an organization with a role. Fields: id, userId, organizationId, role, status, timestamps. Unique on (userId, organizationId), indexed on organizationId. Role is one of OWNER, ADMIN, MANAGER, SALES_USER, SERVICE_USER, MARKETING_USER, COMPLIANCE_REVIEWER, VIEWER. Status is ACTIVE, INVITED, or SUSPENDED.
+
+## Organization scoping (Phase 6)
+
+Every business model carries an organizationId with an index and a foreign key relation to Organization with onDelete Cascade: Customer, ContactMethod, ConsentRecord, Signal, Opportunity, Communication, AuditEvent, PolicyDecision, RiskFlag, WorkflowRun, WorkflowAction, WorkflowResult, OutcomeEvent, RevenueAttribution, StageTransition, WorkflowEffectivenessSnapshot, and MissedOpportunityEstimate. VerticalPack is intentionally global shared configuration and is not organization scoped. AuditEvent customerId is nullable so organization lifecycle events (membership and authorization) can be recorded without a customer.
+
+The Phase 6 migration is backfill safe: it inserts the demo organization, adds organizationId as nullable, backfills existing rows, then enforces NOT NULL. A follow up migration adds the foreign key relations. See MULTI_TENANCY.md and AUTHORIZATION.md for the access model.

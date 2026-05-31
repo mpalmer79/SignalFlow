@@ -9,21 +9,22 @@ import { ScenarioTimeline } from "@/components/scenario/scenario-timeline";
 import { WorkflowPlanView } from "@/components/workflow/workflow-plan-view";
 import { IntelligenceProfile } from "@/components/intelligence/intelligence-profile";
 import { OutcomeEvents } from "@/components/revenue/outcome-events";
-import { getScenarioResult, getScenarios } from "@/lib/services/scenario-service";
+import { getScenarioResult } from "@/lib/services/scenario-service";
 import { attributionStyles, severityStyles } from "@/lib/config/outcome-status";
+import { guardPage } from "@/lib/auth/guard-page";
 import { formatCurrency } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Scenario" };
+export const dynamic = "force-dynamic";
 
-export function generateStaticParams() {
-  return getScenarios().map((scenario) => ({ id: scenario.id }));
-}
-
-export default function ScenarioDetailPage({
+export default async function ScenarioDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
+  const { denied } = await guardPage("VIEW_SCENARIOS");
+  if (denied) return denied;
+
   const result = getScenarioResult(params.id);
 
   if (!result) {
