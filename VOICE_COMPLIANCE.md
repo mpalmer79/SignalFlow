@@ -57,10 +57,16 @@ keeps the strongest protection in force.
 
 ## What proceeds to a call
 
-Only an allowed plan proceeds to a simulated call. A blocked plan records its
-compliance decision and a blocked reason, but never produces a call. A
-needs-review plan is surfaced in the voice command center for a human to act
-on; in the seed it is recorded with its review requirement.
+Only an allowed plan proceeds to a simulated call. The simulation service
+checks `compliance.status === "allowed"` before producing any call, transcript,
+or outcome. The seed enforces this invariant, and a database check confirms
+zero calls exist on plans whose compliance is blocked or needs-review.
+
+A blocked plan records its compliance decision and a blocked reason, but never
+produces a call, a transcript, or an outcome. A needs-review plan is surfaced
+in the voice command center and on the AI review queue page; it stays in the
+needs-review state until a human approves it. It is never reported as
+completed.
 
 ## Audit trail
 

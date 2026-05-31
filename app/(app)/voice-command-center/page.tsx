@@ -42,9 +42,28 @@ export default async function VoiceCommandCenterPage() {
     <>
       <SectionHeading
         title="Voice command center"
-        description="Simulated voice follow-up operations. Voice is fully simulated. No calls are placed, no provider is called, and no telephony is used. Every plan passes a deterministic compliance check before a call is simulated."
+        description="Simulated voice follow-up operations. Every plan passes a deterministic compliance check before a call is simulated."
         actions={<Badge variant="warning">Simulated, demo safe</Badge>}
       />
+
+      <Card className="border-warning/30 bg-warning/5">
+        <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-start sm:gap-3">
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-warning">
+              Voice is fully simulated
+            </p>
+            <p className="text-sm text-warning/90">
+              No calls are placed. No telephony provider is integrated and no
+              network call is made. Every plan, transcript, outcome, and
+              attribution shown below is generated deterministically from
+              persisted demo data. Future providers may include ElevenLabs,
+              OpenAI Realtime, Twilio, Retell, or Vapi, but none are integrated
+              today.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <MetricCard

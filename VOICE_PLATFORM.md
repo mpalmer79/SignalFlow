@@ -160,6 +160,15 @@ voice influenced revenue.
 
 Both require the VIEW_VOICE permission.
 
+## Review queue integration
+
+Voice plans that need human review reuse the same governance model as AI
+recommendations. The AI review queue page surfaces a dedicated card for voice
+plans that are in the needs-review state, with each plan's purpose, vertical,
+priority, and the reason a human must act. This avoids duplicating the review
+concept across the platform. A voice plan is never simulated as completed
+unless its compliance verdict is `allowed`.
+
 ## Why providers remain mocked
 
 The goal of Phase 9 is to prove the architecture and governance model for voice

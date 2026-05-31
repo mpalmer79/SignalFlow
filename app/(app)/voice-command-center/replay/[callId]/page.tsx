@@ -70,6 +70,22 @@ export default async function VoiceReplayPage({
         }
       />
 
+      <Card className="border-warning/30 bg-warning/5">
+        <CardContent className="flex items-start gap-3 p-4">
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-warning">
+              Simulated voice replay
+            </p>
+            <p className="text-sm text-warning/90">
+              This is a deterministic reconstruction of a simulated voice
+              follow-up. No call was placed, no audio was generated, no
+              telephony was used, and no provider was contacted.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>
           <CardHeader>

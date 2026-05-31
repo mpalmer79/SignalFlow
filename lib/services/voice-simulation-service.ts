@@ -74,10 +74,12 @@ export async function simulateAndPersistVoiceForCustomer(args: {
   );
   const recommendationId = recommendations[0]?.id ?? null;
 
-  // Only simulate the call when compliance allows it. A blocked plan records
-  // its compliance decision but never produces a call.
+  // Only simulate the call when compliance fully allows it. A blocked plan
+  // records its compliance decision but never produces a call. A needs-review
+  // plan also does not produce a call: it waits for a human approval, so it
+  // never appears as completed in the demo until a reviewer acts.
   let simulation: Parameters<typeof persistVoicePlan>[0]["simulation"] = null;
-  if (plan.compliance.status !== "blocked") {
+  if (plan.compliance.status === "allowed") {
     const script = getVoiceScript(plan.recommendedScriptType);
     const call = simulateVoiceCall(plan, input);
     const transcript = generateTranscript(plan, script, call, input);

@@ -71,9 +71,20 @@ recommendation, and the same conditions always produce the same plan, call,
 transcript, outcome, and attribution. Nothing is sent, no provider is called,
 and no secret is required.
 
+## Eligibility for simulation
+
+A call is simulated only when the plan's compliance verdict is `allowed`. A
+blocked plan never produces a call, a transcript, or an outcome. A needs-review
+plan also does not produce a call until a human approves it: this keeps the
+demo honest about the human governance model. A database check after seeding
+confirms zero calls exist for plans whose compliance is blocked or needs-review.
+
 ## Seed coverage
 
 The seed generates voice plans across every customer and every vertical,
-producing a spread of allowed, blocked, and needs-review plans, and a range of
-call outcomes including appointment scheduled, interested, callback requested,
-human follow-up, voicemail, no answer, and compliance stop.
+producing a deterministic spread of allowed, blocked, and needs-review plans
+along with a range of call outcomes across the allowed pool, including
+appointment scheduled, customer interested, callback requested, customer not
+interested, and needs human follow-up. Blocked plans contribute the compliance
+stop and missing voice consent states, surfaced through the voice command
+center rather than through a simulated transcript.
