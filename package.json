@@ -5,20 +5,21 @@
   "description": "SignalFlow: AI-Powered Revenue Operating System",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
+    "postinstall": "prisma generate",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset",
-    "db:seed": "prisma db seed",
-    "db:studio": "prisma studio",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "scan:safety": "tsx scripts/scan-safety.ts",
-    "check:architecture": "tsx scripts/check-architecture-boundaries.ts"
+    "check:architecture": "tsx scripts/check-architecture-boundaries.ts",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

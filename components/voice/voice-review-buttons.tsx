@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
   reviewVoicePlanAction,
@@ -13,6 +13,10 @@ const initialState: VoiceReviewActionState = { status: "idle", message: "" };
 // submitted to a server action that enforces authorization and records an audit
 // event. Approving makes the plan eligible for simulation under the existing
 // rules; nothing is sent and no call is placed.
+//
+// This uses the stable React 18 hooks useState and useTransition and calls the
+// server action directly, so it does not depend on the React 19 form-action
+// hooks that the installed React version does not export.
 export function VoiceReviewButtons({
   voicePlanId,
   canReview,
@@ -20,10 +24,8 @@ export function VoiceReviewButtons({
   voicePlanId: string;
   canReview: boolean;
 }) {
-  const [state, formAction, pending] = useActionState(
-    reviewVoicePlanAction,
-    initialState,
-  );
+  const [state, setState] = useState<VoiceReviewActionState>(initialState);
+  const [pending, startTransition] = useTransition();
 
   if (!canReview) {
     return (
@@ -37,32 +39,35 @@ export function VoiceReviewButtons({
     return <p className="text-[11px] text-success">{state.message}</p>;
   }
 
+  const submit = (decision: "approve" | "reject") => {
+    startTransition(async () => {
+      const result = await reviewVoicePlanAction({ voicePlanId, decision });
+      setState(result);
+    });
+  };
+
   return (
-    <form action={formAction} className="flex flex-wrap items-center gap-2">
-      <input type="hidden" name="voicePlanId" value={voicePlanId} />
-      <input type="hidden" name="notes" value="Reviewed from the review queue." />
+    <div className="flex flex-wrap items-center gap-2">
       <Button
-        type="submit"
-        name="decision"
-        value="approve"
+        type="button"
         size="sm"
         disabled={pending}
+        onClick={() => submit("approve")}
       >
         Approve
       </Button>
       <Button
-        type="submit"
-        name="decision"
-        value="reject"
+        type="button"
         size="sm"
         variant="outline"
         disabled={pending}
+        onClick={() => submit("reject")}
       >
         Reject
       </Button>
       {state.status === "error" ? (
         <span className="text-[11px] text-danger">{state.message}</span>
       ) : null}
-    </form>
+    </div>
   );
 }

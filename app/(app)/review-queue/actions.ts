@@ -9,23 +9,26 @@ export type VoiceReviewActionState = {
   message: string;
 };
 
+export interface VoiceReviewInput {
+  voicePlanId: string;
+  decision: "approve" | "reject";
+}
+
 // Server action for a voice plan review decision. It resolves the request
 // context on the server, enforces authorization in the service, records the
-// decision with an audit event, and revalidates the affected pages. No call is
-// placed and no simulation is triggered.
+// decision with an audit event, and revalidates the affected pages. It is
+// called directly from the client with typed arguments, so it does not depend
+// on the React form-action hooks. No call is placed and no simulation is
+// triggered.
 export async function reviewVoicePlanAction(
-  _prev: VoiceReviewActionState,
-  formData: FormData,
+  input: VoiceReviewInput,
 ): Promise<VoiceReviewActionState> {
   const context = await resolveRequestContext();
   if (!context) {
     return { status: "error", message: "You are not signed in." };
   }
 
-  const voicePlanId = String(formData.get("voicePlanId") ?? "");
-  const decision = String(formData.get("decision") ?? "");
-  const notes = String(formData.get("notes") ?? "");
-
+  const { voicePlanId, decision } = input;
   if (!voicePlanId || (decision !== "approve" && decision !== "reject")) {
     return { status: "error", message: "Invalid review request." };
   }
@@ -34,7 +37,7 @@ export async function reviewVoicePlanAction(
     context,
     voicePlanId,
     decision === "approve",
-    notes,
+    "Reviewed from the review queue.",
   );
 
   if (!result.ok) {
