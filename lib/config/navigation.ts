@@ -1,6 +1,7 @@
 import {
   Activity,
   Bell,
+  BrainCircuit,
   GitBranch,
   LayoutDashboard,
   MessageSquare,
@@ -26,6 +27,12 @@ export const primaryNav: NavItem[] = [
     href: "/dashboard",
     icon: LayoutDashboard,
     description: "Revenue command center overview",
+  },
+  {
+    label: "Intelligence",
+    href: "/intelligence",
+    icon: BrainCircuit,
+    description: "Customer intelligence graph and scores",
   },
   {
     label: "Signals",

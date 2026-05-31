@@ -1,15 +1,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { CustomerCard } from "@/components/customer-card";
 import { OpportunityCard } from "@/components/opportunity-card";
 import { Timeline } from "@/components/timeline";
+import { ScoreMeter } from "@/components/score-meter";
+import {
+  IntentBadge,
+  PriorityBadge,
+} from "@/components/intelligence/score-badges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCustomerProfile } from "@/lib/services/customer-service";
 
 export const metadata: Metadata = { title: "Customer" };
+export const dynamic = "force-dynamic";
 
 export default async function CustomerDetailPage({
   params,
@@ -22,7 +28,7 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
-  const { customer, opportunities, timeline } = profile;
+  const { customer, opportunities, timeline, intelligence } = profile;
 
   return (
     <>
@@ -53,6 +59,42 @@ export default async function CustomerDetailPage({
 
         <div className="space-y-6">
           <CustomerCard customer={customer} />
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between gap-2">
+                Intelligence
+                <Link
+                  href={`/intelligence/${customer.id}`}
+                  className="inline-flex items-center gap-1 text-xs font-normal text-primary hover:underline"
+                >
+                  Full profile
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <ScoreMeter
+                label="Intent"
+                score={intelligence.intentScore}
+                tone="intent"
+              />
+              <ScoreMeter
+                label="Opportunity"
+                score={intelligence.opportunityScore}
+                tone="opportunity"
+              />
+              <ScoreMeter
+                label="Engagement"
+                score={intelligence.engagementScore}
+                tone="engagement"
+              />
+              <div className="flex flex-wrap gap-2 pt-1">
+                <PriorityBadge priority={intelligence.priority} />
+                <IntentBadge intent={intelligence.intentLevel} />
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="space-y-3">
             <h2 className="text-sm font-semibold">Opportunities</h2>

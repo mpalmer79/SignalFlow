@@ -24,7 +24,20 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Empty, loading, and not found states with graceful failure handling
 - No authentication, no multi-tenancy, no live integrations, no secrets
 
-## Phase 2: Access and authentication
+## Phase 2: Customer intelligence (complete)
+
+- Signal Engine that normalizes, classifies, prioritizes, and enriches signals
+- Deterministic intent classification and a centralized scoring configuration
+- Intent, opportunity, and engagement scoring on a 0 to 100 scale
+- Opportunity Detection Engine with deterministic confidence
+- Next Best Action engine driven by scores, consent, and risk flags
+- Customer Intelligence Graph built from in-memory TypeScript objects
+- Customer Intelligence page and Signal Explorer
+- Dashboard intelligence sections and enriched customer timelines
+- Risk flag system that influences recommendations
+- No external model calls, no authentication, no live integrations, no secrets
+
+## Phase 3: Access and authentication
 
 - Add Clerk authentication and organization scoping
 - Enforce organization-level data isolation in the repository layer
@@ -32,7 +45,7 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Protected routes and server-side authorization
 - Keep all outbound communication mocked
 
-## Phase 3: Live providers behind interfaces
+## Phase 4: Live providers behind interfaces
 
 - Implement AI provider adapters (OpenAI, Anthropic Claude, Google Gemini)
 - Implement SMS and telephony adapters (Twilio)
@@ -41,21 +54,21 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Add provider configuration and credential handling
 - Gate live sends behind explicit organization settings
 
-## Phase 4: Orchestration engine
+## Phase 5: Orchestration engine
 
 - Real workflow execution with wait windows and fallbacks
 - Quiet hours and rate limiting enforced at send time
 - Human task queue with assignment and resolution
 - Opt-out handling that halts active workflows immediately
 
-## Phase 5: Intelligence and outcomes
+## Phase 6: Outcomes and analytics
 
-- Intent scoring models tuned per vertical
 - Outcome tracking tied to revenue
 - Reporting and analytics on signals, actions, and results
 - Feedback loops that improve next best action
+- Vertical-specific scoring refinements
 
-## Phase 6: Vertical expansion
+## Phase 7: Vertical expansion
 
 - Promote additional packs from research and design to production
 - Vertical-specific compliance rules and message libraries
