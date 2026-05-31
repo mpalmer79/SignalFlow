@@ -28,6 +28,10 @@ import {
   getMissedTotals,
 } from "@/lib/repositories/missed-opportunity-repository";
 import { getEffectivenessTotals } from "@/lib/repositories/workflow-effectiveness-repository";
+import {
+  aggregateVoice,
+  type VoiceAggregate,
+} from "@/lib/repositories/voice-repository";
 import { countReactivations } from "@/lib/repositories/stage-transition-repository";
 import { findRecentAuditEvents } from "@/lib/repositories/audit-repository";
 import {
@@ -119,6 +123,7 @@ export interface CommandCenterOverview {
   topVerticals: VerticalRevenueRow[];
   customers: Customer[];
   featuredJourney: FeaturedJourneySnapshot | null;
+  voice: VoiceAggregate;
 }
 
 // One ordered step in the customer mission replay. The kind drives the icon
@@ -215,9 +220,10 @@ export async function getCommandCenterOverview(
 
   const funnel: FunnelStage[] = buildFunnel(summary, attributions.length);
 
-  const [verticalMemory, featuredJourney] = await Promise.all([
+  const [verticalMemory, featuredJourney, voice] = await Promise.all([
     buildVerticalMemory(orgId),
     buildFeaturedJourney(orgId, customers, recommendations, workflowRuns),
+    aggregateVoice(orgId),
   ]);
 
   return {
@@ -232,6 +238,7 @@ export async function getCommandCenterOverview(
     topVerticals: verticalMemory,
     customers,
     featuredJourney,
+    voice,
   };
 }
 

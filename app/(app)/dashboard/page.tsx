@@ -7,6 +7,7 @@ import {
   BrainCircuit,
   CheckCircle2,
   Gauge,
+  PhoneCall,
   Radar,
   RotateCcw,
   Sparkles,
@@ -60,6 +61,7 @@ export default async function DashboardPage() {
     workflow,
     revenue,
     ai,
+    voice,
   } = await getDashboardData(context);
 
   const showcase = await getShowcaseSummary(context);
@@ -410,6 +412,61 @@ export default async function DashboardPage() {
             hint="Confidence below 50"
             icon={ShieldAlert}
             tone="warning"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Voice follow-up</h2>
+          <Link
+            href="/voice-command-center"
+            className="text-xs text-primary hover:underline"
+          >
+            View voice command center
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <MetricCard
+            label="Voice plans generated"
+            value={String(voice.totalPlans)}
+            hint="Simulated, no calls placed"
+            icon={PhoneCall}
+          />
+          <MetricCard
+            label="Voice calls simulated"
+            value={String(voice.totalCalls)}
+            hint="Deterministic simulations"
+            icon={PhoneCall}
+            tone="success"
+          />
+          <MetricCard
+            label="Voice calls blocked"
+            value={String(voice.blocked)}
+            hint="Held by voice compliance"
+            icon={ShieldAlert}
+            tone="warning"
+          />
+          <MetricCard
+            label="Calls needing review"
+            value={String(voice.needsReview)}
+            hint="Awaiting human approval"
+            icon={ShieldQuestion}
+            tone="warning"
+          />
+          <MetricCard
+            label="Appointments from voice"
+            value={String(voice.appointments)}
+            hint={`${voice.positiveOutcomes} positive outcomes`}
+            icon={CheckCircle2}
+            tone="success"
+          />
+          <MetricCard
+            label="Voice influenced revenue"
+            value={formatCurrency(voice.influencedRevenue)}
+            hint="Attributed from simulated calls"
+            icon={Banknote}
+            tone="success"
           />
         </div>
       </div>

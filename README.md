@@ -32,7 +32,7 @@ Key differences from a traditional CRM:
 
 ## Current status
 
-Phase 0 through Phase 8 are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, a workflow engine converts recommendations into governed simulated execution plans, an outcome engine turns those runs into measurable revenue outcomes, and a simulation environment lets a reviewer explore the platform across industries. Phase 6 adds multi-tenancy: organizations, users, memberships, role based access control, server side authorization, and organization scoped persistence, with Clerk as an optional authentication provider and a clearly labeled demo fallback. Phase 7 adds the AI Platform Layer: a provider abstraction, a deterministic recommendation engine, confidence and explanation engines, and a human review queue, all governed and audited. Phase 8 adds the Revenue Command Center, a flagship product experience that walks signal to intelligence to AI recommendation to human review to workflow to outcome to revenue on a single page, with a mission replay for any seeded customer. There are still no AI model calls, no outbound communication, and no provider integrations. Everything outside of optional authentication is deterministic and demo safe.
+Phase 0 through Phase 9 are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, a workflow engine converts recommendations into governed simulated execution plans, an outcome engine turns those runs into measurable revenue outcomes, and a simulation environment lets a reviewer explore the platform across industries. Phase 6 adds multi-tenancy: organizations, users, memberships, role based access control, server side authorization, and organization scoped persistence, with Clerk as an optional authentication provider and a clearly labeled demo fallback. Phase 7 adds the AI Platform Layer: a provider abstraction, a deterministic recommendation engine, confidence and explanation engines, and a human review queue, all governed and audited. Phase 8 adds the Revenue Command Center, a flagship product experience that walks signal to intelligence to AI recommendation to human review to workflow to outcome to revenue on a single page, with a mission replay for any seeded customer. Phase 9 adds the Voice AI Simulation Platform: a voice provider abstraction, a voice plan engine, a deterministic voice compliance engine, a call simulator, a transcript generator, and a voice outcome engine, surfaced through a voice command center and a voice replay. There are still no AI model calls, no outbound communication, no telephony, and no provider integrations. Everything outside of optional authentication is deterministic and demo safe.
 
 ## Phase 6 scope
 
@@ -359,6 +359,9 @@ Repositories contain no UI or React code. Services contain business logic only. 
 - REVIEW_QUEUE.md: human review process, review states, and audit trail
 - PROMPT_LIBRARY.md: structured prompt templates for future provider integration
 - REVENUE_COMMAND_CENTER.md: flagship command center page and mission replay
+- VOICE_PLATFORM.md: simulated voice platform, provider abstraction, and pipeline
+- VOICE_COMPLIANCE.md: voice compliance checks, verdicts, and audit
+- VOICE_SIMULATION.md: voice call simulation, transcripts, and outcome mapping
 
 ## Phase 7: AI Platform Layer
 
@@ -425,3 +428,26 @@ Highlights:
 
 No new providers, no live communication, no secrets, no architecture rewrites.
 See REVENUE_COMMAND_CENTER.md for the full design.
+
+## Phase 9: Voice AI Simulation Platform
+
+Phase 9 adds a complete simulated voice follow-up platform. It demonstrates how
+an AI native revenue system would handle voice follow-up without placing a
+single real call. Voice is fully simulated: no telephony provider is
+integrated, no calls are placed, no network calls are made, and no secrets are
+required.
+
+Highlights:
+
+- Voice provider abstraction with a deterministic mock implementation
+- Voice plan engine, voice compliance engine, voice script engine, call
+  simulator, transcript generator, and voice outcome engine
+- Voice persistence: voice plans, calls, transcripts, compliance decisions,
+  and call outcomes, all organization scoped
+- A voice command center at /app/voice-command-center and a voice replay at
+  /app/voice-command-center/replay/[callId]
+- Voice metrics on the dashboard and voice visibility on the revenue command
+  center
+- Eight voice audit event types
+
+Documentation: VOICE_PLATFORM.md, VOICE_COMPLIANCE.md, VOICE_SIMULATION.md.

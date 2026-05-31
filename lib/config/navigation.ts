@@ -11,6 +11,7 @@ import {
   Radar,
   MessageSquare,
   Package,
+  PhoneCall,
   PlayCircle,
   PresentationIcon,
   ScrollText,
@@ -95,6 +96,12 @@ export const primaryNav: NavItem[] = [
     href: "/review-queue",
     icon: ClipboardCheck,
     description: "Human review of AI recommendations",
+  },
+  {
+    label: "Voice Command Center",
+    href: "/voice-command-center",
+    icon: PhoneCall,
+    description: "Simulated voice follow-up operations",
   },
   {
     label: "Scenarios",

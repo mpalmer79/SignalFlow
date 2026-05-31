@@ -58,3 +58,21 @@ From Phase 6, access is governed server side. Authorization is deterministic and
 Authentication uses Clerk and is optional. When Clerk is not configured, a clearly labeled demo auth context keeps the application reviewable. The demo context is never treated as production authentication.
 
 This strengthens compliance: consent records, policy decisions, communications, and audit events are all organization scoped, so a compliance reviewer only ever sees their own organization. Outbound communication remains disabled for the same reasons as earlier phases. Phase 6 adds access and tenancy, not delivery, so there is still no live SMS, email, voice, or telephony, and no AI provider calls.
+
+## Voice compliance (Phase 9)
+
+Phase 9 adds a deterministic voice compliance engine. Voice is fully simulated:
+a passing check authorizes a simulated call, never a real one. No telephony
+provider is integrated and no call is placed.
+
+Before any call is simulated, the voice compliance engine evaluates a fixed set
+of checks and resolves one verdict: allowed, blocked, or needs review. Hard
+checks block the call: customer opted out, missing voice consent, quiet hours
+active, or the repeated no-response limit reached. Soft checks require human
+review: a compliance sensitive vertical such as legal intake or medical, an
+unapproved AI recommendation, or a critical risk flag. Hard blocks take
+precedence over review.
+
+A blocked plan never produces a call. Every plan records a compliance decision
+and writes the matching audit event. See VOICE_COMPLIANCE.md for the full
+design.

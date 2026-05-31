@@ -28,6 +28,7 @@ const READ_ONLY: Permission[] = [
   "VIEW_REVENUE",
   "VIEW_VERTICAL_PACKS",
   "VIEW_AI_RECOMMENDATIONS",
+  "VIEW_VOICE",
 ];
 
 // Deterministic role to permission mapping. The authorization core reads from
@@ -51,6 +52,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "VIEW_VERTICAL_PACKS",
     "VIEW_AI_RECOMMENDATIONS",
     "REVIEW_AI_RECOMMENDATIONS",
+    "VIEW_VOICE",
   ],
   SALES_USER: [
     "VIEW_DASHBOARD",
@@ -62,6 +64,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "VIEW_COMMUNICATIONS",
     "VIEW_WORKFLOWS",
     "VIEW_AI_RECOMMENDATIONS",
+    "VIEW_VOICE",
   ],
   SERVICE_USER: [
     "VIEW_DASHBOARD",
@@ -72,6 +75,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "VIEW_SIGNALS",
     "VIEW_COMMUNICATIONS",
     "VIEW_AI_RECOMMENDATIONS",
+    "VIEW_VOICE",
   ],
   MARKETING_USER: [
     "VIEW_DASHBOARD",
@@ -91,6 +95,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "VIEW_CUSTOMERS",
     "VIEW_AI_RECOMMENDATIONS",
     "REVIEW_AI_RECOMMENDATIONS",
+    "VIEW_VOICE",
   ],
   VIEWER: READ_ONLY,
 };

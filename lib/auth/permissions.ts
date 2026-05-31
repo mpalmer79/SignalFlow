@@ -21,6 +21,7 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   MANAGE_SETTINGS: "Manage organization settings",
   VIEW_AI_RECOMMENDATIONS: "View AI recommendations",
   REVIEW_AI_RECOMMENDATIONS: "Review AI recommendations",
+  VIEW_VOICE: "View voice platform",
 };
 
 export const ALL_PERMISSIONS = Object.keys(PERMISSION_LABELS) as Permission[];

@@ -238,3 +238,93 @@ AI_EXPLANATION_GENERATED
 AI_REVIEW_REQUIRED
 AI_REVIEW_COMPLETED
 ```
+
+## Phase 9 voice entities
+
+Phase 9 adds five organization scoped voice entities. Voice is fully simulated:
+these records describe simulated calls and never a real one. Domain enums use
+hyphens and Prisma enums use underscores, with converters in the voice
+repository.
+
+### VoicePlan
+
+```text
+id                stable identifier
+organizationId    owning organization
+customerId        customer the plan is for
+opportunityId     related opportunity, optional
+recommendationId  the AI recommendation that justified the plan, optional
+purpose           the call purpose (lead follow-up, appointment recovery, and so on)
+priority          immediate, high, standard, or low
+scriptType        the recommended vertical script
+status            planned, blocked, needs_review, ready, simulated, or archived
+complianceStatus  allowed, blocked, or needs_review
+blockedReason     the blocked reason, when blocked
+expectedOutcome   the deterministic expected call outcome
+requiresApproval  whether a human must approve before the call
+createdAt         creation timestamp
+```
+
+### VoiceCall
+
+```text
+id                stable identifier
+organizationId    owning organization
+voicePlanId       the plan that produced the call (unique)
+customerId        customer
+opportunityId     related opportunity, optional
+status            pending, simulated, blocked, no_answer, or completed
+connected         whether the simulated call connected
+durationSeconds   deterministic simulated duration
+startedAt         start timestamp
+completedAt       completion timestamp
+```
+
+### VoiceTranscript
+
+```text
+id                stable identifier
+organizationId    owning organization
+voiceCallId       the call the transcript belongs to (unique)
+transcript        the simulated transcript lines, serialized
+summary           a short summary
+createdAt         creation timestamp
+```
+
+### VoiceComplianceDecision
+
+```text
+id                stable identifier
+organizationId    owning organization
+voicePlanId       the plan the decision applies to (unique)
+decision          allowed, blocked, or needs_review
+reason            the deterministic reason
+createdAt         creation timestamp
+```
+
+### VoiceCallOutcome
+
+```text
+id                stable identifier
+organizationId    owning organization
+voiceCallId       the call the outcome belongs to (unique)
+customerId        customer
+opportunityId     related opportunity, optional
+outcomeType       the deterministic call outcome
+outcomeReason     a short reason
+attributedAmount  revenue attributed from the simulated call
+createdAt         creation timestamp
+```
+
+### Voice audit event types
+
+```text
+VOICE_PLAN_CREATED
+VOICE_COMPLIANCE_ALLOWED
+VOICE_COMPLIANCE_BLOCKED
+VOICE_COMPLIANCE_NEEDS_REVIEW
+VOICE_CALL_SIMULATED
+VOICE_TRANSCRIPT_CREATED
+VOICE_OUTCOME_CREATED
+VOICE_REVENUE_ATTRIBUTED
+```
