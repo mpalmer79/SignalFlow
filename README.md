@@ -355,3 +355,25 @@ Repositories contain no UI or React code. Services contain business logic only. 
 - EXECUTIVE_INSIGHTS.md: executive view and revenue leak detection
 - AUTHORIZATION.md: roles, permissions, route protection, and demo fallback
 - MULTI_TENANCY.md: organization model, scoping, and migration safety
+
+## Phase 7: AI Platform Layer
+
+SignalFlow now includes an AI native architecture that remains completely
+deterministic and provider free. The platform can answer what the AI would
+recommend, why, how confident it is, whether a human would approve it, and how
+the recommendation is audited. No AI provider is integrated, no network calls
+are made, and no secrets are required.
+
+Highlights:
+
+- AI provider abstraction with a deterministic mock implementation
+- Recommendation, confidence, and explanation engines
+- Human review queue with a deterministic review engine and lifecycle
+- Org scoped AI persistence and a full AI audit trail
+- AI Center and Review Queue pages, plus dashboard and executive AI metrics
+
+Documentation:
+
+- AI_PLATFORM.md for the architecture and provider abstraction
+- REVIEW_QUEUE.md for the human review process
+- PROMPT_LIBRARY.md for the structured prompt templates

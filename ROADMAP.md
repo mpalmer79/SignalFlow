@@ -115,3 +115,34 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Promote additional packs from research and design to production
 - Vertical-specific compliance rules and message libraries
 - Pack marketplace structure for faster onboarding
+
+## Phase 7: AI Platform Layer (complete)
+
+Phase 7 introduces an AI native architecture without introducing AI
+dependencies. The platform is deterministic and provider free. No provider is
+integrated, no network calls are made, and no secrets are required.
+
+Delivered in Phase 7:
+
+- AI provider abstraction with a deterministic mock implementation
+- AI recommendation engine, confidence engine, and explanation engine
+- Output validation for generated recommendations
+- Human review queue, review engine, and review decision state machine
+- Recommendation lifecycle with persisted state transitions
+- AI persistence models: AIRecommendation, AIExplanation, AIReviewDecision
+- Six AI audit event types covering creation, explanation, and review
+- Structured prompt library across all vertical packs
+- AI Center page and Review Queue page with permissions and navigation
+- Dashboard AI metrics and executive insight AI governance metrics
+- Revenue engine visibility of the recommendation to revenue path
+- Documentation: AI_PLATFORM.md, REVIEW_QUEUE.md, PROMPT_LIBRARY.md
+
+The pipeline now reads Signal to Intelligence to AI Recommendation to Human
+Review to Workflow to Outcome.
+
+## Recommended Phase 8 scope
+
+- Optional live provider adapters behind the existing AIProvider interface
+- Reviewer assignment, SLA tracking, and queue routing rules
+- Recommendation feedback loop that learns from review outcomes
+- Per recommendation revenue attribution once a workflow executes
