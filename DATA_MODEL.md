@@ -328,3 +328,79 @@ VOICE_TRANSCRIPT_CREATED
 VOICE_OUTCOME_CREATED
 VOICE_REVENUE_ATTRIBUTED
 ```
+
+## Phase 10 provider governance entities
+
+Phase 10 adds four organization scoped entities for provider governance. No
+entity stores a secret. Required secrets are documented in the provider
+registry as placeholder names only. Domain enums use hyphens and Prisma enums
+use underscores, with converters in the repositories.
+
+### ProviderConfiguration
+
+```text
+id                 stable identifier
+organizationId     owning organization
+providerKey        registry provider key
+category           AI_TEXT, AI_VOICE, TELEPHONY, SMS, EMAIL, or INTERNAL_MOCK
+status             mocked, future_ready, disabled, or blocked
+sandboxEnabled     whether sandbox simulation is enabled
+liveEnabled        whether live use is enabled, always false in this phase
+complianceApproved whether compliance has approved live use, false in this phase
+configuredAt       when the configuration was set, optional
+createdAt          creation timestamp
+updatedAt          update timestamp
+```
+
+Unique on (organizationId, providerKey). No API key or secret field exists.
+
+### FeatureFlag
+
+```text
+id                 stable identifier
+organizationId     owning organization
+flagKey            registry flag key
+enabled            the stored requested value
+reason             why the value was set
+createdAt          creation timestamp
+updatedAt          update timestamp
+```
+
+Unique on (organizationId, flagKey). The evaluator applies the deterministic
+policy on top of the stored value; live flags are locked off in demo mode.
+
+### ProviderAuditEvent
+
+```text
+id                 stable identifier
+organizationId     owning organization
+providerKey        the provider or platform the event concerns
+action             PROVIDER_SELECTED, PROVIDER_BLOCKED_BY_FLAG, and so on
+result             allowed, blocked, simulated, or recorded
+reason             a short reason
+createdAt          creation timestamp
+```
+
+### ProviderReadinessCheck
+
+```text
+id                  stable identifier
+organizationId      owning organization
+providerKey         registry provider key
+capability          the capability checked
+status              live_ready, sandbox_ready, or not_ready
+missingRequirements the unmet live requirements
+createdAt           creation timestamp
+```
+
+### Provider audit event types
+
+```text
+PROVIDER_SELECTED
+PROVIDER_BLOCKED_BY_FLAG
+PROVIDER_BLOCKED_BY_COMPLIANCE
+PROVIDER_SANDBOX_RUN
+PROVIDER_READINESS_CHECKED
+FEATURE_FLAG_EVALUATED
+FEATURE_FLAG_UPDATED
+```

@@ -12,6 +12,7 @@ import {
   RotateCcw,
   Sparkles,
   ShieldAlert,
+  ShieldCheck,
   ShieldQuestion,
   Target,
   ThumbsDown,
@@ -62,6 +63,7 @@ export default async function DashboardPage() {
     revenue,
     ai,
     voice,
+    providerStatus,
   } = await getDashboardData(context);
 
   const showcase = await getShowcaseSummary(context);
@@ -94,6 +96,42 @@ export default async function DashboardPage() {
             className="inline-flex items-center gap-1 self-start text-sm text-primary hover:underline sm:self-auto"
           >
             Launch command center
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success/10 text-success">
+              <ShieldCheck className="h-5 w-5" />
+            </span>
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold">Provider mode</p>
+                <Badge variant={providerStatus.demoMode ? "warning" : "success"}>
+                  {providerStatus.demoMode ? "Demo safe" : "Live configurable"}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Live providers are disabled and internal mock providers are
+                active. No secrets are stored and no network calls are made.
+              </p>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {providerStatus.liveFlags.map((flag) => (
+                  <Badge key={flag.key} variant="muted">
+                    {flag.label}: {flag.enabled ? "enabled" : "disabled"}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+          <Link
+            href="/provider-management"
+            className="inline-flex items-center gap-1 self-start text-sm text-primary hover:underline sm:self-auto"
+          >
+            Provider management
             <ArrowRight className="h-4 w-4" />
           </Link>
         </CardContent>

@@ -76,3 +76,21 @@ precedence over review.
 A blocked plan never produces a call. Every plan records a compliance decision
 and writes the matching audit event. See VOICE_COMPLIANCE.md for the full
 design.
+
+## Provider governance (Phase 10)
+
+Phase 10 adds a provider governance layer that gates any future provider use.
+It does not enable a real provider. No SDK is installed, no API is called, no
+network request is made, and no secret is stored.
+
+A provider is live ready only if the governing feature flag is allowed, the
+provider is configured, required secrets are documented, compliance approval is
+present, sandbox validation has passed, and live use is explicitly allowed. In
+this phase no external provider reaches live ready: every live feature flag is
+locked off while demo mode is active. Internal mock providers reach sandbox
+ready at most.
+
+Compliance approval is modeled as an explicit flag on the provider
+configuration and is one of the required gates before live use. Provider
+decisions, feature flag changes, and sandbox runs are recorded as provider
+audit events. See PROVIDER_MANAGEMENT.md and FEATURE_FLAGS.md for the design.

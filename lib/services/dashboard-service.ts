@@ -29,6 +29,9 @@ import {
   aggregateVoice,
   type VoiceAggregate,
 } from "@/lib/repositories/voice-repository";
+import { findFeatureFlagOverrides } from "@/lib/repositories/feature-flag-repository";
+import { evaluateFlags, isDemoMode } from "@/lib/feature-flags/feature-flag-engine";
+import type { FeatureFlagEvaluation } from "@/lib/feature-flags/feature-flag-types";
 import { listScenarios } from "@/lib/scenarios/scenario-runner";
 import { runAllSimulations } from "@/lib/simulation/simulation-results";
 import { verticalPackConfigs } from "@/lib/verticals/registry";
@@ -73,6 +76,12 @@ export interface DashboardData {
   revenue: RevenueOverviewMetrics;
   ai: AIAggregate;
   voice: VoiceAggregate;
+  providerStatus: ProviderStatusSummary;
+}
+
+export interface ProviderStatusSummary {
+  demoMode: boolean;
+  liveFlags: FeatureFlagEvaluation[];
 }
 
 export async function getDashboardData(
@@ -96,6 +105,7 @@ export async function getDashboardData(
     revenueOverview,
     ai,
     voiceMetrics,
+    flagOverrides,
   ] = await Promise.all([
     countSignals(orgId),
     countOpenOpportunities(orgId),
@@ -113,10 +123,15 @@ export async function getDashboardData(
     getRevenueOverview(context),
     aggregateRecommendations(orgId),
     aggregateVoice(orgId),
+    findFeatureFlagOverrides(orgId),
   ]);
 
   const blockedActions = allCommunications.filter(
     (comm) => comm.status === "blocked" || comm.status === "escalated",
+  );
+
+  const liveFlags = evaluateFlags(flagOverrides).filter(
+    (flag) => flag.governsLive,
   );
 
   return {
@@ -147,6 +162,10 @@ export async function getDashboardData(
     revenue: revenueOverview.metrics,
     ai,
     voice: voiceMetrics,
+    providerStatus: {
+      demoMode: isDemoMode(flagOverrides),
+      liveFlags,
+    },
   };
 }
 

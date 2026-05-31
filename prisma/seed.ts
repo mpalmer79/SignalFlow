@@ -32,6 +32,10 @@ import { determineReviewRequirement } from "../lib/review/review-engine";
 import { persistRecommendation, recordReviewDecision } from "../lib/repositories/ai-repository";
 import type { ReviewDecision } from "../lib/types/ai";
 import { simulateAndPersistVoiceForCustomer } from "../lib/services/voice-simulation-service";
+import { PROVIDER_REGISTRY } from "../lib/providers/provider-registry";
+import { FEATURE_FLAGS } from "../lib/feature-flags/feature-flag-registry";
+import { evaluateFlags } from "../lib/feature-flags/feature-flag-engine";
+import { checkReadiness } from "../lib/providers/provider-readiness";
 
 const prisma = new PrismaClient();
 
@@ -104,6 +108,10 @@ function toDbEnum(value: string): string {
 async function reset() {
   // Delete in dependency order. Cascades cover most of this, but explicit
   // deletes keep reseeding deterministic.
+  await prisma.providerReadinessCheck.deleteMany();
+  await prisma.providerAuditEvent.deleteMany();
+  await prisma.featureFlag.deleteMany();
+  await prisma.providerConfiguration.deleteMany();
   await prisma.voiceCallOutcome.deleteMany();
   await prisma.voiceTranscript.deleteMany();
   await prisma.voiceComplianceDecision.deleteMany();
@@ -638,6 +646,96 @@ async function seedVoicePlans() {
   }
 }
 
+// Seed the provider governance layer: default feature flags, a provider
+// configuration row per provider, and deterministic readiness checks. No
+// secrets are stored and no provider is enabled for live use. Internal mock
+// providers are marked sandbox enabled; external providers stay future ready.
+async function seedProviderReadiness() {
+  // Default feature flags from the registry. Live flags stay disabled.
+  for (const flag of FEATURE_FLAGS) {
+    await prisma.featureFlag.create({
+      data: {
+        organizationId: DEMO_ORG_ID,
+        flagKey: flag.key,
+        enabled: flag.defaultEnabled,
+        reason: flag.defaultEnabled
+          ? "Enabled by default."
+          : "Disabled by default. Live use is locked off in demo mode.",
+      },
+    });
+  }
+
+  // Provider configurations. Internal mocks are sandbox enabled; external
+  // providers are registered but not configured for live use.
+  for (const provider of PROVIDER_REGISTRY) {
+    const isMock = provider.category === "INTERNAL_MOCK";
+    await prisma.providerConfiguration.create({
+      data: {
+        organizationId: DEMO_ORG_ID,
+        providerKey: provider.providerKey,
+        category: provider.category.replace(/-/g, "_") as never,
+        status: provider.status.replace(/-/g, "_") as never,
+        sandboxEnabled: isMock,
+        liveEnabled: false,
+        complianceApproved: false,
+        configuredAt: isMock ? new Date() : null,
+      },
+    });
+  }
+
+  // Deterministic readiness checks across every provider capability.
+  const overrides = FEATURE_FLAGS.map((flag) => ({
+    key: flag.key,
+    enabled: flag.defaultEnabled,
+    reason: "seed",
+  }));
+  const flagByKey = new Map(evaluateFlags(overrides).map((f) => [f.key, f]));
+
+  for (const provider of PROVIDER_REGISTRY) {
+    const isMock = provider.category === "INTERNAL_MOCK";
+    for (const capability of provider.capabilities) {
+      const result = checkReadiness(provider.providerKey, capability, {
+        configured: isMock,
+        sandboxEnabled: isMock,
+        liveEnabled: false,
+        complianceApproved: false,
+        flagByKey,
+      });
+      await prisma.providerReadinessCheck.create({
+        data: {
+          organizationId: DEMO_ORG_ID,
+          providerKey: provider.providerKey,
+          capability,
+          status: result.status.replace(/-/g, "_") as never,
+          missingRequirements: result.missingRequirements,
+        },
+      });
+    }
+  }
+
+  // A couple of provider audit events so the trail is not empty on first load.
+  await prisma.providerAuditEvent.createMany({
+    data: [
+      {
+        organizationId: DEMO_ORG_ID,
+        providerKey: "platform",
+        action: "PROVIDER_READINESS_CHECKED",
+        result: "recorded",
+        reason:
+          "Initial readiness computed. No external provider is live ready in demo mode.",
+      },
+      {
+        organizationId: DEMO_ORG_ID,
+        providerKey: "internal-mock-ai",
+        action: "PROVIDER_SELECTED",
+        result: "simulated",
+        reason:
+          "Internal Mock AI selected for text recommendation. Live providers disabled.",
+      },
+    ],
+  });
+}
+
 async function main() {
   await reset();
   await seedOrganization();
@@ -652,6 +750,7 @@ async function main() {
   await seedWorkflowRuns();
   await seedAIRecommendations();
   await seedVoicePlans();
+  await seedProviderReadiness();
 
   const [
     customerCount,
@@ -666,6 +765,8 @@ async function main() {
     voicePlanCount,
     voiceCallCount,
     voiceOutcomeCount,
+    providerConfigCount,
+    featureFlagCount,
   ] = await Promise.all([
     prisma.customer.count(),
     prisma.signal.count(),
@@ -679,10 +780,12 @@ async function main() {
     prisma.voicePlan.count(),
     prisma.voiceCall.count(),
     prisma.voiceCallOutcome.count(),
+    prisma.providerConfiguration.count(),
+    prisma.featureFlag.count(),
   ]);
 
   console.log(
-    `Seed complete: ${customerCount} customers, ${signalCount} signals, ${opportunityCount} opportunities, ${workflowCount} workflow runs, ${outcomeCount} outcome events, ${attributionCount} attributions, ${missedCount} missed estimates, ${recommendationCount} AI recommendations, ${reviewDecisionCount} review decisions, ${voicePlanCount} voice plans, ${voiceCallCount} voice calls, ${voiceOutcomeCount} voice outcomes.`,
+    `Seed complete: ${customerCount} customers, ${signalCount} signals, ${opportunityCount} opportunities, ${workflowCount} workflow runs, ${outcomeCount} outcome events, ${attributionCount} attributions, ${missedCount} missed estimates, ${recommendationCount} AI recommendations, ${reviewDecisionCount} review decisions, ${voicePlanCount} voice plans, ${voiceCallCount} voice calls, ${voiceOutcomeCount} voice outcomes, ${providerConfigCount} provider configs, ${featureFlagCount} feature flags.`,
   );
 }
 

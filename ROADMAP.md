@@ -203,30 +203,57 @@ A safety and demo readiness pass over the Voice AI Simulation Platform:
 Validated locally: typecheck, lint, prisma validate, prisma migrate status,
 prisma db seed, and next build all pass.
 
-## Phase 10: Live providers behind interfaces
+## Phase 10: Provider Readiness and Feature Flag Architecture (complete)
+
+Phase 10 adds a provider governance layer that can describe, configure, gate,
+audit, and simulate providers safely. It does not enable any real provider. No
+SDK is installed, no API is called, no network request is made, and no secret
+is stored.
+
+Delivered in Phase 10:
+
+- A provider registry covering OpenAI, Anthropic Claude, Google Gemini, Azure
+  OpenAI, ElevenLabs, OpenAI Realtime, Twilio, Retell, Vapi, SendGrid, and four
+  internal mock providers
+- A capability matrix across ten capabilities
+- A deterministic feature flag framework where every live flag defaults to
+  disabled and is locked off in demo mode
+- Provider configuration, feature flag, provider audit, and provider readiness
+  models, all organization scoped, with no secret fields
+- A provider readiness engine, a provider selection engine that always chooses
+  the internal mock provider in demo mode, and a provider sandbox
+- Eight provider audit event types
+- A provider management page and a provider sandbox page, a dashboard provider
+  status card, and a settings provider readiness section
+- PROVIDER_MANAGEMENT, FEATURE_FLAGS, and PROVIDER_SANDBOX documentation
+
+No real provider is enabled. Every live provider remains disabled and only
+internal mock providers are active.
+
+## Phase 11: Live providers behind interfaces
 
 - Implement AI provider adapters behind the existing AIProvider interface (OpenAI, Anthropic Claude, Google Gemini)
 - Implement voice provider adapters behind the existing VoiceProvider interface (ElevenLabs, OpenAI Realtime, Twilio, Retell, Vapi)
 - Implement SMS and telephony adapters (Twilio)
 - Implement email adapter (SendGrid)
-- Add provider configuration and credential handling
-- Gate live sends and live calls behind explicit organization settings
+- Wire provider configuration and a secret manager to the readiness gates added in Phase 10
+- Gate live sends and live calls behind feature flags, compliance approval, and explicit organization settings
 
-## Phase 11: Live orchestration
+## Phase 12: Live orchestration
 
 - Real workflow execution with wait windows and fallbacks
 - Quiet hours and rate limiting enforced at send time
 - Human task queue with assignment, SLA tracking, and resolution
 - Opt-out handling that halts active workflows immediately
 
-## Phase 12: Outcomes intelligence
+## Phase 13: Outcomes intelligence
 
 - Feedback loops that improve next best action and AI recommendations from recorded outcomes
 - Vertical-specific scoring refinements driven by outcome memory
 - Predictive close probability and best time to contact
 - Reporting and export of attribution and effectiveness
 
-## Phase 13: Vertical expansion
+## Phase 14: Vertical expansion
 
 - Promote additional packs from research and design to production
 - Vertical-specific compliance rules and message libraries

@@ -169,3 +169,14 @@ confidence, explanation, review, and audit guarantees described here.
 - PROMPT_LIBRARY.md for the structured prompt templates
 - DATA_MODEL.md for the AI persistence entities
 - AUTHORIZATION.md for the AI permissions and roles
+
+## Provider governance (Phase 10)
+
+Phase 10 adds a provider registry, a capability matrix, a deterministic feature
+flag framework, and a provider selection engine around the AI provider
+abstraction. The AI text capabilities (text recommendation, intent
+classification, explanation generation) are governed by the ENABLE_LIVE_AI
+feature flag. While demo mode is active that flag is locked off, so the
+selection engine always chooses the internal mock AI provider. No AI provider
+SDK is installed and no AI API is called. See PROVIDER_MANAGEMENT.md and
+FEATURE_FLAGS.md.
