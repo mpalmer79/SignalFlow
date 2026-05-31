@@ -55,3 +55,14 @@ are deterministic and can be recomputed at any time.
 All live flags default to disabled. ENABLE_PROVIDER_SANDBOX and
 ENABLE_DEMO_MODE default to enabled so the platform is reviewable and demo safe
 out of the box.
+
+## Phase 10 hardening (complete)
+
+The feature flag framework has been safety reviewed. Every flag that governs a
+live capability (ENABLE_LIVE_AI, ENABLE_LIVE_VOICE, ENABLE_LIVE_SMS,
+ENABLE_LIVE_EMAIL, ENABLE_REALTIME_TRANSCRIPTS, ENABLE_EXTERNAL_WEBHOOKS) is
+disabled by default and resolves to blocked while demo mode is active. The
+evaluator can never return allowed for a live flag in demo mode, so no visible
+control can flip the platform to live execution. Flags are safety gates, not
+live toggles. No flag triggers a network call, and no flag reveals or requires
+a secret.
