@@ -30,6 +30,28 @@ Key differences from a traditional CRM:
 - Channels work as one coordinated workflow rather than separate silos.
 - Decisions and actions are auditable end to end.
 
+## Current status
+
+Phase 0 (foundation) and Phase 1 (persistence) are complete. PostgreSQL is now the source of truth. The application reads business entities through a service and repository layer backed by Prisma. The visual experience from Phase 0 is preserved. There are still no live integrations, no authentication, no multi-tenancy, and no outbound communication.
+
+## Phase 1 scope
+
+Phase 1 introduces persistence while keeping the application demo safe.
+
+Phase 1 includes:
+
+- A Prisma schema and PostgreSQL database as the source of truth
+- A repository layer that owns all Prisma access
+- A service layer that owns business logic and composition
+- A seed script that loads the Phase 0 business examples into the database
+- A dynamic dashboard with metrics calculated from the database
+- A customer intelligence timeline that merges signals, communications, audit events, and opportunities
+- An opportunity pipeline, audit trail, and communications view served from persistence
+- Persisted consent records and policy decisions
+- Empty, loading, and not found states, with graceful database failure handling
+
+Pages never query Prisma directly. The flow is page to service to repository to Prisma to PostgreSQL.
+
 ## Phase 0 scope
 
 Phase 0 is foundation only. It delivers a runnable, reviewable project that communicates the product vision without any live integrations.
@@ -82,25 +104,65 @@ These are not active in Phase 0. They sit behind typed provider interfaces for l
 
 ## Local development notes
 
-Requirements: Node.js 18.18 or later.
+Requirements: Node.js 18.18 or later and a local PostgreSQL instance.
+
+### 1. Install dependencies
 
 ```bash
 npm install
+```
+
+### 2. Configure the database connection
+
+Copy the example environment file and set `DATABASE_URL` to point at your local PostgreSQL database.
+
+```bash
+cp .env.example .env
+```
+
+The default value targets a local database named `signalflow`:
+
+```
+DATABASE_URL="postgresql://signalflow:signalflow@127.0.0.1:5432/signalflow?schema=public"
+```
+
+This value is a local development convenience, not a secret. The `.env` file is gitignored and no credentials are committed.
+
+### 3. Apply migrations and generate the client
+
+```bash
+npm run db:migrate    # apply migrations and generate the Prisma client
+```
+
+### 4. Seed demo data
+
+```bash
+npm run db:seed       # load the demo business data
+```
+
+The application works immediately after seeding.
+
+### 5. Run the app
+
+```bash
 npm run dev
 ```
 
 Then open http://localhost:3000.
 
-The app renders fully without any secrets, without a database, and without provider keys. An `.env.example` file lists placeholder variables for later phases. Copy it to `.env` only when you start building Phase 1 integrations.
-
 Useful scripts:
 
 ```bash
-npm run dev        # start the local dev server
-npm run build      # production build
-npm run start      # serve the production build
-npm run lint       # eslint
-npm run typecheck  # typescript without emit
+npm run dev          # start the local dev server
+npm run build        # production build
+npm run start        # serve the production build
+npm run lint         # eslint
+npm run typecheck    # typescript without emit
+npm run db:generate  # generate the Prisma client
+npm run db:migrate   # create and apply a migration in development
+npm run db:reset     # drop, recreate, migrate, and reseed the database
+npm run db:seed      # seed demo data
+npm run db:studio    # open Prisma Studio
 ```
 
 ## Project structure
@@ -112,12 +174,34 @@ components/          reusable UI and domain components
   ui/                shadcn-style primitives
 lib/
   config/            app and navigation configuration
-  mock-data/         typed mock business data
+  db/                Prisma client singleton and row to domain mappers
+  repositories/      data access, the only layer that talks to Prisma
+  services/          business logic and composition over repositories
+  mock-data/         demo business data, used only by the seed script
   policy/            deterministic consent policy layer
   providers/         mock provider boundaries
   types/             explicit domain types
-prisma/              Prisma schema for the Phase 1 persistence model
+prisma/
+  schema.prisma      database schema, the source of truth model
+  migrations/        generated SQL migrations
+  seed.ts            demo data seed script
 ```
+
+### Architecture layers
+
+```
+Page (presentation)
+  ->
+Service (business logic)
+  ->
+Repository (data access)
+  ->
+Prisma
+  ->
+PostgreSQL
+```
+
+Repositories contain no UI or React code. Services contain business logic only. Pages handle presentation only and never import Prisma. Mock provider boundaries remain file based, and the Phase 0 mock data now serves only as the seed source.
 
 ## Documentation
 

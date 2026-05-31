@@ -1,6 +1,6 @@
-// SignalFlow Prisma schema (Phase 1 target).
-// Phase 0 does not connect to a database. This schema documents the intended
-// persistence model so the domain types and storage stay aligned.
+// SignalFlow Prisma schema (Phase 1).
+// PostgreSQL is the source of truth. The application reads through a
+// repository and service layer. No live integrations or secrets are used.
 
 generator client {
   provider = "prisma-client-js"
@@ -23,6 +23,26 @@ enum ConsentState {
   denied
   unknown
   revoked
+}
+
+enum SignalType {
+  new_lead
+  missed_call
+  appointment_cancellation
+  email_engagement
+  recall_opportunity
+  estimate_request
+  service_due
+  consultation_request
+}
+
+enum SignalSource {
+  web_form
+  phone
+  email
+  chat
+  third_party
+  scheduler
 }
 
 enum SignalPriority {
@@ -55,76 +75,210 @@ enum CommunicationStatus {
   escalated
 }
 
-model Organization {
-  id        String     @id @default(cuid())
-  name      String
-  vertical  String
-  customers Customer[]
-  createdAt DateTime   @default(now())
+enum AuditEventType {
+  SIGNAL_RECEIVED
+  INTENT_CLASSIFIED
+  OPPORTUNITY_CREATED
+  POLICY_ALLOWED_ACTION
+  POLICY_BLOCKED_ACTION
+  MESSAGE_DRAFTED
+  VOICE_CALL_QUEUED
+  HUMAN_TASK_CREATED
+  CUSTOMER_OPTED_OUT
+}
+
+enum AuditOutcome {
+  allowed
+  blocked
+  review
+  recorded
+}
+
+enum PolicyDecisionType {
+  allowed
+  blocked
+  needs_review
+}
+
+enum ComplianceSensitivity {
+  standard
+  elevated
+  high
+}
+
+enum PackPhaseStatus {
+  mvp_focus
+  in_design
+  planned
+  research
+}
+
+enum RiskSeverity {
+  info
+  warning
+  critical
+}
+
+model VerticalPack {
+  id          String                @id
+  name        String
+  summary     String
+  keySignals  String[]
+  keyActions  String[]
+  sensitivity ComplianceSensitivity
+  phaseStatus PackPhaseStatus
+  customers   Customer[]
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
 }
 
 model Customer {
-  id               String          @id @default(cuid())
-  organizationId   String
-  organization     Organization    @relation(fields: [organizationId], references: [id])
+  id               String           @id @default(cuid())
   name             String
-  vertical         String
+  verticalId       String
+  vertical         VerticalPack     @relation(fields: [verticalId], references: [id])
   preferredChannel Channel
-  optedOut         Boolean         @default(false)
+  optedOut         Boolean          @default(false)
+  lastAction       String?
+  lastActionAt     DateTime?
+  contactMethods   ContactMethod[]
+  consentRecords   ConsentRecord[]
+  riskFlags        RiskFlag[]
   signals          Signal[]
   opportunities    Opportunity[]
   communications   Communication[]
   auditEvents      AuditEvent[]
-  createdAt        DateTime        @default(now())
+  policyDecisions  PolicyDecision[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([verticalId])
+}
+
+model ContactMethod {
+  id         String       @id @default(cuid())
+  customerId String
+  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  channel    Channel
+  value      String
+  consent    ConsentState @default(unknown)
+
+  @@unique([customerId, channel])
+}
+
+model ConsentRecord {
+  id         String       @id @default(cuid())
+  customerId String
+  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  channel    Channel
+  state      ConsentState
+  source     String
+  capturedAt DateTime?
+  createdAt  DateTime     @default(now())
+
+  @@index([customerId])
 }
 
 model Signal {
-  id                 String         @id @default(cuid())
+  id                 String           @id @default(cuid())
+  type               SignalType
+  label              String
   customerId         String
-  customer           Customer       @relation(fields: [customerId], references: [id])
-  type               String
-  source             String
+  customer           Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  source             SignalSource
   priority           SignalPriority
   recommendedAction  String
   recommendedChannel Channel
   consentStatus      ConsentState
   detail             String
-  receivedAt         DateTime       @default(now())
+  opportunity        Opportunity?     @relation(fields: [opportunityId], references: [id])
+  opportunityId      String?
+  communications     Communication[]
+  auditEvents        AuditEvent[]
+  policyDecisions    PolicyDecision[]
+  receivedAt         DateTime         @default(now())
+
+  @@index([customerId])
+  @@index([opportunityId])
 }
 
 model Opportunity {
-  id            String           @id @default(cuid())
-  customerId    String
-  customer      Customer         @relation(fields: [customerId], references: [id])
-  title         String
-  stage         OpportunityStage
-  intentScore   Int
+  id             String           @id @default(cuid())
+  title          String
+  customerId     String
+  customer       Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  stage          OpportunityStage
+  intentScore    Int
   estimatedValue Int
-  owner         String
-  updatedAt     DateTime         @updatedAt
+  owner          String
+  signals        Signal[]
+  communications Communication[]
+  auditEvents    AuditEvent[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([customerId])
+  @@index([stage])
 }
 
 model Communication {
-  id              String              @id @default(cuid())
-  customerId      String
-  customer        Customer            @relation(fields: [customerId], references: [id])
-  channel         Channel
-  subject         String
-  preview         String
-  status          CommunicationStatus
-  relatedSignalId String?
-  simulated       Boolean             @default(true)
-  createdAt       DateTime            @default(now())
+  id            String              @id @default(cuid())
+  channel       Channel
+  customerId    String
+  customer      Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  opportunityId String?
+  opportunity   Opportunity?        @relation(fields: [opportunityId], references: [id])
+  signalId      String?
+  signal        Signal?             @relation(fields: [signalId], references: [id])
+  subject       String
+  preview       String
+  status        CommunicationStatus
+  simulated     Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+
+  @@index([customerId])
+  @@index([channel])
 }
 
 model AuditEvent {
-  id             String   @id @default(cuid())
+  id             String         @id @default(cuid())
+  type           AuditEventType
   customerId     String
-  customer       Customer @relation(fields: [customerId], references: [id])
-  type           String
+  customer       Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
   signalId       String?
+  signal         Signal?        @relation(fields: [signalId], references: [id])
+  opportunityId  String?
+  opportunity    Opportunity?   @relation(fields: [opportunityId], references: [id])
   policyDecision String
   action         String
-  outcome        String
-  occurredAt     DateTime @default(now())
+  outcome        AuditOutcome
+  occurredAt     DateTime       @default(now())
+
+  @@index([customerId])
+  @@index([occurredAt])
+}
+
+model PolicyDecision {
+  id          String             @id @default(cuid())
+  customerId  String
+  customer    Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  signalId    String?
+  signal      Signal?            @relation(fields: [signalId], references: [id])
+  channel     Channel
+  decision    PolicyDecisionType
+  reason      String
+  explanation String
+  createdAt   DateTime           @default(now())
+
+  @@index([customerId])
+}
+
+model RiskFlag {
+  id         String       @id @default(cuid())
+  customerId String
+  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label      String
+  severity   RiskSeverity
+
+  @@index([customerId])
 }

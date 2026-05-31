@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { appConfig } from "@/lib/config/app";
-import { verticalPacks } from "@/lib/mock-data/vertical-packs";
+import { listVerticalPacks } from "@/lib/services/vertical-pack-service";
 
 const pillars = [
   {
@@ -54,7 +54,10 @@ const crmGaps = [
   "Channels are siloed, so SMS, email, and voice rarely act as one coordinated follow-up.",
 ];
 
-export default function LandingPage() {
+export const dynamic = "force-dynamic";
+
+export default async function LandingPage() {
+  const verticalPacks = await listVerticalPacks();
   const systemSteps = [
     "Signal received",
     "Intelligence updated",
