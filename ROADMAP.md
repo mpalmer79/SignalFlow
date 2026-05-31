@@ -135,6 +135,25 @@ Delivered in Phase 8:
 No new providers, no live communication, no secrets, and no architecture
 rewrites. All data is derived from persistence.
 
+### Phase 8 hardening pass (complete)
+
+A polish pass over the Revenue Command Center and Mission Replay:
+
+- Stronger page hierarchy with eight clearly labeled sections, each with a
+  short subhead
+- Hero summary with a dynamic one sentence narrative and six headline metrics
+- Revenue lifecycle row of seven stage cards with live counts and explanations
+- Featured customer journey card with eight composed tiles, selected
+  deterministically from the customer with the richest activity
+- Mission replay customer context card and "What this proves" callout
+- Graceful empty states with next action links throughout
+- Mobile friendly grids that stack on small screens
+- README, REVENUE_COMMAND_CENTER, and ROADMAP updates including a recommended
+  demo path
+
+Validated locally: TypeScript clean, ESLint clean, no em dashes, no pages
+importing repositories, Prisma schema validates.
+
 ## Phase 9: Live providers behind interfaces
 
 - Implement AI provider adapters behind the existing AIProvider interface (OpenAI, Anthropic Claude, Google Gemini)

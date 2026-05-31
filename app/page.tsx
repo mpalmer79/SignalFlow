@@ -317,7 +317,7 @@ export default async function LandingPage() {
                   One screen, one story. Watch a customer signal travel through
                   intelligence, AI recommendation, human review, workflow,
                   outcome, and revenue attribution without leaving the page.
-                  Then open mission replay to walk any customer's full
+                  Then open mission replay to walk any customer&apos;s full
                   deterministic lifecycle.
                 </p>
               </div>

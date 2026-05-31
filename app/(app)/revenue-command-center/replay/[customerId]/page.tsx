@@ -9,8 +9,10 @@ import {
   BrainCircuit,
   CheckCircle2,
   ClipboardCheck,
+  ShieldCheck,
   Sparkles,
   TrendingDown,
+  TrendingUp,
   Workflow,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -24,7 +26,7 @@ import type {
   JourneyStep,
 } from "@/lib/services/revenue-command-center-service";
 import { guardPage } from "@/lib/auth/guard-page";
-import { formatCurrency, formatDateTime } from "@/lib/utils";
+import { formatCurrency, formatDateTime, formatRelativeTime } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Mission Replay",
@@ -85,6 +87,29 @@ const STEP_STYLES: Record<
   },
 };
 
+const PROVES = [
+  {
+    icon: BrainCircuit,
+    title: "Deterministic intelligence",
+    body: "The same signals always produce the same intelligence profile, recommendation, and confidence. No model variance.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Human governance",
+    body: "An AI recommendation never becomes an action automatically. A human approves, rejects, or escalates before any workflow runs.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Consent and policy enforced",
+    body: "Every action is evaluated against consent, quiet hours, and vertical sensitivity before execution. Blocks and escalations are recorded.",
+  },
+  {
+    icon: Banknote,
+    title: "Revenue attribution by run",
+    body: "Only executed workflows attribute revenue. The same run produces influenced, recovered, assisted, or prevented-loss attribution deterministically.",
+  },
+];
+
 export default async function MissionReplayPage({
   params,
 }: {
@@ -101,6 +126,9 @@ export default async function MissionReplayPage({
   const { customer, intelligence, steps, totalAttributed, positiveOutcomes } =
     replay;
 
+  const firstStep = steps[0];
+  const lastStep = steps[steps.length - 1];
+
   return (
     <>
       <Link
@@ -113,13 +141,68 @@ export default async function MissionReplayPage({
 
       <SectionHeading
         title={`${customer.name}: mission replay`}
-        description="A deterministic, end to end replay of one customer's lifecycle. Nothing is sent and no revenue is real."
+        description="A deterministic, end to end replay of one customer lifecycle. No live communication is sent and no revenue is real."
         actions={
           <Badge variant="muted" className="capitalize">
             {customer.vertical.replace("-", " ")}
           </Badge>
         }
       />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BrainCircuit className="h-4 w-4 text-primary" />
+            Customer context
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <ContextRow
+              label="Vertical pack"
+              value={customer.vertical.replace("-", " ")}
+              capitalize
+            />
+            <ContextRow
+              label="Active opportunity"
+              value={customer.activeOpportunity ?? "None tracked"}
+            />
+            <ContextRow
+              label="Preferred channel"
+              value={customer.preferredChannel}
+              capitalize
+            />
+            <ContextRow
+              label="Last action"
+              value={customer.lastAction}
+              hint={formatRelativeTime(customer.lastActionAt)}
+            />
+          </div>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Badge variant={customer.optedOut ? "danger" : "success"}>
+              {customer.optedOut ? "Opted out" : "Consent on file"}
+            </Badge>
+            {customer.riskFlags.length > 0 ? (
+              <Badge variant="warning">
+                {customer.riskFlags.length} risk flag
+                {customer.riskFlags.length === 1 ? "" : "s"}
+              </Badge>
+            ) : (
+              <Badge variant="muted">No risk flags</Badge>
+            )}
+            {firstStep ? (
+              <Badge variant="muted">
+                Started {formatRelativeTime(firstStep.occurredAt)}
+              </Badge>
+            ) : null}
+            {lastStep && lastStep !== firstStep ? (
+              <Badge variant="muted">
+                Last activity {formatRelativeTime(lastStep.occurredAt)}
+              </Badge>
+            ) : null}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
@@ -162,10 +245,45 @@ export default async function MissionReplayPage({
               ))}
             </ol>
           ) : (
-            <p className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-              No lifecycle events recorded for this customer.
-            </p>
+            <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+              <p>No lifecycle events recorded for this customer.</p>
+              <Link
+                href="/revenue-command-center"
+                className="mt-2 inline-flex items-center gap-1 text-primary hover:underline"
+              >
+                Try another customer
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            What this proves
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {PROVES.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.title}
+                  className="space-y-1 rounded-md border border-border bg-secondary/30 p-3"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <p className="text-sm font-semibold">{item.title}</p>
+                  <p className="text-xs text-muted-foreground">{item.body}</p>
+                </div>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
 
@@ -174,8 +292,8 @@ export default async function MissionReplayPage({
           <div className="space-y-1">
             <p className="text-sm font-semibold">Continue the story</p>
             <p className="text-sm text-muted-foreground">
-              Open the customer intelligence profile, the revenue engine story,
-              or the AI center to dig deeper.
+              Open the customer intelligence profile, the revenue engine
+              breakdown, or the AI center to dig deeper.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-xs">
@@ -204,6 +322,34 @@ export default async function MissionReplayPage({
         </CardContent>
       </Card>
     </>
+  );
+}
+
+function ContextRow({
+  label,
+  value,
+  hint,
+  capitalize,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  capitalize?: boolean;
+}) {
+  return (
+    <div className="rounded-md border border-border bg-secondary/30 p-3">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <p
+        className={`text-sm font-medium ${capitalize ? "capitalize" : ""}`}
+      >
+        {value}
+      </p>
+      {hint ? (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      ) : null}
+    </div>
   );
 }
 
