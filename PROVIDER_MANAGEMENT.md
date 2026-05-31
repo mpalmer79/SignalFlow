@@ -98,3 +98,26 @@ validation. None of that is wired in this phase, by design.
 - PROVIDER_SANDBOX.md for the sandbox model
 - COMPLIANCE.md for the platform compliance posture
 - DATA_MODEL.md for the provider persistence entities
+
+## Phase 10 hardening (complete)
+
+The provider governance layer has been safety reviewed:
+
+- No SDK is installed and no provider API is called.
+- No network call is made anywhere in the provider or feature flag engines.
+- No secret is stored. Provider persistence has no apiKey, secret, token,
+  credential, password, or privateKey field. Required secrets exist only as
+  placeholder names in the registry.
+- The app provides no form for entering a provider secret. The provider
+  management and sandbox pages are read-only server components.
+- Every live feature flag is disabled by default and is locked off while demo
+  mode is active.
+- No real provider can become live ready. A database check confirms zero
+  live-ready readiness checks and zero external providers with live use enabled.
+- Provider routes are protected server side by guardPage with the
+  VIEW_PROVIDERS and RUN_PROVIDER_SANDBOX permissions, and by middleware.
+- Provider decisions, readiness checks, sandbox runs, and feature flag changes
+  are recorded as organization scoped provider audit events.
+
+Internal mock providers are the only executable providers. Feature flags are
+safety gates, not live toggles.

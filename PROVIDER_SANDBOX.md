@@ -50,3 +50,12 @@ never a repository directly.
 
 - PROVIDER_MANAGEMENT.md for the registry and readiness
 - FEATURE_FLAGS.md for the flag framework
+
+## Phase 10 hardening (complete)
+
+The provider sandbox has been safety reviewed. Every sandbox run selects an
+internal mock provider, because the governing live flag resolves to blocked
+while demo mode is active. No sandbox action calls a network API and no sandbox
+action requires or reveals a secret. Each run records a PROVIDER_SANDBOX_RUN
+audit event scoped to the organization, and every result explains why live
+execution is blocked and what live use would require.

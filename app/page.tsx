@@ -336,6 +336,16 @@ export default async function LandingPage() {
                   Open dashboard
                 </Link>
               </div>
+              <div className="rounded-md border border-border bg-background/60 p-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Recommended demo path
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Revenue Command Center, then Mission Replay, AI Center, Review
+                  Queue, Voice Command Center, Provider Management, and Executive
+                  Insights. Everything is deterministic and demo safe.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </section>
