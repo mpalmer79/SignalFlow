@@ -111,7 +111,31 @@ Delivered in Phase 7:
 The pipeline now reads Signal to Intelligence to AI Recommendation to Human
 Review to Workflow to Outcome.
 
-## Phase 8: Live providers behind interfaces
+## Phase 8: Revenue Command Center (complete)
+
+Phase 8 adds a flagship product experience called the Revenue Command Center.
+It collapses signals, intelligence, AI recommendations, human review,
+workflows, outcomes, and revenue attribution into a single narrative page, and
+adds a mission replay route that walks any seeded customer's lifecycle as an
+ordered timeline.
+
+Delivered in Phase 8:
+
+- A flagship page at /app/revenue-command-center
+- A mission replay at /app/revenue-command-center/replay/[customerId]
+- A single aggregating service: revenue-command-center-service.ts
+- Revenue funnel with counts and conversion percentages
+- Customer journey explorer
+- AI recommendation stream, workflow activity, outcome feed, and revenue
+  attribution leaderboards
+- Top revenue verticals, missed revenue, and recent audit activity
+- Promotion in primary navigation, on the landing page, and on the dashboard
+- REVENUE_COMMAND_CENTER.md documentation
+
+No new providers, no live communication, no secrets, and no architecture
+rewrites. All data is derived from persistence.
+
+## Phase 9: Live providers behind interfaces
 
 - Implement AI provider adapters behind the existing AIProvider interface (OpenAI, Anthropic Claude, Google Gemini)
 - Implement SMS and telephony adapters (Twilio)
@@ -120,21 +144,21 @@ Review to Workflow to Outcome.
 - Add provider configuration and credential handling
 - Gate live sends behind explicit organization settings
 
-## Phase 9: Live orchestration
+## Phase 10: Live orchestration
 
 - Real workflow execution with wait windows and fallbacks
 - Quiet hours and rate limiting enforced at send time
 - Human task queue with assignment, SLA tracking, and resolution
 - Opt-out handling that halts active workflows immediately
 
-## Phase 10: Outcomes intelligence
+## Phase 11: Outcomes intelligence
 
 - Feedback loops that improve next best action and AI recommendations from recorded outcomes
 - Vertical-specific scoring refinements driven by outcome memory
 - Predictive close probability and best time to contact
 - Reporting and export of attribution and effectiveness
 
-## Phase 11: Vertical expansion
+## Phase 12: Vertical expansion
 
 - Promote additional packs from research and design to production
 - Vertical-specific compliance rules and message libraries

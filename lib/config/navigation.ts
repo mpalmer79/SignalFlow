@@ -8,6 +8,7 @@ import {
   Gauge,
   LayoutDashboard,
   LineChart,
+  Radar,
   MessageSquare,
   Package,
   PlayCircle,
@@ -34,6 +35,12 @@ export const primaryNav: NavItem[] = [
     href: "/dashboard",
     icon: LayoutDashboard,
     description: "Revenue command center overview",
+  },
+  {
+    label: "Revenue Command Center",
+    href: "/revenue-command-center",
+    icon: Radar,
+    description: "Signal to revenue, one story",
   },
   {
     label: "Intelligence",

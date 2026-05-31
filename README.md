@@ -32,7 +32,7 @@ Key differences from a traditional CRM:
 
 ## Current status
 
-Phase 0 through Phase 7 are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, a workflow engine converts recommendations into governed simulated execution plans, an outcome engine turns those runs into measurable revenue outcomes, and a simulation environment lets a reviewer explore the platform across industries. Phase 6 adds multi-tenancy: organizations, users, memberships, role based access control, server side authorization, and organization scoped persistence, with Clerk as an optional authentication provider and a clearly labeled demo fallback. Phase 7 adds the AI Platform Layer: a provider abstraction, a deterministic recommendation engine, confidence and explanation engines, and a human review queue, all governed and audited. There are still no AI model calls, no outbound communication, and no provider integrations. Everything outside of optional authentication is deterministic and demo safe.
+Phase 0 through Phase 8 are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, a workflow engine converts recommendations into governed simulated execution plans, an outcome engine turns those runs into measurable revenue outcomes, and a simulation environment lets a reviewer explore the platform across industries. Phase 6 adds multi-tenancy: organizations, users, memberships, role based access control, server side authorization, and organization scoped persistence, with Clerk as an optional authentication provider and a clearly labeled demo fallback. Phase 7 adds the AI Platform Layer: a provider abstraction, a deterministic recommendation engine, confidence and explanation engines, and a human review queue, all governed and audited. Phase 8 adds the Revenue Command Center, a flagship product experience that walks signal to intelligence to AI recommendation to human review to workflow to outcome to revenue on a single page, with a mission replay for any seeded customer. There are still no AI model calls, no outbound communication, and no provider integrations. Everything outside of optional authentication is deterministic and demo safe.
 
 ## Phase 6 scope
 
@@ -358,6 +358,7 @@ Repositories contain no UI or React code. Services contain business logic only. 
 - AI_PLATFORM.md: AI provider abstraction, recommendation lifecycle, and confidence model
 - REVIEW_QUEUE.md: human review process, review states, and audit trail
 - PROMPT_LIBRARY.md: structured prompt templates for future provider integration
+- REVENUE_COMMAND_CENTER.md: flagship command center page and mission replay
 
 ## Phase 7: AI Platform Layer
 
@@ -380,3 +381,26 @@ Documentation:
 - AI_PLATFORM.md for the architecture and provider abstraction
 - REVIEW_QUEUE.md for the human review process
 - PROMPT_LIBRARY.md for the structured prompt templates
+
+## Phase 8: Revenue Command Center
+
+Phase 8 adds a flagship product experience called the Revenue Command Center.
+It is one screen that walks the complete SignalFlow story end to end so a
+reviewer does not have to assemble it from many pages. A mission replay route
+walks any seeded customer's lifecycle as an ordered timeline.
+
+Highlights:
+
+- Single narrative page at `/app/revenue-command-center` covering signals,
+  intelligence, AI recommendations, human review, workflows, outcomes, and
+  revenue attribution
+- Mission replay at `/app/revenue-command-center/replay/[customerId]`
+- Revenue funnel with counts and conversion percentages
+- Customer journey explorer
+- AI recommendation stream, workflow activity, outcome feed, and revenue
+  attribution leaderboards
+- A single aggregating service: `lib/services/revenue-command-center-service.ts`
+- Promoted in primary navigation and on the landing page and dashboard
+
+No new providers, no live communication, no secrets, no architecture rewrites.
+See REVENUE_COMMAND_CENTER.md for the full design.
