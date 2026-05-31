@@ -382,6 +382,27 @@ Documentation:
 - REVIEW_QUEUE.md for the human review process
 - PROMPT_LIBRARY.md for the structured prompt templates
 
+## Recommended demo path
+
+A reviewer can understand SignalFlow in under thirty seconds by following the
+path the product is designed around:
+
+1. Open the landing page. Click "Open command center".
+2. Read the hero summary on `/app/revenue-command-center`. The one sentence
+   narrative and six headline metrics tell what the system did today.
+3. Scan the Revenue Lifecycle row. Seven stage cards show signal to revenue
+   with live counts and short explanations.
+4. Open the featured mission replay. The page selects the customer with the
+   richest activity automatically; click "Start mission replay" or "Open
+   featured mission replay".
+5. Read the mission timeline top to bottom, then the "What this proves" card
+   at the bottom of the replay.
+6. Optional: open the AI center, the review queue, the revenue engine, or
+   executive insights for depth.
+
+Everything on the path is deterministic and demo safe. No live communication
+is sent and no real customer data is used.
+
 ## Phase 8: Revenue Command Center
 
 Phase 8 adds a flagship product experience called the Revenue Command Center.

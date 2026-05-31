@@ -40,31 +40,57 @@ and journey timelines, not raw tables.
 Both routes are protected and require the existing VIEW_REVENUE permission.
 There are no new permissions in Phase 8.
 
-## Overview sections
+## Page hierarchy
 
-The overview page composes the following sections, each driven by persistence:
+The overview page is organized into clearly labeled sections, each with a
+short subhead that answers "what am I seeing, why does it matter, what should
+I click next":
 
-- Revenue lifecycle hero. A horizontal flow of the seven lifecycle stages so a
-  reviewer sees the system shape in a single glance.
-- Executive summary. Eight headline metrics: customers, signals,
-  recommendations, workflow runs, revenue influenced, reactivations, missed
-  opportunity value, and an AI approval rate.
-- Revenue funnel. Counts and conversion percentages for signals, customer
-  profiles, recommendations, approvals, workflow runs, positive outcomes, and
-  revenue attribution records.
-- Top revenue verticals. Revenue influenced and positive run share, by vertical
-  pack.
-- Customer journey explorer. A card grid of seeded customers, each opening the
-  mission replay for that customer.
-- AI recommendation stream. The most recent AI recommendations with their
-  confidence and review state, each linking to the AI center detail page.
-- Workflow activity. The most recent workflow runs with their outcome and
-  action counts, each linking to the orchestrator detail page.
-- Outcome feed. The most recent outcome events, color tagged by polarity.
-- Revenue attribution and missed revenue leaderboards.
-- Recent audit activity, including AI audit events from Phase 7.
-- Mission replay launch card and footer links to executive insights, revenue
-  engine, review queue, and simulation center.
+1. Hero summary. A single-sentence narrative for today plus six headline
+   metrics (signals, recommendations, revenue influenced, workflow runs,
+   missed revenue, open opportunities), and a primary call to action that
+   opens the featured mission replay.
+2. Executive summary. Eight smaller stat cards with the headline totals.
+3. Revenue lifecycle. Seven stage cards (signal, intelligence, recommendation,
+   review, workflow, outcome, revenue) each carrying a live count and a one
+   line explanation, followed by a revenue funnel with conversion percentages.
+4. Customer journey. A featured journey card for the customer with the
+   richest activity, showing latest signal, top opportunity, AI
+   recommendation, human review decision, workflow run, outcome, revenue
+   attribution, and risk and consent in one composed view. A smaller grid of
+   other customers sits below.
+5. AI governance. Recommendation stream cards linking to the AI center and
+   the review queue.
+6. Workflow execution. Recent workflow runs and the outcome feed.
+7. Outcomes and attribution. Top revenue verticals and revenue attribution.
+8. Revenue leaks. Top missed revenue with recovery actions.
+9. Auditability. Recent audit events, including AI audit events from Phase 7.
+10. Recommended demo path call to action and a related views strip.
+
+Every section is fed by `getCommandCenterOverview`.
+
+## Featured journey
+
+`buildFeaturedJourney` in the service ranks customers by activity (AI
+recommendations, workflow runs, recent signals) and picks the highest scoring
+one. It then loads that customer's signals, top opportunity, top
+recommendation with review decision, latest workflow run, latest outcome, top
+attribution, top missed estimate, and totals. The page renders these as eight
+small tiles inside a single card, with one button that opens the customer's
+full mission replay. The selection is deterministic for a given seed.
+
+## Recommended demo path
+
+The page is designed to read top to bottom in 30 seconds:
+
+1. Start at the hero summary. Read the one sentence narrative and the headline
+   metrics.
+2. Scan the revenue lifecycle row. Each stage shows what the system did and
+   how many records it produced.
+3. Open the featured mission replay. Watch the ordered timeline for the
+   featured customer and read the "What this proves" card at the end.
+4. Optional depth pass. Open the AI center, the review queue, or the revenue
+   engine breakdown for a deeper look.
 
 ## Mission replay
 
@@ -108,6 +134,18 @@ Everything on the Revenue Command Center is computed from seeded persistence.
 No new providers are added, no network calls are made, no live communication
 is sent, and no secrets are required. The page itself does not depend on any
 AI provider.
+
+## Current limitations
+
+- The featured journey is selected automatically from persistence; there is no
+  in-page picker yet. The customer grid below the featured card provides
+  manual selection.
+- Empty state handling is informational only. The page does not write any
+  seed data on its own.
+- Aggregations are computed per request. They are fast on the seeded data set
+  but a future phase should add caching for larger organizations.
+- The mission timeline is a static, ordered list. Animated progression was
+  considered but skipped to avoid adding an animation dependency.
 
 ## Why this matters
 

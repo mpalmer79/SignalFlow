@@ -1,5 +1,7 @@
 import { countSignals, findSignalsByCustomer } from "@/lib/repositories/signal-repository";
 import { countCustomers, findAllCustomers, findCustomerById } from "@/lib/repositories/customer-repository";
+import type { Opportunity } from "@/lib/types/opportunity";
+import type { Signal } from "@/lib/types/signal";
 import {
   countOpenOpportunities,
   findOpportunitiesByCustomer,
@@ -22,6 +24,7 @@ import {
 } from "@/lib/repositories/attribution-repository";
 import {
   findAllMissedOpportunities,
+  findMissedByCustomer,
   getMissedTotals,
 } from "@/lib/repositories/missed-opportunity-repository";
 import { getEffectivenessTotals } from "@/lib/repositories/workflow-effectiveness-repository";
@@ -85,6 +88,24 @@ export interface VerticalRevenueRow {
   positiveRuns: number;
 }
 
+// A condensed snapshot of one customer's full lifecycle so the command center
+// can render a featured journey inline without round trips to other pages.
+export interface FeaturedJourneySnapshot {
+  customer: Customer;
+  topOpportunity: Opportunity | null;
+  latestSignal: Signal | null;
+  topRecommendation: AIRecommendationRecord | null;
+  reviewerName: string | null;
+  reviewerDecision: string | null;
+  latestWorkflowRun: WorkflowRunRecord | null;
+  positiveOutcomeCount: number;
+  latestOutcome: OutcomeEventRecord | null;
+  topAttribution: RevenueAttributionRecord | null;
+  topMissed: MissedOpportunityRecord | null;
+  attributedTotal: number;
+  replayHref: string;
+}
+
 // Aggregated payload for the Revenue Command Center landing page.
 export interface CommandCenterOverview {
   summary: CommandCenterSummary;
@@ -97,6 +118,7 @@ export interface CommandCenterOverview {
   topMissed: MissedOpportunityRecord[];
   topVerticals: VerticalRevenueRow[];
   customers: Customer[];
+  featuredJourney: FeaturedJourneySnapshot | null;
 }
 
 // One ordered step in the customer mission replay. The kind drives the icon
@@ -193,7 +215,10 @@ export async function getCommandCenterOverview(
 
   const funnel: FunnelStage[] = buildFunnel(summary, attributions.length);
 
-  const verticalMemory = await buildVerticalMemory(orgId);
+  const [verticalMemory, featuredJourney] = await Promise.all([
+    buildVerticalMemory(orgId),
+    buildFeaturedJourney(orgId, customers, recommendations, workflowRuns),
+  ]);
 
   return {
     summary,
@@ -206,6 +231,93 @@ export async function getCommandCenterOverview(
     topMissed: missed.slice(0, 5),
     topVerticals: verticalMemory,
     customers,
+    featuredJourney,
+  };
+}
+
+// Pick a customer with the richest activity (recommendation + run + outcome)
+// and assemble a single-snapshot summary of their lifecycle. Used by the
+// command center to render an end-to-end story inline.
+async function buildFeaturedJourney(
+  organizationId: string,
+  customers: Customer[],
+  allRecommendations: AIRecommendationRecord[],
+  allRuns: WorkflowRunRecord[],
+): Promise<FeaturedJourneySnapshot | null> {
+  if (customers.length === 0) return null;
+
+  const recByCustomer = new Map<string, number>();
+  for (const rec of allRecommendations) {
+    recByCustomer.set(rec.customerId, (recByCustomer.get(rec.customerId) ?? 0) + 1);
+  }
+  const runByCustomer = new Map<string, number>();
+  for (const run of allRuns) {
+    runByCustomer.set(run.customerId, (runByCustomer.get(run.customerId) ?? 0) + 1);
+  }
+
+  const ranked = customers
+    .map((customer) => ({
+      customer,
+      score:
+        (recByCustomer.get(customer.id) ?? 0) * 2 +
+        (runByCustomer.get(customer.id) ?? 0) * 2 +
+        customer.recentSignals.length,
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  const target = ranked[0]?.customer ?? customers[0];
+
+  const [
+    signals,
+    opportunities,
+    runs,
+    outcomes,
+    attributions,
+    missed,
+    recommendations,
+  ] = await Promise.all([
+    findSignalsByCustomer(organizationId, target.id),
+    findOpportunitiesByCustomer(organizationId, target.id),
+    findWorkflowRunsByCustomer(organizationId, target.id),
+    findOutcomeEventsByCustomer(organizationId, target.id),
+    findAttributionsByCustomer(organizationId, target.id),
+    findMissedByCustomer(organizationId, target.id),
+    findRecommendationsByCustomer(organizationId, target.id),
+  ]);
+
+  const topRecommendation = recommendations[0] ?? null;
+  const detail = topRecommendation
+    ? await findRecommendationDetail(organizationId, topRecommendation.id)
+    : null;
+  const decision = detail?.reviewDecisions[0] ?? null;
+
+  const positiveOutcomeCount = outcomes.filter((o) =>
+    ["APPOINTMENT_SCHEDULED", "OPPORTUNITY_ADVANCED", "OPPORTUNITY_WON", "OPPORTUNITY_REACTIVATED", "CUSTOMER_REPLIED"].includes(
+      o.outcomeType,
+    ),
+  ).length;
+  const attributedTotal = attributions
+    .filter((a) => a.attributionType !== "MISSED")
+    .reduce((sum, a) => sum + a.attributedAmount, 0);
+
+  return {
+    customer: target,
+    topOpportunity:
+      opportunities.find((o) => o.stage !== "won" && o.stage !== "lost") ??
+      opportunities[0] ??
+      null,
+    latestSignal: signals[0] ?? null,
+    topRecommendation,
+    reviewerName: decision?.reviewerName ?? null,
+    reviewerDecision: decision?.decision ?? null,
+    latestWorkflowRun: runs[0] ?? null,
+    positiveOutcomeCount,
+    latestOutcome: outcomes[0] ?? null,
+    topAttribution:
+      attributions.find((a) => a.attributionType !== "MISSED") ?? null,
+    topMissed: missed[0] ?? null,
+    attributedTotal,
+    replayHref: `/revenue-command-center/replay/${target.id}`,
   };
 }
 
