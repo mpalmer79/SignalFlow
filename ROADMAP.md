@@ -262,14 +262,41 @@ Delivered in Phase 11:
 - docs/SCREENSHOT_CHECKLIST.md and docs/REPO_QUALITY_CHECKLIST.md
 - Targeted landing page and navigation polish that supports the demo path
 
-## Phase 12: Future options
+## Phase 12: Engineering Quality and Audit Remediation (complete)
+
+Phase 12 converts the principal engineer audit into concrete remediation. No
+product domain was added.
+
+Delivered in Phase 12:
+
+- GitHub Actions CI running typecheck, lint, tests, safety scan, architecture
+  check, Prisma validate, and build
+- A Vitest foundation with 39 unit tests over the pure deterministic engines
+- A demo owner production guard that refuses the fallback in production unless
+  ALLOW_DEMO_MODE is set
+- Dead code removed: the Phase 0 provider cluster, the voice repository shims,
+  three unused services, and an empty type index; historical docs archived
+- An architecture boundary check and a safety scan, both wired into CI
+- Audit and revenue history protected from customer deletion through soft delete
+  and SetNull on the audit log
+- The Revenue Command Center and Revenue Engine outcome memory reduced from
+  hundreds of queries to four bulk queries joined in memory
+- Composite and optional foreign key indexes added
+- The dangling VoicePlan recommendation foreign key given a real relation
+- A minimal voice review approval flow for compliance reviewers
+
+See docs/AUDIT_REMEDIATION.md, docs/ENGINEERING_QUALITY.md, and
+docs/TECHNICAL_DEBT_REGISTER.md.
+
+## Phase 13: Future options
 
 These remain deterministic and gated. None are required for the platform to be
 reviewed, and real provider integration stays behind the existing feature flag,
 compliance approval, and readiness gates.
 
-- Full repository audit and test coverage expansion
-- Production deployment hardening
+- Service-level and page-level test coverage with a test database in CI
+- Server-side caching for the dashboard and command center aggregates
+- Production deployment hardening, including security headers and dependency audit
 - Visual design system pass
 - Real provider integration behind hard gates, implementing adapters behind the
   existing AIProvider and VoiceProvider interfaces and wiring a secret manager

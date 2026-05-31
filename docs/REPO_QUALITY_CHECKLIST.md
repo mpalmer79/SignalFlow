@@ -69,13 +69,18 @@ listed can be run locally to verify each item.
 ## Validation commands
 
 ```text
-[ ] npm run build
 [ ] npm run typecheck
 [ ] npm run lint
+[ ] npm run test
+[ ] npm run scan:safety
+[ ] npm run check:architecture
 [ ] npx prisma validate
 [ ] npx prisma migrate status
+[ ] npm run build
 [ ] npx prisma db seed
 ```
+
+The first eight run automatically in CI on every push and pull request.
 
 ## Content scans
 

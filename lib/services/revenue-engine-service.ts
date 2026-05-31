@@ -5,8 +5,14 @@ import {
 import { findSignalsByCustomer } from "@/lib/repositories/signal-repository";
 import { findOpportunitiesByCustomer } from "@/lib/repositories/opportunity-repository";
 import { findCommunicationsByCustomer } from "@/lib/repositories/communication-repository";
-import { findWorkflowRunsByCustomer } from "@/lib/repositories/workflow-repository";
-import { findOutcomeEventsByCustomer } from "@/lib/repositories/outcome-repository";
+import {
+  findAllWorkflowRuns,
+  findWorkflowRunsByCustomer,
+} from "@/lib/repositories/workflow-repository";
+import {
+  findAllOutcomeEvents,
+  findOutcomeEventsByCustomer,
+} from "@/lib/repositories/outcome-repository";
 import {
   findAllAttributions,
   findAttributionsByCustomer,
@@ -21,6 +27,7 @@ import {
 import { countReactivations } from "@/lib/repositories/stage-transition-repository";
 import { buildIntelligenceProfile } from "@/lib/intelligence/graph-summary";
 import { summarizeOutcomeMemory } from "@/lib/outcomes/outcome-memory";
+import { buildOutcomeMemoryInputs } from "@/lib/outcomes/outcome-memory-builder";
 import type { OutcomeMemorySummary } from "@/lib/outcomes/outcome-memory";
 import type { RequestContext } from "@/lib/types/auth";
 import type { Signal } from "@/lib/types/signal";
@@ -144,45 +151,30 @@ export async function getRevenueOverview(
   };
 }
 
-// Build outcome memory by joining attributions, effectiveness, and outcome
-// events per workflow run into the pure memory summarizer.
+// Build outcome memory by joining workflow runs, attributions, and outcome
+// events into the pure memory summarizer. Four bulk queries replace the
+// previous per customer loop and its inner per run effectiveness query. The
+// vertical memory summary does not consume the per run effectiveness score, so
+// dropping that lookup removes the inner N+1 with no change to the output.
 async function buildOutcomeMemory(
   organizationId: string,
 ): Promise<OutcomeMemorySummary> {
-  const customers = await findAllCustomers(organizationId);
-  const inputs = [];
+  const [customers, runs, attributions, outcomeEvents] = await Promise.all([
+    findAllCustomers(organizationId),
+    findAllWorkflowRuns(organizationId),
+    findAllAttributions(organizationId),
+    findAllOutcomeEvents(organizationId),
+  ]);
 
-  for (const customer of customers) {
-    const [runs, attributions, outcomeEvents] = await Promise.all([
-      findWorkflowRunsByCustomer(organizationId, customer.id),
-      findAttributionsByCustomer(organizationId, customer.id),
-      findOutcomeEventsByCustomer(organizationId, customer.id),
-    ]);
-
-    for (const run of runs) {
-      const runAttribution = attributions.find(
-        (a) => a.workflowRunId === run.id,
-      );
-      const effectiveness = await findEffectivenessByRun(
-        organizationId,
-        run.id,
-      );
-      const runOutcomes = outcomeEvents.filter(
-        (o) => o.workflowRunId === run.id,
-      );
-
-      inputs.push({
-        vertical: customer.vertical,
-        outcomeTypes: runOutcomes.map((o) => o.outcomeType),
-        attributionType: runAttribution?.attributionType ?? null,
-        attributedAmount: runAttribution?.attributedAmount ?? 0,
-        outcomeScore: effectiveness?.outcomeScore ?? 0,
-        executedActionTypes: run.actions
-          .filter((a) => a.status === "executed")
-          .map((a) => a.actionType),
-      });
-    }
-  }
+  const verticalByCustomerId = new Map(
+    customers.map((customer) => [customer.id, customer.vertical]),
+  );
+  const inputs = buildOutcomeMemoryInputs({
+    runs,
+    attributions,
+    outcomeEvents,
+    verticalByCustomerId,
+  });
 
   return summarizeOutcomeMemory(inputs);
 }

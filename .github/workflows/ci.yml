@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Safety scan
+        run: npm run scan:safety
+
+      - name: Architecture boundaries
+        run: npm run check:architecture
+
+      - name: Prisma schema validation
+        run: npx prisma validate
+
+      - name: Build
+        run: npm run build
+        env:
+          # The build does not connect to a database. A placeholder URL lets
+          # Prisma client initialization succeed during the Next.js build.
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db?schema=public

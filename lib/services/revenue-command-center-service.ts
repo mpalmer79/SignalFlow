@@ -14,6 +14,7 @@ import {
   findWorkflowRunsByCustomer,
 } from "@/lib/repositories/workflow-repository";
 import {
+  findAllOutcomeEvents,
   findOutcomeEventsByCustomer,
   findRecentOutcomeEvents,
 } from "@/lib/repositories/outcome-repository";
@@ -42,6 +43,7 @@ import {
 } from "@/lib/repositories/ai-repository";
 import { buildIntelligenceProfile } from "@/lib/intelligence/graph-summary";
 import { summarizeOutcomeMemory } from "@/lib/outcomes/outcome-memory";
+import { buildOutcomeMemoryInputs } from "@/lib/outcomes/outcome-memory-builder";
 import { outcomeLabel } from "@/lib/config/outcome-status";
 import type { RequestContext } from "@/lib/types/auth";
 import type { Customer } from "@/lib/types/customer";
@@ -395,35 +397,24 @@ function buildFunnel(
 async function buildVerticalMemory(
   organizationId: string,
 ): Promise<VerticalRevenueRow[]> {
-  const customers = await findAllCustomers(organizationId);
-  const inputs: Parameters<typeof summarizeOutcomeMemory>[0] = [];
+  // Four bulk queries replace the previous per customer query loop. The records
+  // are joined in memory by the pure outcome memory builder.
+  const [customers, runs, attributions, outcomeEvents] = await Promise.all([
+    findAllCustomers(organizationId),
+    findAllWorkflowRuns(organizationId),
+    findAllAttributions(organizationId),
+    findAllOutcomeEvents(organizationId),
+  ]);
 
-  for (const customer of customers) {
-    const [runs, attributions, outcomeEvents] = await Promise.all([
-      findWorkflowRunsByCustomer(organizationId, customer.id),
-      findAttributionsByCustomer(organizationId, customer.id),
-      findOutcomeEventsByCustomer(organizationId, customer.id),
-    ]);
-
-    for (const run of runs) {
-      const runAttribution = attributions.find(
-        (a) => a.workflowRunId === run.id,
-      );
-      const runOutcomes = outcomeEvents.filter(
-        (o) => o.workflowRunId === run.id,
-      );
-      inputs.push({
-        vertical: customer.vertical,
-        outcomeTypes: runOutcomes.map((o) => o.outcomeType),
-        attributionType: runAttribution?.attributionType ?? null,
-        attributedAmount: runAttribution?.attributedAmount ?? 0,
-        outcomeScore: 0,
-        executedActionTypes: run.actions
-          .filter((a) => a.status === "executed")
-          .map((a) => a.actionType),
-      });
-    }
-  }
+  const verticalByCustomerId = new Map(
+    customers.map((customer) => [customer.id, customer.vertical]),
+  );
+  const inputs = buildOutcomeMemoryInputs({
+    runs,
+    attributions,
+    outcomeEvents,
+    verticalByCustomerId,
+  });
 
   const memory = summarizeOutcomeMemory(inputs);
   return memory.byVertical

@@ -18,6 +18,8 @@ import {
 } from "@/lib/types/voice";
 import type { VoiceBlockedReason } from "@/lib/types/voice";
 import { guardPage } from "@/lib/auth/guard-page";
+import { hasPermission } from "@/lib/auth/authorization";
+import { VoiceReviewButtons } from "@/components/voice/voice-review-buttons";
 
 export const metadata: Metadata = { title: "Review Queue" };
 export const dynamic = "force-dynamic";
@@ -31,6 +33,7 @@ export default async function ReviewQueuePage() {
     getVoiceCommandCenter(context),
   ]);
   const voiceNeedingReview = voice.needingReview;
+  const canReviewVoice = hasPermission(context, "REVIEW_AI_RECOMMENDATIONS");
 
   return (
     <>
@@ -93,6 +96,12 @@ export default async function ReviewQueuePage() {
                           ]
                         : "Awaiting human approval"}
                     </span>
+                  </div>
+                  <div className="mt-2">
+                    <VoiceReviewButtons
+                      voicePlanId={plan.id}
+                      canReview={canReviewVoice}
+                    />
                   </div>
                 </div>
               ))}
