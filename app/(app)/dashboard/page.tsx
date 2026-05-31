@@ -436,35 +436,35 @@ export default async function DashboardPage() {
           <MetricCard
             label="Voice calls simulated"
             value={String(voice.totalCalls)}
-            hint="Deterministic simulations"
+            hint="Deterministic, no live calls"
             icon={PhoneCall}
             tone="success"
           />
           <MetricCard
-            label="Voice calls blocked"
+            label="Voice plans blocked"
             value={String(voice.blocked)}
             hint="Held by voice compliance"
             icon={ShieldAlert}
             tone="warning"
           />
           <MetricCard
-            label="Calls needing review"
+            label="Plans needing review"
             value={String(voice.needsReview)}
-            hint="Awaiting human approval"
+            hint="Not simulated until approved"
             icon={ShieldQuestion}
             tone="warning"
           />
           <MetricCard
             label="Appointments from voice"
             value={String(voice.appointments)}
-            hint={`${voice.positiveOutcomes} positive outcomes`}
+            hint={`${voice.positiveOutcomes} positive simulated outcomes`}
             icon={CheckCircle2}
             tone="success"
           />
           <MetricCard
             label="Voice influenced revenue"
             value={formatCurrency(voice.influencedRevenue)}
-            hint="Attributed from simulated calls"
+            hint="Attributed from simulated calls only"
             icon={Banknote}
             tone="success"
           />

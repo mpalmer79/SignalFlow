@@ -179,6 +179,30 @@ The pipeline now branches into voice: AI Recommendation to Human Review to
 Voice Plan to Voice Compliance Check to Simulated Call to Transcript to Call
 Outcome to Revenue Attribution to Audit Trail.
 
+### Phase 9 hardening pass (complete)
+
+A safety and demo readiness pass over the Voice AI Simulation Platform:
+
+- Corrected the simulation eligibility check so needs-review plans are no
+  longer simulated as completed; only allowed plans produce a call,
+  transcript, or outcome
+- Tightened transcript opening to remove the duplicated greeting and added
+  deterministic per-vertical customer line variants for believability
+- Added a clear simulated banner to the voice command center and the voice
+  replay page
+- Surfaced voice plans needing review on the AI review queue page so the two
+  governance flows share one home
+- Tightened dashboard voice metric labels and hints to clearly say simulated
+- Verified that every voice repository query carries an organizationId in its
+  where clause and that detail lookups require id and organizationId
+- Reseeded and confirmed the invariant: zero calls exist on blocked or
+  needs-review plans
+- Documentation updates across VOICE_PLATFORM, VOICE_COMPLIANCE,
+  VOICE_SIMULATION, and ROADMAP
+
+Validated locally: typecheck, lint, prisma validate, prisma migrate status,
+prisma db seed, and next build all pass.
+
 ## Phase 10: Live providers behind interfaces
 
 - Implement AI provider adapters behind the existing AIProvider interface (OpenAI, Anthropic Claude, Google Gemini)
