@@ -1,0 +1,130 @@
+// SignalFlow Prisma schema (Phase 1 target).
+// Phase 0 does not connect to a database. This schema documents the intended
+// persistence model so the domain types and storage stay aligned.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Channel {
+  sms
+  email
+  voice
+  human
+}
+
+enum ConsentState {
+  granted
+  denied
+  unknown
+  revoked
+}
+
+enum SignalPriority {
+  critical
+  high
+  medium
+  low
+}
+
+enum OpportunityStage {
+  new
+  contact_attempted
+  engaged
+  appointment_set
+  needs_human_review
+  won
+  lost
+  dormant
+  reactivated
+}
+
+enum CommunicationStatus {
+  drafted
+  queued
+  sent
+  delivered
+  replied
+  failed
+  blocked
+  escalated
+}
+
+model Organization {
+  id        String     @id @default(cuid())
+  name      String
+  vertical  String
+  customers Customer[]
+  createdAt DateTime   @default(now())
+}
+
+model Customer {
+  id               String          @id @default(cuid())
+  organizationId   String
+  organization     Organization    @relation(fields: [organizationId], references: [id])
+  name             String
+  vertical         String
+  preferredChannel Channel
+  optedOut         Boolean         @default(false)
+  signals          Signal[]
+  opportunities    Opportunity[]
+  communications   Communication[]
+  auditEvents      AuditEvent[]
+  createdAt        DateTime        @default(now())
+}
+
+model Signal {
+  id                 String         @id @default(cuid())
+  customerId         String
+  customer           Customer       @relation(fields: [customerId], references: [id])
+  type               String
+  source             String
+  priority           SignalPriority
+  recommendedAction  String
+  recommendedChannel Channel
+  consentStatus      ConsentState
+  detail             String
+  receivedAt         DateTime       @default(now())
+}
+
+model Opportunity {
+  id            String           @id @default(cuid())
+  customerId    String
+  customer      Customer         @relation(fields: [customerId], references: [id])
+  title         String
+  stage         OpportunityStage
+  intentScore   Int
+  estimatedValue Int
+  owner         String
+  updatedAt     DateTime         @updatedAt
+}
+
+model Communication {
+  id              String              @id @default(cuid())
+  customerId      String
+  customer        Customer            @relation(fields: [customerId], references: [id])
+  channel         Channel
+  subject         String
+  preview         String
+  status          CommunicationStatus
+  relatedSignalId String?
+  simulated       Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+}
+
+model AuditEvent {
+  id             String   @id @default(cuid())
+  customerId     String
+  customer       Customer @relation(fields: [customerId], references: [id])
+  type           String
+  signalId       String?
+  policyDecision String
+  action         String
+  outcome        String
+  occurredAt     DateTime @default(now())
+}
