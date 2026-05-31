@@ -97,6 +97,12 @@ enum AuditEventType {
   REVENUE_ATTRIBUTED
   MISSED_OPPORTUNITY_ESTIMATED
   WORKFLOW_EFFECTIVENESS_SCORED
+  USER_CONTEXT_RESOLVED
+  ORGANIZATION_CONTEXT_RESOLVED
+  AUTHORIZATION_CHECK_PASSED
+  AUTHORIZATION_CHECK_FAILED
+  ROLE_ASSIGNED
+  MEMBERSHIP_CREATED
 }
 
 enum OutcomeEventType {
@@ -129,6 +135,23 @@ enum MissedOpportunitySeverity {
   medium
   high
   critical
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MANAGER
+  SALES_USER
+  SERVICE_USER
+  MARKETING_USER
+  COMPLIANCE_REVIEWER
+  VIEWER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
 }
 
 enum WorkflowOutcomeType {
@@ -193,6 +216,41 @@ enum RiskSeverity {
   critical
 }
 
+model Organization {
+  id          String       @id @default(cuid())
+  name        String
+  slug        String       @unique
+  industry    String
+  memberships Membership[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model User {
+  id          String       @id @default(cuid())
+  clerkUserId String?      @unique
+  email       String       @unique
+  name        String
+  memberships Membership[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Membership {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           Role
+  status         MembershipStatus @default(ACTIVE)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
 model VerticalPack {
   id          String                @id
   name        String
@@ -208,6 +266,7 @@ model VerticalPack {
 
 model Customer {
   id                  String                      @id @default(cuid())
+  organizationId      String
   name                String
   verticalId          String
   vertical            VerticalPack                @relation(fields: [verticalId], references: [id])
@@ -231,34 +290,40 @@ model Customer {
   updatedAt           DateTime                    @updatedAt
 
   @@index([verticalId])
+  @@index([organizationId])
 }
 
 model ContactMethod {
-  id         String       @id @default(cuid())
-  customerId String
-  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  channel    Channel
-  value      String
-  consent    ConsentState @default(unknown)
+  id             String       @id @default(cuid())
+  organizationId String
+  customerId     String
+  customer       Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  channel        Channel
+  value          String
+  consent        ConsentState @default(unknown)
 
   @@unique([customerId, channel])
+  @@index([organizationId])
 }
 
 model ConsentRecord {
-  id         String       @id @default(cuid())
-  customerId String
-  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  channel    Channel
-  state      ConsentState
-  source     String
-  capturedAt DateTime?
-  createdAt  DateTime     @default(now())
+  id             String       @id @default(cuid())
+  organizationId String
+  customerId     String
+  customer       Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  channel        Channel
+  state          ConsentState
+  source         String
+  capturedAt     DateTime?
+  createdAt      DateTime     @default(now())
 
   @@index([customerId])
+  @@index([organizationId])
 }
 
 model Signal {
   id                 String           @id @default(cuid())
+  organizationId     String
   type               SignalType
   label              String
   customerId         String
@@ -278,10 +343,12 @@ model Signal {
 
   @@index([customerId])
   @@index([opportunityId])
+  @@index([organizationId])
 }
 
 model Opportunity {
   id                  String                      @id @default(cuid())
+  organizationId      String
   title               String
   customerId          String
   customer            Customer                    @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -302,32 +369,36 @@ model Opportunity {
 
   @@index([customerId])
   @@index([stage])
+  @@index([organizationId])
 }
 
 model Communication {
-  id            String              @id @default(cuid())
-  channel       Channel
-  customerId    String
-  customer      Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  opportunityId String?
-  opportunity   Opportunity?        @relation(fields: [opportunityId], references: [id])
-  signalId      String?
-  signal        Signal?             @relation(fields: [signalId], references: [id])
-  subject       String
-  preview       String
-  status        CommunicationStatus
-  simulated     Boolean             @default(true)
-  createdAt     DateTime            @default(now())
+  id             String              @id @default(cuid())
+  organizationId String
+  channel        Channel
+  customerId     String
+  customer       Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  opportunityId  String?
+  opportunity    Opportunity?        @relation(fields: [opportunityId], references: [id])
+  signalId       String?
+  signal         Signal?             @relation(fields: [signalId], references: [id])
+  subject        String
+  preview        String
+  status         CommunicationStatus
+  simulated      Boolean             @default(true)
+  createdAt      DateTime            @default(now())
 
   @@index([customerId])
   @@index([channel])
+  @@index([organizationId])
 }
 
 model AuditEvent {
   id             String         @id @default(cuid())
+  organizationId String
   type           AuditEventType
-  customerId     String
-  customer       Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId     String?
+  customer       Customer?      @relation(fields: [customerId], references: [id], onDelete: Cascade)
   signalId       String?
   signal         Signal?        @relation(fields: [signalId], references: [id])
   opportunityId  String?
@@ -342,35 +413,41 @@ model AuditEvent {
   @@index([customerId])
   @@index([occurredAt])
   @@index([workflowRunId])
+  @@index([organizationId])
 }
 
 model PolicyDecision {
-  id          String             @id @default(cuid())
-  customerId  String
-  customer    Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  signalId    String?
-  signal      Signal?            @relation(fields: [signalId], references: [id])
-  channel     Channel
-  decision    PolicyDecisionType
-  reason      String
-  explanation String
-  createdAt   DateTime           @default(now())
+  id             String             @id @default(cuid())
+  organizationId String
+  customerId     String
+  customer       Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  signalId       String?
+  signal         Signal?            @relation(fields: [signalId], references: [id])
+  channel        Channel
+  decision       PolicyDecisionType
+  reason         String
+  explanation    String
+  createdAt      DateTime           @default(now())
 
   @@index([customerId])
+  @@index([organizationId])
 }
 
 model RiskFlag {
-  id         String       @id @default(cuid())
-  customerId String
-  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  label      String
-  severity   RiskSeverity
+  id             String       @id @default(cuid())
+  organizationId String
+  customerId     String
+  customer       Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label          String
+  severity       RiskSeverity
 
   @@index([customerId])
+  @@index([organizationId])
 }
 
 model WorkflowRun {
   id               String                         @id @default(cuid())
+  organizationId   String
   customerId       String
   customer         Customer                       @relation(fields: [customerId], references: [id], onDelete: Cascade)
   opportunityId    String?
@@ -394,53 +471,62 @@ model WorkflowRun {
 
   @@index([customerId])
   @@index([outcome])
+  @@index([organizationId])
 }
 
 model WorkflowAction {
-  id            String               @id @default(cuid())
-  workflowRunId String
-  workflowRun   WorkflowRun          @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
-  order         Int
-  actionType    ActionTypeEnum
-  channel       Channel?
-  status        WorkflowActionStatus
-  policyOutcome PolicyDecisionType
-  offsetMinutes Int
-  reason        String
+  id             String               @id @default(cuid())
+  organizationId String
+  workflowRunId  String
+  workflowRun    WorkflowRun          @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  order          Int
+  actionType     ActionTypeEnum
+  channel        Channel?
+  status         WorkflowActionStatus
+  policyOutcome  PolicyDecisionType
+  offsetMinutes  Int
+  reason         String
 
   @@index([workflowRunId])
+  @@index([organizationId])
 }
 
 model WorkflowResult {
-  id            String              @id @default(cuid())
-  workflowRunId String              @unique
-  workflowRun   WorkflowRun         @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
-  outcome       WorkflowOutcomeType
-  summary       String
-  createdAt     DateTime            @default(now())
+  id             String              @id @default(cuid())
+  organizationId String
+  workflowRunId  String              @unique
+  workflowRun    WorkflowRun         @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  outcome        WorkflowOutcomeType
+  summary        String
+  createdAt      DateTime            @default(now())
+
+  @@index([organizationId])
 }
 
 model OutcomeEvent {
-  id            String           @id @default(cuid())
-  customerId    String
-  customer      Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  opportunityId String?
-  opportunity   Opportunity?     @relation(fields: [opportunityId], references: [id])
-  workflowRunId String?
-  workflowRun   WorkflowRun?     @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
-  outcomeType   OutcomeEventType
-  outcomeReason String
-  confidence    Int
-  actionType    ActionTypeEnum?
-  occurredAt    DateTime         @default(now())
+  id             String           @id @default(cuid())
+  organizationId String
+  customerId     String
+  customer       Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  opportunityId  String?
+  opportunity    Opportunity?     @relation(fields: [opportunityId], references: [id])
+  workflowRunId  String?
+  workflowRun    WorkflowRun?     @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  outcomeType    OutcomeEventType
+  outcomeReason  String
+  confidence     Int
+  actionType     ActionTypeEnum?
+  occurredAt     DateTime         @default(now())
 
   @@index([customerId])
   @@index([opportunityId])
   @@index([workflowRunId])
+  @@index([organizationId])
 }
 
 model RevenueAttribution {
   id                String          @id @default(cuid())
+  organizationId    String
   customerId        String
   customer          Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
   opportunityId     String?
@@ -456,23 +542,27 @@ model RevenueAttribution {
   @@index([customerId])
   @@index([opportunityId])
   @@index([attributionType])
+  @@index([organizationId])
 }
 
 model StageTransition {
-  id            String           @id @default(cuid())
-  opportunityId String
-  opportunity   Opportunity      @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
-  fromStage     OpportunityStage
-  toStage       OpportunityStage
-  reason        String
-  triggeredBy   String
-  createdAt     DateTime         @default(now())
+  id             String           @id @default(cuid())
+  organizationId String
+  opportunityId  String
+  opportunity    Opportunity      @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  fromStage      OpportunityStage
+  toStage        OpportunityStage
+  reason         String
+  triggeredBy    String
+  createdAt      DateTime         @default(now())
 
   @@index([opportunityId])
+  @@index([organizationId])
 }
 
 model WorkflowEffectivenessSnapshot {
   id                String      @id @default(cuid())
+  organizationId    String
   workflowRunId     String      @unique
   workflowRun       WorkflowRun @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
   completionStatus  String
@@ -483,10 +573,13 @@ model WorkflowEffectivenessSnapshot {
   revenueInfluenced Int
   policyFriction    Int
   createdAt         DateTime    @default(now())
+
+  @@index([organizationId])
 }
 
 model MissedOpportunityEstimate {
   id                        String                    @id @default(cuid())
+  organizationId            String
   customerId                String
   customer                  Customer                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
   opportunityId             String?
@@ -499,4 +592,5 @@ model MissedOpportunityEstimate {
 
   @@index([customerId])
   @@index([severity])
+  @@index([organizationId])
 }

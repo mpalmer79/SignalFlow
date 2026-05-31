@@ -9,6 +9,7 @@ import { OutcomeEvents } from "@/components/revenue/outcome-events";
 import { AttributionList } from "@/components/revenue/attribution-list";
 import { MissedOpportunityList } from "@/components/revenue/missed-opportunity-list";
 import { getOpportunityDetail } from "@/lib/services/opportunity-service";
+import { guardPage } from "@/lib/auth/guard-page";
 import { opportunityStageStyles } from "@/lib/config/status";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 
@@ -20,7 +21,10 @@ export default async function OpportunityDetailPage({
 }: {
   params: { id: string };
 }) {
-  const detail = await getOpportunityDetail(params.id);
+  const { context, denied } = await guardPage("VIEW_OPPORTUNITIES");
+  if (denied) return denied;
+
+  const detail = await getOpportunityDetail(context, params.id);
 
   if (!detail) {
     notFound();

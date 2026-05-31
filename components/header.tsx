@@ -20,8 +20,23 @@ function currentDescription(pathname: string): string {
   return match?.description ?? appConfig.positioning;
 }
 
-export function Header() {
+export interface HeaderOrg {
+  organizationName: string;
+  roleLabel: string;
+  isDemo: boolean;
+}
+
+export function Header({ org }: { org: HeaderOrg | null }) {
   const pathname = usePathname();
+
+  const initials = org
+    ? org.organizationName
+        .split(" ")
+        .map((word) => word[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "SF";
 
   return (
     <header className="flex h-16 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur sm:px-6">
@@ -50,10 +65,16 @@ export function Header() {
         </Link>
         <span className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold">
-            RO
+            {initials}
           </span>
-          <span className="hidden text-xs text-muted-foreground sm:inline">
-            Demo workspace
+          <span className="hidden leading-tight sm:block">
+            <span className="block max-w-[12rem] truncate text-xs font-medium">
+              {org?.organizationName ?? "Demo workspace"}
+            </span>
+            <span className="block text-[11px] text-muted-foreground">
+              {org ? org.roleLabel : "Viewer"}
+              {org?.isDemo ? " (demo auth)" : ""}
+            </span>
           </span>
         </span>
       </div>

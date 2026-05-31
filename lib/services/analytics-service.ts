@@ -13,6 +13,7 @@ import { buildExecutiveSummary } from "@/lib/analytics/executive-summary";
 import { computeWorkflowInsights } from "@/lib/analytics/workflow-insights";
 import { computeOpportunityInsights } from "@/lib/analytics/opportunity-insights";
 import { computeAttributionInsights } from "@/lib/analytics/attribution-insights";
+import type { RequestContext } from "@/lib/types/auth";
 import type {
   ExecutiveSummary,
   OpportunityInsight,
@@ -32,7 +33,10 @@ export interface ExecutiveInsights {
   attributionInsights: AttributionInsight[];
 }
 
-export async function getExecutiveInsights(): Promise<ExecutiveInsights> {
+export async function getExecutiveInsights(
+  context: RequestContext,
+): Promise<ExecutiveInsights> {
+  const orgId = context.organizationId;
   const [
     runs,
     effectiveness,
@@ -43,14 +47,14 @@ export async function getExecutiveInsights(): Promise<ExecutiveInsights> {
     reactivations,
     overview,
   ] = await Promise.all([
-    findAllWorkflowRuns(),
-    findAllEffectiveness(),
-    findAllMissedOpportunities(),
-    findAllAttributions(),
-    getAttributionTotals(),
-    findAllOpportunities(),
-    countReactivations(),
-    getRevenueOverview(),
+    findAllWorkflowRuns(orgId),
+    findAllEffectiveness(orgId),
+    findAllMissedOpportunities(orgId),
+    findAllAttributions(orgId),
+    getAttributionTotals(orgId),
+    findAllOpportunities(orgId),
+    countReactivations(orgId),
+    getRevenueOverview(context),
   ]);
 
   const leaks = detectRevenueLeaks(missed);
@@ -90,7 +94,9 @@ export async function getExecutiveInsights(): Promise<ExecutiveInsights> {
 
 // Revenue leak summary for the dashboard, derived from persisted missed
 // opportunities.
-export async function getRevenueLeakSummary(): Promise<RevenueLeak[]> {
-  const missed = await findAllMissedOpportunities();
+export async function getRevenueLeakSummary(
+  context: RequestContext,
+): Promise<RevenueLeak[]> {
+  const missed = await findAllMissedOpportunities(context.organizationId);
   return detectRevenueLeaks(missed);
 }

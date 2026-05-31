@@ -15,6 +15,7 @@ import { OutcomeEvents } from "@/components/revenue/outcome-events";
 import { AttributionList } from "@/components/revenue/attribution-list";
 import { MissedOpportunityList } from "@/components/revenue/missed-opportunity-list";
 import { getRevenueStory } from "@/lib/services/revenue-engine-service";
+import { guardPage } from "@/lib/auth/guard-page";
 import { formatCurrency } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Revenue Story" };
@@ -27,7 +28,10 @@ export default async function RevenueStoryPage({
 }: {
   params: { id: string };
 }) {
-  const story = await getRevenueStory(params.id);
+  const { context, denied } = await guardPage("VIEW_REVENUE");
+  if (denied) return denied;
+
+  const story = await getRevenueStory(context, params.id);
 
   if (!story) {
     notFound();

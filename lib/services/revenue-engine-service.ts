@@ -1,15 +1,20 @@
-import { findCustomerById } from "@/lib/repositories/customer-repository";
+import {
+  findAllCustomers,
+  findCustomerById,
+} from "@/lib/repositories/customer-repository";
 import { findSignalsByCustomer } from "@/lib/repositories/signal-repository";
 import { findOpportunitiesByCustomer } from "@/lib/repositories/opportunity-repository";
 import { findCommunicationsByCustomer } from "@/lib/repositories/communication-repository";
 import { findWorkflowRunsByCustomer } from "@/lib/repositories/workflow-repository";
 import { findOutcomeEventsByCustomer } from "@/lib/repositories/outcome-repository";
-import { findAttributionsByCustomer } from "@/lib/repositories/attribution-repository";
-import { findMissedByCustomer } from "@/lib/repositories/missed-opportunity-repository";
-import { findEffectivenessByRun } from "@/lib/repositories/workflow-effectiveness-repository";
-import { getAttributionTotals } from "@/lib/repositories/attribution-repository";
-import { getMissedTotals } from "@/lib/repositories/missed-opportunity-repository";
 import {
+  findAllAttributions,
+  findAttributionsByCustomer,
+  getAttributionTotals,
+} from "@/lib/repositories/attribution-repository";
+import { findMissedByCustomer, getMissedTotals } from "@/lib/repositories/missed-opportunity-repository";
+import {
+  findEffectivenessByRun,
   getEffectivenessTotals,
   type EffectivenessTotals,
 } from "@/lib/repositories/workflow-effectiveness-repository";
@@ -17,8 +22,7 @@ import { countReactivations } from "@/lib/repositories/stage-transition-reposito
 import { buildIntelligenceProfile } from "@/lib/intelligence/graph-summary";
 import { summarizeOutcomeMemory } from "@/lib/outcomes/outcome-memory";
 import type { OutcomeMemorySummary } from "@/lib/outcomes/outcome-memory";
-import { findAllCustomers } from "@/lib/repositories/customer-repository";
-import { findAllAttributions } from "@/lib/repositories/attribution-repository";
+import type { RequestContext } from "@/lib/types/auth";
 import type { Signal } from "@/lib/types/signal";
 import type { CustomerIntelligenceProfile } from "@/lib/types/intelligence";
 import type { WorkflowRunRecord } from "@/lib/types/workflow-run";
@@ -29,8 +33,6 @@ import type {
   WorkflowEffectivenessRecord,
 } from "@/lib/types/outcome-records";
 
-// The full signal to revenue story for one customer, used by the Revenue
-// Engine page.
 export interface RevenueStory {
   customerName: string;
   customerId: string;
@@ -45,20 +47,22 @@ export interface RevenueStory {
 }
 
 export async function getRevenueStory(
+  context: RequestContext,
   customerId: string,
 ): Promise<RevenueStory | null> {
-  const customer = await findCustomerById(customerId);
+  const orgId = context.organizationId;
+  const customer = await findCustomerById(orgId, customerId);
   if (!customer) return null;
 
   const [signals, opportunities, communications, runs, outcomeEvents, attributions, missed] =
     await Promise.all([
-      findSignalsByCustomer(customerId),
-      findOpportunitiesByCustomer(customerId),
-      findCommunicationsByCustomer(customerId),
-      findWorkflowRunsByCustomer(customerId),
-      findOutcomeEventsByCustomer(customerId),
-      findAttributionsByCustomer(customerId),
-      findMissedByCustomer(customerId),
+      findSignalsByCustomer(orgId, customerId),
+      findOpportunitiesByCustomer(orgId, customerId),
+      findCommunicationsByCustomer(orgId, customerId),
+      findWorkflowRunsByCustomer(orgId, customerId),
+      findOutcomeEventsByCustomer(orgId, customerId),
+      findAttributionsByCustomer(orgId, customerId),
+      findMissedByCustomer(orgId, customerId),
     ]);
 
   const profile = buildIntelligenceProfile({
@@ -69,7 +73,9 @@ export async function getRevenueStory(
   });
 
   const run = runs[0] ?? null;
-  const effectiveness = run ? await findEffectivenessByRun(run.id) : null;
+  const effectiveness = run
+    ? await findEffectivenessByRun(orgId, run.id)
+    : null;
 
   return {
     customerId: customer.id,
@@ -102,7 +108,10 @@ export interface RevenueOverview {
   topAttributions: RevenueAttributionRecord[];
 }
 
-export async function getRevenueOverview(): Promise<RevenueOverview> {
+export async function getRevenueOverview(
+  context: RequestContext,
+): Promise<RevenueOverview> {
+  const orgId = context.organizationId;
   const [
     attributionTotals,
     missedTotals,
@@ -111,12 +120,12 @@ export async function getRevenueOverview(): Promise<RevenueOverview> {
     attributions,
     memory,
   ] = await Promise.all([
-    getAttributionTotals(),
-    getMissedTotals(),
-    getEffectivenessTotals(),
-    countReactivations(),
-    findAllAttributions(),
-    buildOutcomeMemory(),
+    getAttributionTotals(orgId),
+    getMissedTotals(orgId),
+    getEffectivenessTotals(orgId),
+    countReactivations(orgId),
+    findAllAttributions(orgId),
+    buildOutcomeMemory(orgId),
   ]);
 
   return {
@@ -137,22 +146,27 @@ export async function getRevenueOverview(): Promise<RevenueOverview> {
 
 // Build outcome memory by joining attributions, effectiveness, and outcome
 // events per workflow run into the pure memory summarizer.
-async function buildOutcomeMemory(): Promise<OutcomeMemorySummary> {
-  const customers = await findAllCustomers();
+async function buildOutcomeMemory(
+  organizationId: string,
+): Promise<OutcomeMemorySummary> {
+  const customers = await findAllCustomers(organizationId);
   const inputs = [];
 
   for (const customer of customers) {
     const [runs, attributions, outcomeEvents] = await Promise.all([
-      findWorkflowRunsByCustomer(customer.id),
-      findAttributionsByCustomer(customer.id),
-      findOutcomeEventsByCustomer(customer.id),
+      findWorkflowRunsByCustomer(organizationId, customer.id),
+      findAttributionsByCustomer(organizationId, customer.id),
+      findOutcomeEventsByCustomer(organizationId, customer.id),
     ]);
 
     for (const run of runs) {
       const runAttribution = attributions.find(
         (a) => a.workflowRunId === run.id,
       );
-      const effectiveness = await findEffectivenessByRun(run.id);
+      const effectiveness = await findEffectivenessByRun(
+        organizationId,
+        run.id,
+      );
       const runOutcomes = outcomeEvents.filter(
         (o) => o.workflowRunId === run.id,
       );

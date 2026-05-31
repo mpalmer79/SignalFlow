@@ -10,14 +10,18 @@ import {
   getIntelligenceOverview,
   getSignalExplorer,
 } from "@/lib/services/intelligence-service";
+import { guardPage } from "@/lib/auth/guard-page";
 
 export const metadata: Metadata = { title: "Intelligence" };
 export const dynamic = "force-dynamic";
 
 export default async function IntelligencePage() {
+  const { context, denied } = await guardPage("VIEW_INTELLIGENCE");
+  if (denied) return denied;
+
   const [overview, explorerRows] = await Promise.all([
-    getIntelligenceOverview(),
-    getSignalExplorer(),
+    getIntelligenceOverview(context),
+    getSignalExplorer(context),
   ]);
 
   return (

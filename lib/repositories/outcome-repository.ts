@@ -38,6 +38,7 @@ function actionTypeToDb(value: string | null): ActionTypeEnum | undefined {
 }
 
 export interface PersistAssessmentInput {
+  organizationId: string;
   customerId: string;
   opportunityId: string | null;
   workflowRunId: string;
@@ -51,12 +52,14 @@ export interface PersistAssessmentInput {
 export async function persistAssessment(
   input: PersistAssessmentInput,
 ): Promise<void> {
-  const { customerId, opportunityId, workflowRunId, assessment } = input;
+  const { organizationId, customerId, opportunityId, workflowRunId, assessment } =
+    input;
   const auditData: Prisma.AuditEventCreateManyInput[] = [];
 
   if (assessment.outcomeEvents.length > 0) {
     await prisma.outcomeEvent.createMany({
       data: assessment.outcomeEvents.map((event) => ({
+        organizationId,
         customerId,
         opportunityId: opportunityId ?? undefined,
         workflowRunId,
@@ -67,6 +70,7 @@ export async function persistAssessment(
       })),
     });
     auditData.push({
+      organizationId,
       type: "OUTCOME_EVENT_CREATED",
       customerId,
       opportunityId: opportunityId ?? undefined,
@@ -81,6 +85,7 @@ export async function persistAssessment(
     const t = assessment.stageTransition;
     await prisma.stageTransition.create({
       data: {
+        organizationId,
         opportunityId,
         fromStage: stageToDb(t.fromStage),
         toStage: stageToDb(t.toStage),
@@ -89,11 +94,12 @@ export async function persistAssessment(
       },
     });
     // Move the opportunity to reflect the transition.
-    await prisma.opportunity.update({
-      where: { id: opportunityId },
+    await prisma.opportunity.updateMany({
+      where: { id: opportunityId, organizationId },
       data: { stage: stageToDb(t.toStage) },
     });
     auditData.push({
+      organizationId,
       type: "STAGE_TRANSITION_CREATED",
       customerId,
       opportunityId,
@@ -108,6 +114,7 @@ export async function persistAssessment(
     const a = assessment.attribution;
     await prisma.revenueAttribution.create({
       data: {
+        organizationId,
         customerId,
         opportunityId: opportunityId ?? undefined,
         workflowRunId,
@@ -118,6 +125,7 @@ export async function persistAssessment(
       },
     });
     auditData.push({
+      organizationId,
       type: "REVENUE_ATTRIBUTED",
       customerId,
       opportunityId: opportunityId ?? undefined,
@@ -130,6 +138,7 @@ export async function persistAssessment(
 
   await prisma.workflowEffectivenessSnapshot.create({
     data: {
+      organizationId,
       workflowRunId,
       completionStatus: assessment.effectiveness.completionStatus,
       actionsExecuted: assessment.effectiveness.actionsExecuted,
@@ -141,6 +150,7 @@ export async function persistAssessment(
     },
   });
   auditData.push({
+    organizationId,
     type: "WORKFLOW_EFFECTIVENESS_SCORED",
     customerId,
     opportunityId: opportunityId ?? undefined,
@@ -154,6 +164,7 @@ export async function persistAssessment(
     const m = assessment.missedOpportunity;
     await prisma.missedOpportunityEstimate.create({
       data: {
+        organizationId,
         customerId,
         opportunityId: opportunityId ?? undefined,
         estimatedValue: m.estimatedValue,
@@ -163,6 +174,7 @@ export async function persistAssessment(
       },
     });
     auditData.push({
+      organizationId,
       type: "MISSED_OPPORTUNITY_ESTIMATED",
       customerId,
       opportunityId: opportunityId ?? undefined,
@@ -183,10 +195,11 @@ const withCustomerName = {
 } as const;
 
 export async function findOutcomeEventsByCustomer(
+  organizationId: string,
   customerId: string,
 ): Promise<OutcomeEventRecord[]> {
   const rows = await prisma.outcomeEvent.findMany({
-    where: { customerId },
+    where: { organizationId, customerId },
     include: withCustomerName,
     orderBy: { occurredAt: "desc" },
   });
@@ -204,10 +217,11 @@ export async function findOutcomeEventsByCustomer(
 }
 
 export async function findOutcomeEventsByOpportunity(
+  organizationId: string,
   opportunityId: string,
 ): Promise<OutcomeEventRecord[]> {
   const rows = await prisma.outcomeEvent.findMany({
-    where: { opportunityId },
+    where: { organizationId, opportunityId },
     include: withCustomerName,
     orderBy: { occurredAt: "desc" },
   });

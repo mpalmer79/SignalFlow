@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { WorkflowRunView } from "@/components/workflow/workflow-run-view";
 import { getWorkflowRunDetail } from "@/lib/services/workflow-service";
+import { guardPage } from "@/lib/auth/guard-page";
 
 export const metadata: Metadata = { title: "Workflow Run" };
 export const dynamic = "force-dynamic";
@@ -14,7 +15,10 @@ export default async function WorkflowRunPage({
 }: {
   params: { id: string };
 }) {
-  const detail = await getWorkflowRunDetail(params.id);
+  const { context, denied } = await guardPage("VIEW_WORKFLOWS");
+  if (denied) return denied;
+
+  const detail = await getWorkflowRunDetail(context, params.id);
 
   if (!detail) {
     notFound();

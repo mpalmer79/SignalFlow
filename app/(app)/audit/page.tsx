@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import { SectionHeading } from "@/components/section-heading";
 import { AuditEventCard } from "@/components/audit-event-card";
 import { listAuditEvents } from "@/lib/services/audit-service";
+import { guardPage } from "@/lib/auth/guard-page";
 
 export const metadata: Metadata = { title: "Audit" };
 export const dynamic = "force-dynamic";
 
 export default async function AuditPage() {
-  const events = await listAuditEvents();
+  const { context, denied } = await guardPage("VIEW_AUDIT");
+  if (denied) return denied;
+
+  const events = await listAuditEvents(context);
 
   return (
     <>

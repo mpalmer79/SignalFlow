@@ -10,6 +10,7 @@ import {
   getWorkflowMetrics,
   listWorkflowRuns,
 } from "@/lib/services/workflow-service";
+import { guardPage } from "@/lib/auth/guard-page";
 import { formatRelativeTime } from "@/lib/utils";
 import { CheckCircle2, ShieldAlert, Workflow, Zap } from "lucide-react";
 
@@ -17,9 +18,12 @@ export const metadata: Metadata = { title: "Orchestrator" };
 export const dynamic = "force-dynamic";
 
 export default async function OrchestratorPage() {
+  const { context, denied } = await guardPage("VIEW_WORKFLOWS");
+  if (denied) return denied;
+
   const [runs, metrics] = await Promise.all([
-    listWorkflowRuns(),
-    getWorkflowMetrics(),
+    listWorkflowRuns(context),
+    getWorkflowMetrics(context),
   ]);
 
   return (

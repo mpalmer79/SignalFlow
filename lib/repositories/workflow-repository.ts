@@ -1,5 +1,6 @@
 import type {
   ActionTypeEnum,
+  AuditEventType,
   Channel as DbChannel,
   PolicyDecisionType,
   Prisma,
@@ -42,6 +43,7 @@ const POLICY_FROM_DB: Record<PolicyDecisionType, PolicyOutcome> = {
 };
 
 export interface PersistWorkflowInput {
+  organizationId: string;
   plan: WorkflowPlan;
   opportunityId: string | null;
   intentScore: number;
@@ -50,15 +52,16 @@ export interface PersistWorkflowInput {
 }
 
 // Persist a simulated workflow plan as a run with its actions, a result row,
-// and the generated audit events, in a single transaction.
+// and the generated audit events. Every record carries the organization id.
 export async function persistWorkflowRun(
   input: PersistWorkflowInput,
 ): Promise<string> {
-  const { plan, opportunityId } = input;
+  const { organizationId, plan, opportunityId } = input;
   const { execution } = plan;
 
   const run = await prisma.workflowRun.create({
     data: {
+      organizationId,
       customerId: plan.customerId,
       opportunityId: opportunityId ?? undefined,
       title: plan.title,
@@ -72,6 +75,7 @@ export async function persistWorkflowRun(
       actionsEscalated: execution.actionsEscalated,
       actions: {
         create: execution.steps.map((step) => ({
+          organizationId,
           order: step.order,
           actionType: step.actionType as ActionTypeEnum,
           channel: (step.channel as DbChannel | null) ?? undefined,
@@ -83,6 +87,7 @@ export async function persistWorkflowRun(
       },
       result: {
         create: {
+          organizationId,
           outcome: outcomeToDb(execution.outcome),
           summary: `Workflow ${execution.outcome} with ${execution.actionsExecuted} executed and ${execution.actionsBlocked} blocked.`,
         },
@@ -90,18 +95,17 @@ export async function persistWorkflowRun(
     },
   });
 
-  // Persist workflow audit events linked to both the run and the customer.
   if (execution.auditEvents.length > 0) {
     await prisma.auditEvent.createMany({
       data: execution.auditEvents.map((event) => ({
-        type: event.type,
+        organizationId,
+        type: event.type as AuditEventType,
         customerId: plan.customerId,
         opportunityId: opportunityId ?? undefined,
         workflowRunId: run.id,
         policyDecision: workflowPolicyLabel(event.type),
         action: event.detail,
         outcome: auditOutcomeFor(event.type),
-        occurredAt: new Date(Date.now() + event.offsetMinutes * 60000),
       })),
     });
   }
@@ -168,8 +172,11 @@ function mapRun(row: RunRow): WorkflowRunRecord {
   };
 }
 
-export async function findAllWorkflowRuns(): Promise<WorkflowRunRecord[]> {
+export async function findAllWorkflowRuns(
+  organizationId: string,
+): Promise<WorkflowRunRecord[]> {
   const rows = await prisma.workflowRun.findMany({
+    where: { organizationId },
     include: runInclude,
     orderBy: { createdAt: "desc" },
   });
@@ -177,28 +184,32 @@ export async function findAllWorkflowRuns(): Promise<WorkflowRunRecord[]> {
 }
 
 export async function findWorkflowRunById(
+  organizationId: string,
   id: string,
 ): Promise<WorkflowRunRecord | null> {
-  const row = await prisma.workflowRun.findUnique({
-    where: { id },
+  const row = await prisma.workflowRun.findFirst({
+    where: { id, organizationId },
     include: runInclude,
   });
   return row ? mapRun(row) : null;
 }
 
 export async function findWorkflowRunsByCustomer(
+  organizationId: string,
   customerId: string,
 ): Promise<WorkflowRunRecord[]> {
   const rows = await prisma.workflowRun.findMany({
-    where: { customerId },
+    where: { organizationId, customerId },
     include: runInclude,
     orderBy: { createdAt: "desc" },
   });
   return rows.map(mapRun);
 }
 
-export async function countWorkflowRuns(): Promise<number> {
-  return prisma.workflowRun.count();
+export async function countWorkflowRuns(
+  organizationId: string,
+): Promise<number> {
+  return prisma.workflowRun.count({ where: { organizationId } });
 }
 
 export interface WorkflowAggregate {
@@ -209,9 +220,12 @@ export interface WorkflowAggregate {
   completedRuns: number;
 }
 
-export async function aggregateWorkflowMetrics(): Promise<WorkflowAggregate> {
+export async function aggregateWorkflowMetrics(
+  organizationId: string,
+): Promise<WorkflowAggregate> {
   const [totals, completedRuns] = await Promise.all([
     prisma.workflowRun.aggregate({
+      where: { organizationId },
       _count: { _all: true },
       _sum: {
         actionsExecuted: true,
@@ -219,7 +233,7 @@ export async function aggregateWorkflowMetrics(): Promise<WorkflowAggregate> {
         actionsEscalated: true,
       },
     }),
-    prisma.workflowRun.count({ where: { outcome: "completed" } }),
+    prisma.workflowRun.count({ where: { organizationId, outcome: "completed" } }),
   ]);
 
   return {
@@ -229,8 +243,4 @@ export async function aggregateWorkflowMetrics(): Promise<WorkflowAggregate> {
     actionsEscalated: totals._sum.actionsEscalated ?? 0,
     completedRuns,
   };
-}
-
-export async function deleteAllWorkflowRuns(): Promise<void> {
-  await prisma.workflowRun.deleteMany();
 }

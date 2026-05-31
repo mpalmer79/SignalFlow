@@ -1,108 +1,194 @@
 import type { Metadata } from "next";
-import {
-  Building2,
-  MessageSquareDashed,
-  Package,
-  Plug,
-  ShieldCheck,
-  TestTube2,
-} from "lucide-react";
+import { Building2, KeyRound, ShieldCheck, TestTube2, Users } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { LucideIcon } from "lucide-react";
+import { guardPage } from "@/lib/auth/guard-page";
+import { isDemoContext } from "@/lib/auth/auth-context";
+import { hasPermission } from "@/lib/auth/authorization";
+import { listMembers } from "@/lib/repositories/organization-repository";
+import { ROLE_LABELS, ROLE_PERMISSIONS } from "@/lib/auth/roles";
+import { PERMISSION_LABELS } from "@/lib/auth/permissions";
+import { isClerkConfigured } from "@/lib/auth/clerk-config";
+import type { Role } from "@/lib/types/auth";
 
 export const metadata: Metadata = { title: "Settings" };
+export const dynamic = "force-dynamic";
 
-interface SettingsSection {
-  title: string;
-  description: string;
-  icon: LucideIcon;
-  fields: string[];
-}
+export default async function SettingsPage() {
+  const { context, denied } = await guardPage("VIEW_DASHBOARD");
+  if (denied) return denied;
 
-const sections: SettingsSection[] = [
-  {
-    title: "Organization",
-    description: "Workspace name, time zone, and team membership.",
-    icon: Building2,
-    fields: ["Workspace name", "Default time zone", "Team members"],
-  },
-  {
-    title: "Vertical pack",
-    description: "Select the active industry pack for signals and actions.",
-    icon: Package,
-    fields: ["Active pack", "Pack-specific signals", "Pack-specific actions"],
-  },
-  {
-    title: "Communication limits",
-    description: "Daily send caps and per-channel rate limits.",
-    icon: MessageSquareDashed,
-    fields: ["Daily SMS cap", "Daily email cap", "Voice call window"],
-  },
-  {
-    title: "Consent rules",
-    description: "Quiet hours and opt-out handling defaults.",
-    icon: ShieldCheck,
-    fields: ["Quiet hours window", "Opt-out keywords", "Re-consent policy"],
-  },
-  {
-    title: "Provider configuration",
-    description: "Provider keys for later phases. Mocked in Phase 0.",
-    icon: Plug,
-    fields: ["AI provider", "SMS provider", "Email provider", "Voice provider"],
-  },
-  {
-    title: "Demo mode",
-    description: "Phase 0 runs in demo mode with no live outbound communication.",
-    icon: TestTube2,
-    fields: ["Demo mode enabled", "Mock providers only", "No real customer data"],
-  },
-];
+  const canManage = hasPermission(context, "MANAGE_SETTINGS");
+  const demo = isDemoContext(context);
+  const members = await safeListMembers(context.organizationId);
+  const currentRolePermissions = ROLE_PERMISSIONS[context.role];
 
-export default function SettingsPage() {
   return (
     <>
       <SectionHeading
         title="Settings"
-        description="Placeholder configuration for Phase 0. No settings are functional yet."
-        actions={<Badge variant="warning">Demo mode locked on</Badge>}
+        description="Organization profile, roles and permissions, and security boundaries. Management actions require the owner role and are not enabled in this phase."
+        actions={
+          demo ? (
+            <Badge variant="warning">Demo auth context</Badge>
+          ) : (
+            <Badge variant="success">Clerk session</Badge>
+          )
+        }
       />
+
       <div className="grid gap-4 lg:grid-cols-2">
-        {sections.map((section) => {
-          const Icon = section.icon;
-          return (
-            <Card key={section.title}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <CardTitle>{section.title}</CardTitle>
-                    <p className="text-xs text-muted-foreground">
-                      {section.description}
-                    </p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {section.fields.map((field) => (
-                  <div
-                    key={field}
-                    className="flex items-center justify-between rounded-md border border-border bg-secondary/30 px-3 py-2"
-                  >
-                    <span className="text-sm text-muted-foreground">
-                      {field}
-                    </span>
-                    <Badge variant="muted">Coming soon</Badge>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          );
-        })}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-primary" />
+              Organization profile
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <Row label="Name" value={context.organizationName} />
+            <Row label="Organization id" value={context.organizationId} />
+            <Row label="Your role" value={ROLE_LABELS[context.role]} />
+            <Row
+              label="Manage settings"
+              value={canManage ? "Permitted" : "Restricted to owner"}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TestTube2 className="h-4 w-4 text-warning" />
+              Demo provider status
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <Row
+              label="Authentication"
+              value={isClerkConfigured() ? "Clerk configured" : "Demo fallback"}
+            />
+            <Row label="AI providers" value="Mocked, no calls" />
+            <Row label="SMS, email, voice" value="Disabled, simulation only" />
+            <Row label="Demo mode" value="Enabled" />
+          </CardContent>
+        </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-primary" />
+            Members
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {members.length > 0 ? (
+            members.map((member) => (
+              <div
+                key={member.userId}
+                className="flex items-center justify-between gap-3 rounded-md border border-border bg-secondary/30 p-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">
+                    {member.userName}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {member.userEmail}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="muted">{ROLE_LABELS[member.role]}</Badge>
+                  <Badge
+                    variant={member.status === "ACTIVE" ? "success" : "muted"}
+                  >
+                    {member.status}
+                  </Badge>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+              No members found. Invitation flows arrive in a later phase.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <KeyRound className="h-4 w-4 text-primary" />
+            Roles and permissions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {(Object.keys(ROLE_LABELS) as Role[]).map((role) => (
+              <Badge
+                key={role}
+                variant={role === context.role ? "primary" : "muted"}
+              >
+                {ROLE_LABELS[role]}
+              </Badge>
+            ))}
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Permissions for your role ({ROLE_LABELS[context.role]})
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {currentRolePermissions.map((permission) => (
+                <Badge key={permission} variant="outline">
+                  {PERMISSION_LABELS[permission]}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-success" />
+            Security boundaries
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1.5 text-sm text-muted-foreground">
+          <p>Authorization is enforced server-side on every protected page.</p>
+          <p>
+            The organization id comes from the resolved server context, never
+            from the client.
+          </p>
+          <p>Every repository query is scoped to the active organization.</p>
+          <p>
+            The demo auth context is clearly labeled and is not production
+            authentication.
+          </p>
+          <p>No secrets are committed and no provider calls are made.</p>
+        </CardContent>
+      </Card>
     </>
   );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="truncate font-medium">{value}</span>
+    </div>
+  );
+}
+
+// Members come from persistence. In a fresh demo without seeded members this
+// returns an empty list rather than failing.
+async function safeListMembers(organizationId: string) {
+  try {
+    return await listMembers(organizationId);
+  } catch {
+    return [];
+  }
 }

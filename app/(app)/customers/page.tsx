@@ -3,12 +3,16 @@ import Link from "next/link";
 import { SectionHeading } from "@/components/section-heading";
 import { CustomerCard } from "@/components/customer-card";
 import { listCustomers } from "@/lib/services/customer-service";
+import { guardPage } from "@/lib/auth/guard-page";
 
 export const metadata: Metadata = { title: "Customers" };
 export const dynamic = "force-dynamic";
 
 export default async function CustomersPage() {
-  const customers = await listCustomers();
+  const { context, denied } = await guardPage("VIEW_CUSTOMERS");
+  if (denied) return denied;
+
+  const customers = await listCustomers(context);
 
   return (
     <>

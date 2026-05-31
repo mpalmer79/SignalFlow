@@ -31,10 +31,11 @@ function mapRow(row: {
   };
 }
 
-export async function findAllMissedOpportunities(): Promise<
-  MissedOpportunityRecord[]
-> {
+export async function findAllMissedOpportunities(
+  organizationId: string,
+): Promise<MissedOpportunityRecord[]> {
   const rows = await prisma.missedOpportunityEstimate.findMany({
+    where: { organizationId },
     include: withCustomerName,
     orderBy: { estimatedValue: "desc" },
   });
@@ -42,10 +43,11 @@ export async function findAllMissedOpportunities(): Promise<
 }
 
 export async function findMissedByCustomer(
+  organizationId: string,
   customerId: string,
 ): Promise<MissedOpportunityRecord[]> {
   const rows = await prisma.missedOpportunityEstimate.findMany({
-    where: { customerId },
+    where: { organizationId, customerId },
     include: withCustomerName,
     orderBy: { estimatedValue: "desc" },
   });
@@ -53,10 +55,11 @@ export async function findMissedByCustomer(
 }
 
 export async function findMissedByOpportunity(
+  organizationId: string,
   opportunityId: string,
 ): Promise<MissedOpportunityRecord[]> {
   const rows = await prisma.missedOpportunityEstimate.findMany({
-    where: { opportunityId },
+    where: { organizationId, opportunityId },
     include: withCustomerName,
     orderBy: { createdAt: "desc" },
   });
@@ -69,13 +72,18 @@ export interface MissedTotals {
   criticalCount: number;
 }
 
-export async function getMissedTotals(): Promise<MissedTotals> {
+export async function getMissedTotals(
+  organizationId: string,
+): Promise<MissedTotals> {
   const [aggregate, criticalCount] = await Promise.all([
     prisma.missedOpportunityEstimate.aggregate({
+      where: { organizationId },
       _sum: { estimatedValue: true },
       _count: { _all: true },
     }),
-    prisma.missedOpportunityEstimate.count({ where: { severity: "critical" } }),
+    prisma.missedOpportunityEstimate.count({
+      where: { organizationId, severity: "critical" },
+    }),
   ]);
 
   return {

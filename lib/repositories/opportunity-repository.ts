@@ -7,8 +7,11 @@ const withCustomer = {
   customer: { select: { name: true, verticalId: true } },
 } as const;
 
-export async function findAllOpportunities(): Promise<Opportunity[]> {
+export async function findAllOpportunities(
+  organizationId: string,
+): Promise<Opportunity[]> {
   const rows = await prisma.opportunity.findMany({
+    where: { organizationId },
     include: withCustomer,
     orderBy: { updatedAt: "desc" },
   });
@@ -16,20 +19,22 @@ export async function findAllOpportunities(): Promise<Opportunity[]> {
 }
 
 export async function findOpportunityById(
+  organizationId: string,
   id: string,
 ): Promise<Opportunity | null> {
-  const row = await prisma.opportunity.findUnique({
-    where: { id },
+  const row = await prisma.opportunity.findFirst({
+    where: { id, organizationId },
     include: withCustomer,
   });
   return row ? mapOpportunity(row) : null;
 }
 
 export async function findOpportunitiesByCustomer(
+  organizationId: string,
   customerId: string,
 ): Promise<Opportunity[]> {
   const rows = await prisma.opportunity.findMany({
-    where: { customerId },
+    where: { organizationId, customerId },
     include: withCustomer,
     orderBy: { updatedAt: "desc" },
   });
@@ -41,9 +46,12 @@ export interface StageCount {
   count: number;
 }
 
-export async function countOpportunitiesByStage(): Promise<StageCount[]> {
+export async function countOpportunitiesByStage(
+  organizationId: string,
+): Promise<StageCount[]> {
   const grouped = await prisma.opportunity.groupBy({
     by: ["stage"],
+    where: { organizationId },
     _count: { _all: true },
   });
   return grouped.map((entry) => ({
@@ -52,8 +60,10 @@ export async function countOpportunitiesByStage(): Promise<StageCount[]> {
   }));
 }
 
-export async function countOpenOpportunities(): Promise<number> {
+export async function countOpenOpportunities(
+  organizationId: string,
+): Promise<number> {
   return prisma.opportunity.count({
-    where: { stage: { notIn: ["won", "lost", "dormant"] } },
+    where: { organizationId, stage: { notIn: ["won", "lost", "dormant"] } },
   });
 }

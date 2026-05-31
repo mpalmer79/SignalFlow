@@ -19,6 +19,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@clerk/nextjs": "^5.7.6",
     "@prisma/client": "^5.22.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",

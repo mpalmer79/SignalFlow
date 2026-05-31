@@ -12,6 +12,7 @@ import { findAttributionsByCustomer } from "@/lib/repositories/attribution-repos
 import { findMissedByCustomer } from "@/lib/repositories/missed-opportunity-repository";
 import { buildIntelligenceProfile } from "@/lib/intelligence/graph-summary";
 import { outcomeLabel } from "@/lib/config/outcome-status";
+import type { RequestContext } from "@/lib/types/auth";
 import type { Customer } from "@/lib/types/customer";
 import type { Signal } from "@/lib/types/signal";
 import type { Opportunity } from "@/lib/types/opportunity";
@@ -60,14 +61,18 @@ export interface CustomerProfile {
   timeline: CustomerTimelineEntry[];
 }
 
-export async function listCustomers(): Promise<Customer[]> {
-  return findAllCustomers();
+export async function listCustomers(
+  context: RequestContext,
+): Promise<Customer[]> {
+  return findAllCustomers(context.organizationId);
 }
 
 export async function getCustomerProfile(
+  context: RequestContext,
   id: string,
 ): Promise<CustomerProfile | null> {
-  const customer = await findCustomerById(id);
+  const orgId = context.organizationId;
+  const customer = await findCustomerById(orgId, id);
   if (!customer) return null;
 
   const [
@@ -80,14 +85,14 @@ export async function getCustomerProfile(
     attributions,
     missed,
   ] = await Promise.all([
-    findSignalsByCustomer(id),
-    findOpportunitiesByCustomer(id),
-    findCommunicationsByCustomer(id),
-    findAuditEventsByCustomer(id),
-    findWorkflowRunsByCustomer(id),
-    findOutcomeEventsByCustomer(id),
-    findAttributionsByCustomer(id),
-    findMissedByCustomer(id),
+    findSignalsByCustomer(orgId, id),
+    findOpportunitiesByCustomer(orgId, id),
+    findCommunicationsByCustomer(orgId, id),
+    findAuditEventsByCustomer(orgId, id),
+    findWorkflowRunsByCustomer(orgId, id),
+    findOutcomeEventsByCustomer(orgId, id),
+    findAttributionsByCustomer(orgId, id),
+    findMissedByCustomer(orgId, id),
   ]);
 
   const intelligence = buildIntelligenceProfile({

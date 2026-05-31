@@ -7,8 +7,11 @@ const withCustomer = {
   customer: { select: { name: true } },
 } as const;
 
-export async function findAllCommunications(): Promise<Communication[]> {
+export async function findAllCommunications(
+  organizationId: string,
+): Promise<Communication[]> {
   const rows = await prisma.communication.findMany({
+    where: { organizationId },
     include: withCustomer,
     orderBy: { createdAt: "desc" },
   });
@@ -16,10 +19,11 @@ export async function findAllCommunications(): Promise<Communication[]> {
 }
 
 export async function findCommunicationsByCustomer(
+  organizationId: string,
   customerId: string,
 ): Promise<Communication[]> {
   const rows = await prisma.communication.findMany({
-    where: { customerId },
+    where: { organizationId, customerId },
     include: withCustomer,
     orderBy: { createdAt: "desc" },
   });
@@ -27,24 +31,29 @@ export async function findCommunicationsByCustomer(
 }
 
 export async function findCommunicationsByChannel(
+  organizationId: string,
   channel: DbChannel,
 ): Promise<Communication[]> {
   const rows = await prisma.communication.findMany({
-    where: { channel },
+    where: { organizationId, channel },
     include: withCustomer,
     orderBy: { createdAt: "desc" },
   });
   return rows.map(mapCommunication);
 }
 
-export async function countBlockedCommunications(): Promise<number> {
+export async function countBlockedCommunications(
+  organizationId: string,
+): Promise<number> {
   return prisma.communication.count({
-    where: { status: { in: ["blocked", "escalated"] } },
+    where: { organizationId, status: { in: ["blocked", "escalated"] } },
   });
 }
 
-export async function countVoiceQueue(): Promise<number> {
+export async function countVoiceQueue(
+  organizationId: string,
+): Promise<number> {
   return prisma.communication.count({
-    where: { channel: "voice" },
+    where: { organizationId, channel: "voice" },
   });
 }
