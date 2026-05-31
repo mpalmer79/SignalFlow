@@ -29,6 +29,8 @@ const PROTECTED_PREFIXES = [
   "/executive-insights",
   "/scenarios",
   "/simulation-center",
+  "/ai-center",
+  "/review-queue",
 ];
 
 export function isProtected(pathname: string): boolean {

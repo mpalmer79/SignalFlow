@@ -30,7 +30,9 @@ export type Permission =
   | "VIEW_VERTICAL_PACKS"
   | "VIEW_AUDIT"
   | "VIEW_COMPLIANCE"
-  | "MANAGE_SETTINGS";
+  | "MANAGE_SETTINGS"
+  | "VIEW_AI_RECOMMENDATIONS"
+  | "REVIEW_AI_RECOMMENDATIONS";
 
 // The request context every server-side service call receives. It identifies
 // the authenticated user, their organization, and their role, plus whether it

@@ -21,6 +21,10 @@ import {
   type RevenueOverviewMetrics,
 } from "./revenue-engine-service";
 import { getRevenueLeakSummary } from "./analytics-service";
+import {
+  aggregateRecommendations,
+  type AIAggregate,
+} from "@/lib/repositories/ai-repository";
 import { listScenarios } from "@/lib/scenarios/scenario-runner";
 import { runAllSimulations } from "@/lib/simulation/simulation-results";
 import { verticalPackConfigs } from "@/lib/verticals/registry";
@@ -63,6 +67,7 @@ export interface DashboardData {
   intelligence: DashboardIntelligence;
   workflow: WorkflowMetrics;
   revenue: RevenueOverviewMetrics;
+  ai: AIAggregate;
 }
 
 export async function getDashboardData(
@@ -84,6 +89,7 @@ export async function getDashboardData(
     overview,
     workflow,
     revenueOverview,
+    ai,
   ] = await Promise.all([
     countSignals(orgId),
     countOpenOpportunities(orgId),
@@ -99,6 +105,7 @@ export async function getDashboardData(
     getIntelligenceOverview(context),
     getWorkflowMetrics(context),
     getRevenueOverview(context),
+    aggregateRecommendations(orgId),
   ]);
 
   const blockedActions = allCommunications.filter(
@@ -131,6 +138,7 @@ export async function getDashboardData(
     },
     workflow,
     revenue: revenueOverview.metrics,
+    ai,
   };
 }
 

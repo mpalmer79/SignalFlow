@@ -19,6 +19,8 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   VIEW_AUDIT: "View audit trail",
   VIEW_COMPLIANCE: "View compliance and policy decisions",
   MANAGE_SETTINGS: "Manage organization settings",
+  VIEW_AI_RECOMMENDATIONS: "View AI recommendations",
+  REVIEW_AI_RECOMMENDATIONS: "Review AI recommendations",
 };
 
 export const ALL_PERMISSIONS = Object.keys(PERMISSION_LABELS) as Permission[];
