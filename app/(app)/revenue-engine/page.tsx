@@ -15,15 +15,19 @@ import { Badge } from "@/components/ui/badge";
 import { AttributionList } from "@/components/revenue/attribution-list";
 import { getRevenueOverview } from "@/lib/services/revenue-engine-service";
 import { listCustomers } from "@/lib/services/customer-service";
+import { guardPage } from "@/lib/auth/guard-page";
 import { formatCurrency } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Revenue Engine" };
 export const dynamic = "force-dynamic";
 
 export default async function RevenueEnginePage() {
+  const { context, denied } = await guardPage("VIEW_REVENUE");
+  if (denied) return denied;
+
   const [overview, customers] = await Promise.all([
-    getRevenueOverview(),
-    listCustomers(),
+    getRevenueOverview(context),
+    listCustomers(context),
   ]);
 
   const { metrics, memory } = overview;

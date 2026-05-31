@@ -3,6 +3,7 @@ import { SectionHeading } from "@/components/section-heading";
 import { CommunicationCard } from "@/components/communication-card";
 import { Badge } from "@/components/ui/badge";
 import { getCommunicationsByChannel } from "@/lib/services/communication-service";
+import { guardPage } from "@/lib/auth/guard-page";
 import type { Channel } from "@/lib/types/consent";
 
 export const metadata: Metadata = { title: "Communications" };
@@ -16,7 +17,10 @@ const channelLabels: Record<Channel, string> = {
 };
 
 export default async function CommunicationsPage() {
-  const groups = await getCommunicationsByChannel();
+  const { context, denied } = await guardPage("VIEW_COMMUNICATIONS");
+  if (denied) return denied;
+
+  const groups = await getCommunicationsByChannel(context);
 
   return (
     <>

@@ -120,7 +120,7 @@ export function mapCommunication(row: CommunicationWithCustomer): Communication 
 }
 
 type AuditEventWithCustomer = DbAuditEvent & {
-  customer: Pick<DbCustomer, "name">;
+  customer: Pick<DbCustomer, "name"> | null;
 };
 
 export function mapAuditEvent(row: AuditEventWithCustomer): AuditEvent {
@@ -128,7 +128,7 @@ export function mapAuditEvent(row: AuditEventWithCustomer): AuditEvent {
     id: row.id,
     type: row.type as AuditEventType,
     customerId: row.customerId,
-    customerName: row.customer.name,
+    customerName: row.customer?.name ?? "Organization",
     signalId: row.signalId,
     policyDecision: row.policyDecision,
     action: row.action,

@@ -28,18 +28,20 @@ function mapRow(row: {
 }
 
 export async function findEffectivenessByRun(
+  organizationId: string,
   workflowRunId: string,
 ): Promise<WorkflowEffectivenessRecord | null> {
-  const row = await prisma.workflowEffectivenessSnapshot.findUnique({
-    where: { workflowRunId },
+  const row = await prisma.workflowEffectivenessSnapshot.findFirst({
+    where: { organizationId, workflowRunId },
   });
   return row ? mapRow(row) : null;
 }
 
-export async function findAllEffectiveness(): Promise<
-  WorkflowEffectivenessRecord[]
-> {
+export async function findAllEffectiveness(
+  organizationId: string,
+): Promise<WorkflowEffectivenessRecord[]> {
   const rows = await prisma.workflowEffectivenessSnapshot.findMany({
+    where: { organizationId },
     orderBy: { outcomeScore: "desc" },
   });
   return rows.map(mapRow);
@@ -54,14 +56,17 @@ export interface EffectivenessTotals {
 // A run is positive when its outcome score clears the neutral baseline.
 const POSITIVE_THRESHOLD = 50;
 
-export async function getEffectivenessTotals(): Promise<EffectivenessTotals> {
+export async function getEffectivenessTotals(
+  organizationId: string,
+): Promise<EffectivenessTotals> {
   const [aggregate, positiveRuns] = await Promise.all([
     prisma.workflowEffectivenessSnapshot.aggregate({
+      where: { organizationId },
       _count: { _all: true },
       _avg: { outcomeScore: true },
     }),
     prisma.workflowEffectivenessSnapshot.count({
-      where: { outcomeScore: { gte: POSITIVE_THRESHOLD } },
+      where: { organizationId, outcomeScore: { gte: POSITIVE_THRESHOLD } },
     }),
   ]);
 

@@ -10,6 +10,7 @@ import {
 } from "@/lib/repositories/communication-repository";
 import { buildCustomerIntelligence, type CustomerIntelligence } from "@/lib/intelligence/customer-graph";
 import { enrichSignals } from "@/lib/signals/signal-enricher";
+import type { RequestContext } from "@/lib/types/auth";
 import type { Customer } from "@/lib/types/customer";
 import type { Signal } from "@/lib/types/signal";
 import type { Opportunity } from "@/lib/types/opportunity";
@@ -44,28 +45,6 @@ export interface DetectedOpportunitySummary extends DetectedOpportunity {
   customerName: string;
 }
 
-// Build intelligence for a single customer. Returns null when the customer is
-// not found, so callers can render a not found state.
-export async function getCustomerIntelligence(
-  customerId: string,
-): Promise<CustomerIntelligence | null> {
-  const customer = await findCustomerById(customerId);
-  if (!customer) return null;
-
-  const [signals, opportunities, communications] = await Promise.all([
-    findSignalsByCustomer(customerId),
-    findOpportunitiesByCustomer(customerId),
-    findCommunicationsByCustomer(customerId),
-  ]);
-
-  return buildCustomerIntelligence({
-    customer,
-    signals,
-    opportunities,
-    communications,
-  });
-}
-
 interface CustomerBundle {
   customer: Customer;
   signals: Signal[];
@@ -73,13 +52,15 @@ interface CustomerBundle {
   communications: Communication[];
 }
 
-async function loadAllBundles(): Promise<CustomerBundle[]> {
+async function loadAllBundles(
+  organizationId: string,
+): Promise<CustomerBundle[]> {
   const [customers, signals, opportunities, communications] = await Promise.all(
     [
-      findAllCustomers(),
-      findAllSignals(),
-      findAllOpportunities(),
-      findAllCommunications(),
+      findAllCustomers(organizationId),
+      findAllSignals(organizationId),
+      findAllOpportunities(organizationId),
+      findAllCommunications(organizationId),
     ],
   );
 
@@ -113,10 +94,10 @@ function toSummary(
   };
 }
 
-export async function listIntelligenceSummaries(): Promise<
-  CustomerIntelligenceSummary[]
-> {
-  const bundles = await loadAllBundles();
+export async function listIntelligenceSummaries(
+  context: RequestContext,
+): Promise<CustomerIntelligenceSummary[]> {
+  const bundles = await loadAllBundles(context.organizationId);
   return bundles.map((bundle) => toSummary(toProfile(bundle)));
 }
 
@@ -129,26 +110,25 @@ export interface IntelligenceOverview {
   detectedOpportunities: DetectedOpportunitySummary[];
 }
 
-export async function getIntelligenceOverview(): Promise<IntelligenceOverview> {
-  const bundles = await loadAllBundles();
+export async function getIntelligenceOverview(
+  context: RequestContext,
+): Promise<IntelligenceOverview> {
+  const bundles = await loadAllBundles(context.organizationId);
   const profiles = bundles.map(toProfile);
   const summaries = profiles.map(toSummary);
 
   const topIntent = [...summaries]
     .sort((a, b) => b.intentScore - a.intentScore)
     .slice(0, 5);
-
   const topOpportunities = [...summaries]
     .sort((a, b) => b.opportunityScore - a.opportunityScore)
     .slice(0, 5);
-
   const needingAttention = summaries.filter(
     (s) =>
       s.intentLevel === "Needs Human Review" ||
       s.priority === "high" ||
       s.consentSummary === "review",
   );
-
   const atRisk = summaries.filter((s) => s.hasCriticalRisk);
 
   const detectedOpportunities: DetectedOpportunitySummary[] = profiles.flatMap(
@@ -159,7 +139,6 @@ export async function getIntelligenceOverview(): Promise<IntelligenceOverview> {
         customerName: profile.customer.name,
       })),
   );
-
   detectedOpportunities.sort((a, b) => b.confidence - a.confidence);
 
   return {
@@ -172,18 +151,32 @@ export async function getIntelligenceOverview(): Promise<IntelligenceOverview> {
   };
 }
 
-// Flatten every customer's normalized signals into a single explorer feed that
-// demonstrates the Signal Engine end to end.
-export async function getSignalExplorer(): Promise<SignalExplorerRow[]> {
-  const [signals] = await Promise.all([findAllSignals()]);
+export async function getCustomerIntelligence(
+  context: RequestContext,
+  customerId: string,
+): Promise<CustomerIntelligence | null> {
+  const orgId = context.organizationId;
+  const customer = await findCustomerById(orgId, customerId);
+  if (!customer) return null;
 
-  const byCustomer = new Map<string, Signal[]>();
-  for (const signal of signals) {
-    const list = byCustomer.get(signal.customerId) ?? [];
-    list.push(signal);
-    byCustomer.set(signal.customerId, list);
-  }
+  const [signals, opportunities, communications] = await Promise.all([
+    findSignalsByCustomer(orgId, customerId),
+    findOpportunitiesByCustomer(orgId, customerId),
+    findCommunicationsByCustomer(orgId, customerId),
+  ]);
 
+  return buildCustomerIntelligence({
+    customer,
+    signals,
+    opportunities,
+    communications,
+  });
+}
+
+export async function getSignalExplorer(
+  context: RequestContext,
+): Promise<SignalExplorerRow[]> {
+  const signals = await findAllSignals(context.organizationId);
   const rows: SignalExplorerRow[] = [];
   for (const signal of signals) {
     const [enriched] = enrichSignals([signal]);
@@ -193,7 +186,6 @@ export async function getSignalExplorer(): Promise<SignalExplorerRow[]> {
       customerName: signal.customerName,
     });
   }
-
   return rows.sort(
     (a, b) =>
       new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime(),

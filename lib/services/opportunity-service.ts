@@ -7,6 +7,7 @@ import { findTransitionsByOpportunity } from "@/lib/repositories/stage-transitio
 import { findOutcomeEventsByOpportunity } from "@/lib/repositories/outcome-repository";
 import { findAttributionsByOpportunity } from "@/lib/repositories/attribution-repository";
 import { findMissedByOpportunity } from "@/lib/repositories/missed-opportunity-repository";
+import type { RequestContext } from "@/lib/types/auth";
 import type { Opportunity, OpportunityStage } from "@/lib/types/opportunity";
 import type {
   MissedOpportunityRecord,
@@ -32,8 +33,32 @@ export interface PipelineColumn {
   opportunities: Opportunity[];
 }
 
-export async function listOpportunities(): Promise<Opportunity[]> {
-  return findAllOpportunities();
+export async function listOpportunities(
+  context: RequestContext,
+): Promise<Opportunity[]> {
+  return findAllOpportunities(context.organizationId);
+}
+
+export async function getPipeline(
+  context: RequestContext,
+): Promise<PipelineColumn[]> {
+  const all = await findAllOpportunities(context.organizationId);
+  return STAGE_ORDER.map((stage) => ({
+    stage,
+    opportunities: all.filter((opp) => opp.stage === stage),
+  }));
+}
+
+export async function listHighIntentOpportunities(
+  context: RequestContext,
+  minScore: number,
+  limit: number,
+): Promise<Opportunity[]> {
+  const all = await findAllOpportunities(context.organizationId);
+  return all
+    .filter((opp) => opp.intentScore >= minScore && opp.stage !== "lost")
+    .sort((a, b) => b.intentScore - a.intentScore)
+    .slice(0, limit);
 }
 
 export interface OpportunityDetail {
@@ -45,44 +70,27 @@ export interface OpportunityDetail {
 }
 
 export async function getOpportunityDetail(
+  context: RequestContext,
   id: string,
 ): Promise<OpportunityDetail | null> {
-  const opportunity = await findOpportunityById(id);
+  const orgId = context.organizationId;
+  const opportunity = await findOpportunityById(orgId, id);
   if (!opportunity) return null;
 
   const [transitions, outcomeEvents, attributions, missed] = await Promise.all([
-    findTransitionsByOpportunity(id),
-    findOutcomeEventsByOpportunity(id),
-    findAttributionsByOpportunity(id),
-    findMissedByOpportunity(id),
+    findTransitionsByOpportunity(orgId, id),
+    findOutcomeEventsByOpportunity(orgId, id),
+    findAttributionsByOpportunity(orgId, id),
+    findMissedByOpportunity(orgId, id),
   ]);
 
   return { opportunity, transitions, outcomeEvents, attributions, missed };
 }
 
-export async function getPipeline(): Promise<PipelineColumn[]> {
-  const all = await findAllOpportunities();
-  return STAGE_ORDER.map((stage) => ({
-    stage,
-    opportunities: all.filter((opp) => opp.stage === stage),
-  }));
-}
-
-export async function listHighIntentOpportunities(
-  minScore: number,
-  limit: number,
-): Promise<Opportunity[]> {
-  const all = await findAllOpportunities();
-  return all
-    .filter((opp) => opp.intentScore >= minScore && opp.stage !== "lost")
-    .sort((a, b) => b.intentScore - a.intentScore)
-    .slice(0, limit);
-}
-
-export async function getStageCounts(): Promise<
-  Record<OpportunityStage, number>
-> {
-  const grouped = await countOpportunitiesByStage();
+export async function getStageCounts(
+  context: RequestContext,
+): Promise<Record<OpportunityStage, number>> {
+  const grouped = await countOpportunitiesByStage(context.organizationId);
   const counts = Object.fromEntries(
     STAGE_ORDER.map((stage) => [stage, 0]),
   ) as Record<OpportunityStage, number>;

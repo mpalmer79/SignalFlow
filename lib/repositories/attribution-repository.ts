@@ -33,10 +33,11 @@ function mapRow(row: {
   };
 }
 
-export async function findAllAttributions(): Promise<
-  RevenueAttributionRecord[]
-> {
+export async function findAllAttributions(
+  organizationId: string,
+): Promise<RevenueAttributionRecord[]> {
   const rows = await prisma.revenueAttribution.findMany({
+    where: { organizationId },
     include: withCustomerName,
     orderBy: { createdAt: "desc" },
   });
@@ -44,10 +45,11 @@ export async function findAllAttributions(): Promise<
 }
 
 export async function findAttributionsByOpportunity(
+  organizationId: string,
   opportunityId: string,
 ): Promise<RevenueAttributionRecord[]> {
   const rows = await prisma.revenueAttribution.findMany({
-    where: { opportunityId },
+    where: { organizationId, opportunityId },
     include: withCustomerName,
     orderBy: { createdAt: "desc" },
   });
@@ -55,10 +57,11 @@ export async function findAttributionsByOpportunity(
 }
 
 export async function findAttributionsByCustomer(
+  organizationId: string,
   customerId: string,
 ): Promise<RevenueAttributionRecord[]> {
   const rows = await prisma.revenueAttribution.findMany({
-    where: { customerId },
+    where: { organizationId, customerId },
     include: withCustomerName,
     orderBy: { createdAt: "desc" },
   });
@@ -72,9 +75,12 @@ export interface AttributionTotals {
 }
 
 // Revenue influenced excludes MISSED, which represents value not captured.
-export async function getAttributionTotals(): Promise<AttributionTotals> {
+export async function getAttributionTotals(
+  organizationId: string,
+): Promise<AttributionTotals> {
   const grouped = await prisma.revenueAttribution.groupBy({
     by: ["attributionType"],
+    where: { organizationId },
     _sum: { attributedAmount: true },
     _count: { _all: true },
   });

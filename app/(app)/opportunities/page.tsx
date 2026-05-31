@@ -4,13 +4,17 @@ import { SectionHeading } from "@/components/section-heading";
 import { OpportunityCard } from "@/components/opportunity-card";
 import { Badge } from "@/components/ui/badge";
 import { getPipeline } from "@/lib/services/opportunity-service";
+import { guardPage } from "@/lib/auth/guard-page";
 import { opportunityStageStyles } from "@/lib/config/status";
 
 export const metadata: Metadata = { title: "Opportunities" };
 export const dynamic = "force-dynamic";
 
 export default async function OpportunitiesPage() {
-  const pipeline = await getPipeline();
+  const { context, denied } = await guardPage("VIEW_OPPORTUNITIES");
+  if (denied) return denied;
+
+  const pipeline = await getPipeline(context);
 
   return (
     <>

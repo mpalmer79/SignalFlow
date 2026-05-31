@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { WorkflowPlanView } from "@/components/workflow/workflow-plan-view";
 import { getShowcaseWorkflow } from "@/lib/services/workflow-service";
+import { guardPage } from "@/lib/auth/guard-page";
 import type { LucideIcon } from "lucide-react";
 
 export const metadata: Metadata = { title: "Action Graph" };
@@ -74,7 +75,10 @@ const steps: GraphStep[] = [
 ];
 
 export default async function ActionGraphPage() {
-  const showcase = await getShowcaseWorkflow();
+  const { context, denied } = await guardPage("VIEW_WORKFLOWS");
+  if (denied) return denied;
+
+  const showcase = await getShowcaseWorkflow(context);
 
   return (
     <>

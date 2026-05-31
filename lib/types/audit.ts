@@ -21,7 +21,7 @@ export type AuditOutcome = "allowed" | "blocked" | "review" | "recorded";
 export interface AuditEvent {
   id: string;
   type: AuditEventType;
-  customerId: string;
+  customerId: string | null;
   customerName: string;
   signalId: string | null;
   policyDecision: string;

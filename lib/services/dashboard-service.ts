@@ -24,6 +24,7 @@ import { getRevenueLeakSummary } from "./analytics-service";
 import { listScenarios } from "@/lib/scenarios/scenario-runner";
 import { runAllSimulations } from "@/lib/simulation/simulation-results";
 import { verticalPackConfigs } from "@/lib/verticals/registry";
+import type { RequestContext } from "@/lib/types/auth";
 import type { Signal } from "@/lib/types/signal";
 import type { Opportunity } from "@/lib/types/opportunity";
 import type { Communication } from "@/lib/types/communication";
@@ -64,7 +65,10 @@ export interface DashboardData {
   revenue: RevenueOverviewMetrics;
 }
 
-export async function getDashboardData(): Promise<DashboardData> {
+export async function getDashboardData(
+  context: RequestContext,
+): Promise<DashboardData> {
+  const orgId = context.organizationId;
   const [
     totalSignals,
     openOpportunities,
@@ -81,20 +85,20 @@ export async function getDashboardData(): Promise<DashboardData> {
     workflow,
     revenueOverview,
   ] = await Promise.all([
-    countSignals(),
-    countOpenOpportunities(),
-    countBlockedCommunications(),
-    countVoiceQueue(),
-    countAuditEvents(),
-    listFollowUpQueue(4),
-    listHighIntentOpportunities(60, 3),
-    findAllCommunications(),
-    findCommunicationsByChannel("voice"),
-    findRecentAuditEvents(4),
+    countSignals(orgId),
+    countOpenOpportunities(orgId),
+    countBlockedCommunications(orgId),
+    countVoiceQueue(orgId),
+    countAuditEvents(orgId),
+    listFollowUpQueue(context, 4),
+    listHighIntentOpportunities(context, 60, 3),
+    findAllCommunications(orgId),
+    findCommunicationsByChannel(orgId, "voice"),
+    findRecentAuditEvents(orgId, 4),
     findAllVerticalPacks(),
-    getIntelligenceOverview(),
-    getWorkflowMetrics(),
-    getRevenueOverview(),
+    getIntelligenceOverview(context),
+    getWorkflowMetrics(context),
+    getRevenueOverview(context),
   ]);
 
   const blockedActions = allCommunications.filter(
@@ -138,12 +142,6 @@ export interface ShowcaseVerticalRow {
   averageIntent: number;
 }
 
-export interface ShowcaseWorkflowRanking {
-  title: string;
-  averageOutcomeScore: number;
-  revenueInfluenced: number;
-}
-
 export interface ShowcaseSummary {
   topScenarios: ScenarioDefinition[];
   verticalPacks: { id: string; name: string; tagline: string }[];
@@ -151,11 +149,10 @@ export interface ShowcaseSummary {
   industryComparison: ShowcaseVerticalRow[];
 }
 
-// The Phase 5 showcase additions for the dashboard. Scenario and vertical data
-// come from the pure libraries, simulations run in memory, and revenue leaks
-// come from persistence.
-export async function getShowcaseSummary(): Promise<ShowcaseSummary> {
-  const revenueLeaks = await getRevenueLeakSummary();
+export async function getShowcaseSummary(
+  context: RequestContext,
+): Promise<ShowcaseSummary> {
+  const revenueLeaks = await getRevenueLeakSummary(context);
   const simulations = runAllSimulations();
 
   const industryComparison: ShowcaseVerticalRow[] = simulations.map((sim) => {

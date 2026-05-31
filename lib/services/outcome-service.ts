@@ -4,6 +4,7 @@ import type { Opportunity } from "@/lib/types/opportunity";
 import type { OutcomeContext } from "@/lib/types/outcome";
 import type { WorkflowRunRecord } from "@/lib/types/workflow-run";
 import type { CustomerIntelligenceProfile } from "@/lib/types/intelligence";
+import type { RequestContext } from "@/lib/types/auth";
 import { assessOutcomes } from "@/lib/outcomes/outcome-engine";
 import {
   findOutcomeEventsByCustomer,
@@ -74,13 +75,15 @@ export function buildOutcomeContext(input: BuildContextInput): OutcomeContext {
 export { assessOutcomes };
 
 export async function listOutcomeEventsByCustomer(
+  context: RequestContext,
   customerId: string,
 ): Promise<OutcomeEventRecord[]> {
-  return findOutcomeEventsByCustomer(customerId);
+  return findOutcomeEventsByCustomer(context.organizationId, customerId);
 }
 
 export async function listOutcomeEventsByOpportunity(
+  context: RequestContext,
   opportunityId: string,
 ): Promise<OutcomeEventRecord[]> {
-  return findOutcomeEventsByOpportunity(opportunityId);
+  return findOutcomeEventsByOpportunity(context.organizationId, opportunityId);
 }

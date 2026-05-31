@@ -28,19 +28,26 @@ function mapRow(row: {
 }
 
 export async function findTransitionsByOpportunity(
+  organizationId: string,
   opportunityId: string,
 ): Promise<StageTransitionRecord[]> {
   const rows = await prisma.stageTransition.findMany({
-    where: { opportunityId },
+    where: { organizationId, opportunityId },
     orderBy: { createdAt: "asc" },
   });
   return rows.map(mapRow);
 }
 
-export async function countReactivations(): Promise<number> {
-  return prisma.stageTransition.count({ where: { toStage: "reactivated" } });
+export async function countReactivations(
+  organizationId: string,
+): Promise<number> {
+  return prisma.stageTransition.count({
+    where: { organizationId, toStage: "reactivated" },
+  });
 }
 
-export async function countTransitions(): Promise<number> {
-  return prisma.stageTransition.count();
+export async function countTransitions(
+  organizationId: string,
+): Promise<number> {
+  return prisma.stageTransition.count({ where: { organizationId } });
 }

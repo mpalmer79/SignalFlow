@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getCustomerIntelligence } from "@/lib/services/intelligence-service";
 import { getWorkflowPreview } from "@/lib/services/workflow-service";
+import { guardPage } from "@/lib/auth/guard-page";
 
 export const metadata: Metadata = { title: "Customer Intelligence" };
 export const dynamic = "force-dynamic";
@@ -18,9 +19,12 @@ export default async function CustomerIntelligencePage({
 }: {
   params: { id: string };
 }) {
+  const { context, denied } = await guardPage("VIEW_INTELLIGENCE");
+  if (denied) return denied;
+
   const [intelligence, workflow] = await Promise.all([
-    getCustomerIntelligence(params.id),
-    getWorkflowPreview(params.id),
+    getCustomerIntelligence(context, params.id),
+    getWorkflowPreview(context, params.id),
   ]);
 
   if (!intelligence) {

@@ -25,8 +25,70 @@ import {
   hashSeed,
 } from "../lib/simulation/synthetic-data";
 import type { GeneratedCustomer } from "../lib/simulation/synthetic-data";
+import { DEMO_ORG_SLUG } from "../lib/repositories/organization-repository";
+import type { Role } from "../lib/types/auth";
 
 const prisma = new PrismaClient();
+
+// The demo organization id, set during seeding. Every business record is
+// attached to it so organization scoping has a real organization to filter by.
+let DEMO_ORG_ID = "";
+
+// Seed the demo organization, demo users, and their memberships. Users have no
+// Clerk accounts; they exist so the members list and roles render. The demo
+// auth context resolves to the owner of this organization.
+async function seedOrganization() {
+  const org = await prisma.organization.create({
+    data: {
+      name: "SignalFlow Demo Organization",
+      slug: DEMO_ORG_SLUG,
+      industry: "Multi-Vertical Revenue Operations",
+    },
+  });
+  DEMO_ORG_ID = org.id;
+
+  const demoUsers: { name: string; email: string; role: Role }[] = [
+    { name: "Demo Owner", email: "owner@signalflow.demo", role: "OWNER" },
+    { name: "Demo Manager", email: "manager@signalflow.demo", role: "MANAGER" },
+    { name: "Demo Sales", email: "sales@signalflow.demo", role: "SALES_USER" },
+    {
+      name: "Demo Marketing",
+      email: "marketing@signalflow.demo",
+      role: "MARKETING_USER",
+    },
+    {
+      name: "Demo Compliance",
+      email: "compliance@signalflow.demo",
+      role: "COMPLIANCE_REVIEWER",
+    },
+    { name: "Demo Viewer", email: "viewer@signalflow.demo", role: "VIEWER" },
+  ];
+
+  for (const demoUser of demoUsers) {
+    const user = await prisma.user.create({
+      data: { name: demoUser.name, email: demoUser.email },
+    });
+    await prisma.membership.create({
+      data: {
+        userId: user.id,
+        organizationId: org.id,
+        role: demoUser.role,
+        status: "ACTIVE",
+      },
+    });
+  }
+
+  // A representative organization lifecycle audit event.
+  await prisma.auditEvent.create({
+    data: {
+      organizationId: org.id,
+      type: "MEMBERSHIP_CREATED",
+      policyDecision: "Membership provisioned",
+      action: `Seeded ${demoUsers.length} demo memberships for ${org.name}.`,
+      outcome: "recorded",
+    },
+  });
+}
 
 // Prisma enums use snake_case while the mock data uses kebab-case. The only
 // difference is the separator.
@@ -55,6 +117,9 @@ async function reset() {
   await prisma.riskFlag.deleteMany();
   await prisma.customer.deleteMany();
   await prisma.verticalPack.deleteMany();
+  await prisma.membership.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.organization.deleteMany();
 }
 
 async function seedVerticalPacks() {
@@ -78,6 +143,7 @@ async function seedCustomers() {
     await prisma.customer.create({
       data: {
         id: customer.id,
+        organizationId: DEMO_ORG_ID,
         name: customer.name,
         verticalId: customer.vertical,
         preferredChannel: customer.preferredChannel,
@@ -86,6 +152,7 @@ async function seedCustomers() {
         lastActionAt: new Date(customer.lastActionAt),
         contactMethods: {
           create: customer.channels.map((channel) => ({
+            organizationId: DEMO_ORG_ID,
             channel: channel.channel,
             value: channel.value,
             consent: channel.consent,
@@ -93,6 +160,7 @@ async function seedCustomers() {
         },
         consentRecords: {
           create: customer.channels.map((channel) => ({
+            organizationId: DEMO_ORG_ID,
             channel: channel.channel,
             state: channel.consent,
             source: "phase-0 seed",
@@ -101,6 +169,7 @@ async function seedCustomers() {
         },
         riskFlags: {
           create: customer.riskFlags.map((flag) => ({
+            organizationId: DEMO_ORG_ID,
             label: flag.label,
             severity: flag.severity,
           })),
@@ -115,6 +184,7 @@ async function seedOpportunities() {
     await prisma.opportunity.create({
       data: {
         id: opp.id,
+        organizationId: DEMO_ORG_ID,
         title: opp.title,
         customerId: opp.customerId,
         stage: toDbEnum(opp.stage) as Prisma.OpportunityCreateInput["stage"],
@@ -143,6 +213,7 @@ async function seedSignals() {
     await prisma.signal.create({
       data: {
         id: signal.id,
+        organizationId: DEMO_ORG_ID,
         type: toDbEnum(signal.type) as Prisma.SignalCreateInput["type"],
         label: signal.label,
         customerId: signal.customerId,
@@ -152,7 +223,7 @@ async function seedSignals() {
         recommendedChannel: signal.recommendedChannel,
         consentStatus: signal.consentStatus,
         detail: signal.detail,
-        opportunityId: opportunityForCustomer(signal.customerId),
+        opportunityId: opportunityForCustomer(signal.customerId) ?? undefined,
         receivedAt: new Date(signal.receivedAt),
       },
     });
@@ -164,10 +235,11 @@ async function seedCommunications() {
     await prisma.communication.create({
       data: {
         id: comm.id,
+        organizationId: DEMO_ORG_ID,
         channel: comm.channel,
         customerId: comm.customerId,
-        signalId: comm.relatedSignalId,
-        opportunityId: opportunityForCustomer(comm.customerId),
+        signalId: comm.relatedSignalId ?? undefined,
+        opportunityId: opportunityForCustomer(comm.customerId) ?? undefined,
         subject: comm.subject,
         preview: comm.preview,
         status: comm.status,
@@ -183,10 +255,13 @@ async function seedAuditEvents() {
     await prisma.auditEvent.create({
       data: {
         id: event.id,
+        organizationId: DEMO_ORG_ID,
         type: event.type,
         customerId: event.customerId,
         signalId: event.signalId,
-        opportunityId: opportunityForCustomer(event.customerId),
+        opportunityId: event.customerId
+          ? opportunityForCustomer(event.customerId) ?? undefined
+          : undefined,
         policyDecision: event.policyDecision,
         action: event.action,
         outcome: event.outcome,
@@ -224,6 +299,7 @@ async function seedPolicyDecisions() {
 
     await prisma.policyDecision.create({
       data: {
+        organizationId: DEMO_ORG_ID,
         customerId: signal.customerId,
         signalId: signal.id,
         channel: signal.recommendedChannel,
@@ -268,6 +344,7 @@ async function persistGeneratedCustomer(generated: GeneratedCustomer) {
   await prisma.customer.create({
     data: {
       id: customer.id,
+      organizationId: DEMO_ORG_ID,
       name: customer.name,
       verticalId: customer.vertical,
       preferredChannel: customer.preferredChannel,
@@ -276,6 +353,7 @@ async function persistGeneratedCustomer(generated: GeneratedCustomer) {
       lastActionAt: new Date(customer.lastActionAt),
       contactMethods: {
         create: customer.channels.map((channel) => ({
+          organizationId: DEMO_ORG_ID,
           channel: channel.channel,
           value: channel.value,
           consent: channel.consent,
@@ -283,6 +361,7 @@ async function persistGeneratedCustomer(generated: GeneratedCustomer) {
       },
       consentRecords: {
         create: customer.channels.map((channel) => ({
+          organizationId: DEMO_ORG_ID,
           channel: channel.channel,
           state: channel.consent,
           source: "phase-5 generated",
@@ -294,6 +373,7 @@ async function persistGeneratedCustomer(generated: GeneratedCustomer) {
       },
       riskFlags: {
         create: customer.riskFlags.map((flag) => ({
+          organizationId: DEMO_ORG_ID,
           label: flag.label,
           severity: flag.severity,
         })),
@@ -304,6 +384,7 @@ async function persistGeneratedCustomer(generated: GeneratedCustomer) {
   await prisma.opportunity.create({
     data: {
       id: opportunity.id,
+      organizationId: DEMO_ORG_ID,
       title: opportunity.title,
       customerId: opportunity.customerId,
       stage: toDbEnum(opportunity.stage) as Prisma.OpportunityCreateInput["stage"],
@@ -318,6 +399,7 @@ async function persistGeneratedCustomer(generated: GeneratedCustomer) {
     await prisma.signal.create({
       data: {
         id: signal.id,
+        organizationId: DEMO_ORG_ID,
         type: toDbEnum(signal.type) as Prisma.SignalCreateInput["type"],
         label: signal.label,
         customerId: signal.customerId,
@@ -336,10 +418,11 @@ async function persistGeneratedCustomer(generated: GeneratedCustomer) {
   if (generated.hasResponse) {
     await prisma.communication.create({
       data: {
+        organizationId: DEMO_ORG_ID,
         channel: customer.preferredChannel,
         customerId: customer.id,
         opportunityId: opportunity.id,
-        signalId: customerSignals[0]?.id ?? null,
+        signalId: customerSignals[0]?.id ?? undefined,
         subject: "Customer reply",
         preview: "Customer engaged with the simulated outreach.",
         status: "replied",
@@ -379,14 +462,14 @@ async function seedGeneratedPopulations() {
 // missed opportunity. Reads through the repositories so the engines see the
 // same domain shapes the application uses.
 async function seedWorkflowRuns() {
-  const persistedCustomers = await findAllCustomers();
+  const persistedCustomers = await findAllCustomers(DEMO_ORG_ID);
 
   for (const customer of persistedCustomers) {
     const [customerSignals, customerOpportunities, customerCommunications] =
       await Promise.all([
-        findSignalsByCustomer(customer.id),
-        findOpportunitiesByCustomer(customer.id),
-        findCommunicationsByCustomer(customer.id),
+        findSignalsByCustomer(DEMO_ORG_ID, customer.id),
+        findOpportunitiesByCustomer(DEMO_ORG_ID, customer.id),
+        findCommunicationsByCustomer(DEMO_ORG_ID, customer.id),
       ]);
 
     const planned = planWorkflowWithScores({
@@ -401,6 +484,7 @@ async function seedWorkflowRuns() {
     );
 
     const runId = await persistWorkflowRun({
+      organizationId: DEMO_ORG_ID,
       plan: planned.plan,
       opportunityId: openOpportunity?.id ?? null,
       intentScore: planned.intentScore,
@@ -408,7 +492,7 @@ async function seedWorkflowRuns() {
       engagementScore: planned.engagementScore,
     });
 
-    const run = await findWorkflowRunById(runId);
+    const run = await findWorkflowRunById(DEMO_ORG_ID, runId);
     if (!run) continue;
 
     const profile = buildIntelligenceProfile({
@@ -429,6 +513,7 @@ async function seedWorkflowRuns() {
     const assessment = assessOutcomes(context);
 
     await persistAssessment({
+      organizationId: DEMO_ORG_ID,
       customerId: customer.id,
       opportunityId: context.opportunity?.id ?? openOpportunity?.id ?? null,
       workflowRunId: runId,
@@ -439,6 +524,7 @@ async function seedWorkflowRuns() {
 
 async function main() {
   await reset();
+  await seedOrganization();
   await seedVerticalPacks();
   await seedCustomers();
   await seedOpportunities();

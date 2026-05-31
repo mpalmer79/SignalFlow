@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import { SectionHeading } from "@/components/section-heading";
 import { SignalCard } from "@/components/signal-card";
 import { listSignals } from "@/lib/services/signal-service";
+import { guardPage } from "@/lib/auth/guard-page";
 
 export const metadata: Metadata = { title: "Signals" };
 export const dynamic = "force-dynamic";
 
 export default async function SignalsPage() {
-  const signals = await listSignals();
+  const { context, denied } = await guardPage("VIEW_SIGNALS");
+  if (denied) return denied;
+
+  const signals = await listSignals(context);
 
   return (
     <>

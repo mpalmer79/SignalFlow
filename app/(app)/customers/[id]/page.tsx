@@ -16,6 +16,7 @@ import { WorkflowOutcomeBadge } from "@/components/workflow/workflow-outcome-bad
 import { AttributionList } from "@/components/revenue/attribution-list";
 import { MissedOpportunityList } from "@/components/revenue/missed-opportunity-list";
 import { getCustomerProfile } from "@/lib/services/customer-service";
+import { guardPage } from "@/lib/auth/guard-page";
 
 export const metadata: Metadata = { title: "Customer" };
 export const dynamic = "force-dynamic";
@@ -25,7 +26,10 @@ export default async function CustomerDetailPage({
 }: {
   params: { id: string };
 }) {
-  const profile = await getCustomerProfile(params.id);
+  const { context, denied } = await guardPage("VIEW_CUSTOMERS");
+  if (denied) return denied;
+
+  const profile = await getCustomerProfile(context, params.id);
 
   if (!profile) {
     notFound();

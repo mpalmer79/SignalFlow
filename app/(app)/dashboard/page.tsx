@@ -32,12 +32,16 @@ import {
   getDashboardData,
   getShowcaseSummary,
 } from "@/lib/services/dashboard-service";
+import { guardPage } from "@/lib/auth/guard-page";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Dashboard" };
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  const { context, denied } = await guardPage("VIEW_DASHBOARD");
+  if (denied) return denied;
+
   const {
     metrics,
     followUpQueue,
@@ -49,9 +53,9 @@ export default async function DashboardPage() {
     intelligence,
     workflow,
     revenue,
-  } = await getDashboardData();
+  } = await getDashboardData(context);
 
-  const showcase = await getShowcaseSummary();
+  const showcase = await getShowcaseSummary(context);
 
   return (
     <>

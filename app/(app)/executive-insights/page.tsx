@@ -15,13 +15,17 @@ import { Badge } from "@/components/ui/badge";
 import { getExecutiveInsights } from "@/lib/services/analytics-service";
 import { leakLabel } from "@/lib/analytics/revenue-leak-engine";
 import { severityStyles, attributionStyles } from "@/lib/config/outcome-status";
+import { guardPage } from "@/lib/auth/guard-page";
 import { formatCurrency } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Executive Insights" };
 export const dynamic = "force-dynamic";
 
 export default async function ExecutiveInsightsPage() {
-  const insights = await getExecutiveInsights();
+  const { context, denied } = await guardPage("VIEW_EXECUTIVE_INSIGHTS");
+  if (denied) return denied;
+
+  const insights = await getExecutiveInsights(context);
   const { summary } = insights;
 
   return (
