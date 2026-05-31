@@ -32,7 +32,26 @@ Key differences from a traditional CRM:
 
 ## Current status
 
-Phase 0 (foundation), Phase 1 (persistence), Phase 2 (customer intelligence), Phase 3 (action graph and orchestration), and Phase 4 (outcome memory and revenue attribution) are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, a workflow engine converts recommendations into governed simulated execution plans, and an outcome engine turns those runs into measurable revenue outcomes. There are still no live integrations, no authentication, no multi-tenancy, no outbound communication, and no external model calls. Everything is deterministic and computed locally.
+Phase 0 through Phase 5 are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, a workflow engine converts recommendations into governed simulated execution plans, an outcome engine turns those runs into measurable revenue outcomes, and a simulation environment lets a reviewer explore the platform across industries. There are still no live integrations, no authentication, no multi-tenancy, no outbound communication, and no external model calls. Everything is deterministic and computed locally.
+
+## Phase 5 scope
+
+Phase 5 turns SignalFlow from a framework demonstration into a product demonstration. It adds a formal vertical pack framework, a scenario builder, a simulation center, executive insights, revenue leak detection, and a guided product walkthrough. A reviewer can explore the platform across industries in ten to fifteen minutes.
+
+Phase 5 includes:
+
+- A formal vertical pack framework with automotive, dental, home services, legal, and insurance packs
+- A deterministic synthetic data generator shared by the scenario and simulation engines
+- A Scenario Builder that launches complete end to end industry scenarios
+- A Simulation Center that runs large multi-customer simulations and aggregates outcomes
+- Executive Insights with revenue leak detection, workflow analytics, and opportunity analytics
+- A Revenue Leak Engine that classifies and ranks where revenue is lost
+- A guided product walkthrough at the demo route
+- An upgraded landing page with an industry selector and simulation and executive previews
+- An upgraded dashboard with top scenarios, industry comparison, and a revenue leak summary
+- Expanded seed data with believable generated populations across every vertical
+
+See VERTICAL_PACKS.md, SCENARIO_ENGINE.md, SIMULATION_CENTER.md, and EXECUTIVE_INSIGHTS.md for the design and demo-safe limitations.
 
 ## Phase 4 scope
 
@@ -266,6 +285,10 @@ lib/
   execution/         simulated execution engine and execution timeline
   outcomes/          outcome engine, classifier, memory, and stage transitions
   attribution/       revenue attribution, missed opportunity, effectiveness
+  verticals/         formal vertical pack configurations and registry
+  scenarios/         scenario library, engine, builder, and runner
+  simulation/        synthetic data generator, engine, scorer, and library
+  analytics/         revenue leak, executive summary, and insight engines
   policy/            consent policy and action policy evaluation
   mock-data/         demo business data, used only by the seed script
   providers/         mock provider boundaries
@@ -301,3 +324,8 @@ Repositories contain no UI or React code. Services contain business logic only. 
 - DATA_MODEL.md: domain model reference
 - PROVIDERS.md: provider boundaries and mock strategy
 - DEMO_SCRIPT.md: reviewer demo flow
+- REVENUE_ENGINE.md: outcome memory and revenue attribution design
+- VERTICAL_PACKS.md: vertical pack framework and included packs
+- SCENARIO_ENGINE.md: scenario builder and storytelling design
+- SIMULATION_CENTER.md: large simulation design
+- EXECUTIVE_INSIGHTS.md: executive view and revenue leak detection

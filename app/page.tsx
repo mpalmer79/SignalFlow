@@ -2,8 +2,11 @@ import Link from "next/link";
 import {
   ArrowRight,
   Bell,
+  FlaskConical,
+  Gauge,
   GitBranch,
   Layers,
+  PlayCircle,
   Radio,
   ShieldCheck,
   Workflow,
@@ -13,6 +16,9 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { appConfig } from "@/lib/config/app";
 import { listVerticalPacks } from "@/lib/services/vertical-pack-service";
+import { getScenarios } from "@/lib/services/scenario-service";
+import { getAllSimulationResults } from "@/lib/services/simulation-service";
+import { formatCurrency } from "@/lib/utils";
 
 const pillars = [
   {
@@ -58,6 +64,16 @@ export const dynamic = "force-dynamic";
 
 export default async function LandingPage() {
   const verticalPacks = await listVerticalPacks();
+  const scenarios = getScenarios().slice(0, 6);
+  const simulations = getAllSimulationResults();
+  const totalInfluenced = simulations.reduce(
+    (sum, sim) => sum + sim.metrics.revenueInfluenced,
+    0,
+  );
+  const totalCustomers = simulations.reduce(
+    (sum, sim) => sum + sim.metrics.customers,
+    0,
+  );
   const systemSteps = [
     "Signal received",
     "Intelligence updated",
@@ -116,15 +132,15 @@ export default async function LandingPage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/action-graph"
+              href="/demo"
               className={buttonVariants({ variant: "outline", size: "lg" })}
             >
-              See the action graph
+              Watch the walkthrough
             </Link>
           </div>
           <p className="mt-6 text-xs text-muted-foreground">
-            Phase 0 foundation. Demo mode only, with typed mock data and mock
-            providers. No live outbound communication.
+            Deterministic demo. No live outbound communication, no external model
+            calls, and no real customer data.
           </p>
         </section>
 
@@ -242,6 +258,95 @@ export default async function LandingPage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-6 py-12">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">
+                Explore by industry
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                Launch a complete, deterministic scenario and watch a customer
+                signal become a revenue outcome. Pick an industry to begin.
+              </p>
+            </div>
+            <Link
+              href="/scenarios"
+              className="hidden text-sm text-primary hover:underline sm:block"
+            >
+              All scenarios
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {scenarios.map((scenario) => (
+              <Link key={scenario.id} href={`/scenarios/${scenario.id}`}>
+                <Card className="h-full transition-colors hover:border-primary/40">
+                  <CardContent className="flex h-full flex-col gap-2 p-5">
+                    <div className="flex items-center justify-between">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                        <PlayCircle className="h-5 w-5" />
+                      </span>
+                      <Badge variant="muted" className="capitalize">
+                        {scenario.vertical.replace("-", " ")}
+                      </Badge>
+                    </div>
+                    <p className="text-sm font-semibold">{scenario.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {scenario.summary}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-6 py-12">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardContent className="space-y-3 p-6">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <FlaskConical className="h-5 w-5" />
+                </span>
+                <p className="text-lg font-semibold">Simulation center</p>
+                <p className="text-sm text-muted-foreground">
+                  Run large multi-customer simulations across any vertical. In a
+                  recent run, {totalCustomers} simulated customers produced
+                  {" "}
+                  {formatCurrency(totalInfluenced)} of influenced revenue,
+                  computed deterministically with nothing sent.
+                </p>
+                <Link
+                  href="/simulation-center"
+                  className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                >
+                  Open the simulation center
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="space-y-3 p-6">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10 text-success">
+                  <Gauge className="h-5 w-5" />
+                </span>
+                <p className="text-lg font-semibold">Executive insights</p>
+                <p className="text-sm text-muted-foreground">
+                  A revenue leader view of influenced revenue, recovered
+                  opportunities, revenue leaks, and workflow performance. Built
+                  for owners and managers, not just operators.
+                </p>
+                <Link
+                  href="/executive-insights"
+                  className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                >
+                  Open executive insights
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-6 py-12">
           <Card className="border-warning/30 bg-warning/5">
             <CardContent className="flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
@@ -251,8 +356,9 @@ export default async function LandingPage() {
                     Demo-safe by design
                   </p>
                   <p className="text-sm text-warning/90">
-                    Phase 0 sends no live SMS, email, or voice. It uses mock
-                    providers, typed mock data, and no real customer information.
+                    SignalFlow sends no live SMS, email, or voice. Every scenario
+                    and simulation is deterministic, with mock providers and no
+                    real customer information.
                   </p>
                 </div>
               </div>

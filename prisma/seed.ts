@@ -18,6 +18,13 @@ import { buildIntelligenceProfile } from "../lib/intelligence/graph-summary";
 import { assessOutcomes } from "../lib/outcomes/outcome-engine";
 import { buildOutcomeContext } from "../lib/services/outcome-service";
 import { persistAssessment } from "../lib/repositories/outcome-repository";
+import { verticalPackConfigs } from "../lib/verticals/registry";
+import {
+  generateCustomer,
+  createRng,
+  hashSeed,
+} from "../lib/simulation/synthetic-data";
+import type { GeneratedCustomer } from "../lib/simulation/synthetic-data";
 
 const prisma = new PrismaClient();
 
@@ -228,6 +235,145 @@ async function seedPolicyDecisions() {
   }
 }
 
+// How many synthetic customers to generate per vertical. These join the curated
+// hand written examples so every vertical has a believable population.
+const POPULATION_SIZES: Record<string, number> = {
+  automotive: 24,
+  dental: 24,
+  "home-services": 24,
+  "legal-intake": 15,
+  insurance: 15,
+};
+
+// Distribute a generated population across intent, consent, and response mixes
+// deterministically, so the persisted data has realistic variety.
+function populationProfile(rng: () => number) {
+  const intentRoll = rng();
+  const intentLevel =
+    intentRoll > 0.66 ? "high" : intentRoll > 0.33 ? "medium" : "low";
+  const consentRoll = rng();
+  const optedOut = consentRoll > 0.9;
+  const consentState = optedOut
+    ? ("revoked" as const)
+    : consentRoll > 0.75
+      ? ("unknown" as const)
+      : ("granted" as const);
+  const hasResponse = !optedOut && rng() > 0.5;
+  return { intentLevel, consentState, optedOut, hasResponse } as const;
+}
+
+async function persistGeneratedCustomer(generated: GeneratedCustomer) {
+  const { customer, signals: customerSignals, opportunity } = generated;
+
+  await prisma.customer.create({
+    data: {
+      id: customer.id,
+      name: customer.name,
+      verticalId: customer.vertical,
+      preferredChannel: customer.preferredChannel,
+      optedOut: customer.optedOut,
+      lastAction: customer.lastAction,
+      lastActionAt: new Date(customer.lastActionAt),
+      contactMethods: {
+        create: customer.channels.map((channel) => ({
+          channel: channel.channel,
+          value: channel.value,
+          consent: channel.consent,
+        })),
+      },
+      consentRecords: {
+        create: customer.channels.map((channel) => ({
+          channel: channel.channel,
+          state: channel.consent,
+          source: "phase-5 generated",
+          capturedAt:
+            channel.consent === "granted"
+              ? new Date(customer.lastActionAt)
+              : null,
+        })),
+      },
+      riskFlags: {
+        create: customer.riskFlags.map((flag) => ({
+          label: flag.label,
+          severity: flag.severity,
+        })),
+      },
+    },
+  });
+
+  await prisma.opportunity.create({
+    data: {
+      id: opportunity.id,
+      title: opportunity.title,
+      customerId: opportunity.customerId,
+      stage: toDbEnum(opportunity.stage) as Prisma.OpportunityCreateInput["stage"],
+      intentScore: opportunity.intentScore,
+      estimatedValue: opportunity.estimatedValue,
+      owner: opportunity.owner,
+      updatedAt: new Date(opportunity.updatedAt),
+    },
+  });
+
+  for (const signal of customerSignals) {
+    await prisma.signal.create({
+      data: {
+        id: signal.id,
+        type: toDbEnum(signal.type) as Prisma.SignalCreateInput["type"],
+        label: signal.label,
+        customerId: signal.customerId,
+        source: toDbEnum(signal.source) as Prisma.SignalCreateInput["source"],
+        priority: signal.priority,
+        recommendedAction: signal.recommendedAction,
+        recommendedChannel: signal.recommendedChannel,
+        consentStatus: signal.consentStatus,
+        detail: signal.detail,
+        opportunityId: opportunity.id,
+        receivedAt: new Date(signal.receivedAt),
+      },
+    });
+  }
+
+  if (generated.hasResponse) {
+    await prisma.communication.create({
+      data: {
+        channel: customer.preferredChannel,
+        customerId: customer.id,
+        opportunityId: opportunity.id,
+        signalId: customerSignals[0]?.id ?? null,
+        subject: "Customer reply",
+        preview: "Customer engaged with the simulated outreach.",
+        status: "replied",
+        simulated: true,
+        createdAt: new Date(customer.lastActionAt),
+      },
+    });
+  }
+}
+
+// Generate and persist believable populations for each vertical pack. These
+// reuse the same deterministic generator the scenario and simulation engines
+// use, so the persisted data is consistent with the live tools.
+async function seedGeneratedPopulations() {
+  for (const pack of verticalPackConfigs) {
+    const size = POPULATION_SIZES[pack.id] ?? 12;
+    const rng = createRng(hashSeed(`seed-population:${pack.id}`));
+
+    for (let i = 0; i < size; i += 1) {
+      const profile = populationProfile(rng);
+      const generated = generateCustomer({
+        pack,
+        index: i + 1000,
+        seedKey: `seed-population:${pack.id}`,
+        intentLevel: profile.intentLevel,
+        consentState: profile.consentState,
+        optedOut: profile.optedOut,
+        hasResponse: profile.hasResponse,
+      });
+      await persistGeneratedCustomer(generated);
+    }
+  }
+}
+
 // Build and persist one simulated workflow run per customer, then assess and
 // persist its outcomes, attribution, stage movement, effectiveness, and any
 // missed opportunity. Reads through the repositories so the engines see the
@@ -300,6 +446,7 @@ async function main() {
   await seedCommunications();
   await seedAuditEvents();
   await seedPolicyDecisions();
+  await seedGeneratedPopulations();
   await seedWorkflowRuns();
 
   const [
