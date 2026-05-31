@@ -32,7 +32,41 @@ Key differences from a traditional CRM:
 
 ## Current status
 
-Phase 0 (foundation) and Phase 1 (persistence) are complete. PostgreSQL is now the source of truth. The application reads business entities through a service and repository layer backed by Prisma. The visual experience from Phase 0 is preserved. There are still no live integrations, no authentication, no multi-tenancy, and no outbound communication.
+Phase 0 (foundation), Phase 1 (persistence), and Phase 2 (customer intelligence) are complete. PostgreSQL is the source of truth, and a deterministic intelligence layer turns persisted signals into intent, opportunity, and engagement scores with recommended next best actions. There are still no live integrations, no authentication, no multi-tenancy, no outbound communication, and no external model calls. Every score and recommendation is computed locally.
+
+## Phase 2 scope
+
+Phase 2 introduces the Customer Intelligence Graph and the Signal Engine. This is the layer that differentiates SignalFlow from a traditional CRM. All logic is deterministic and local.
+
+Phase 2 includes:
+
+- A Signal Engine that normalizes raw signals into a stable vocabulary, then enriches them with intent classification, priority, and a recommended action
+- A deterministic intent classifier and a centralized scoring configuration
+- Intent, opportunity, and engagement scoring on a 0 to 100 scale
+- An Opportunity Detection Engine that surfaces revenue opportunities with deterministic confidence
+- A Next Best Action engine that considers intent, opportunity, engagement, consent, and risk flags
+- A Customer Intelligence Graph expressed with TypeScript objects, not a graph database
+- A Customer Intelligence page with per-customer profiles, scores, recommendations, detected opportunities, and risk indicators
+- A Signal Explorer that shows raw signal, normalized signal, intent, priority, and recommended action
+- Dashboard intelligence sections: top intent customers, top revenue opportunities, recently detected opportunities, customers requiring attention, and customers at risk
+- A risk flag system that influences recommendations
+- Timeline enrichment that adds detected opportunities, recommendations, and risk flags
+
+### Customer Intelligence Graph
+
+The graph aggregates a customer's signals, opportunities, communications, consent, and risk flags into a single intelligence profile, and models their relationships as in-memory nodes and edges. It answers what happened, who it happened to, why it matters, how important it is, and what should happen next.
+
+### Signal Engine
+
+The Signal Engine normalizes persisted and free-form events into stable types such as `TRADE_REQUEST`, `VEHICLE_VIEW`, and `SERVICE_DUE`, then assigns intent and priority. Raw and normalized events are kept distinct so the transformation is visible in the Signal Explorer.
+
+### Scoring system
+
+All weights live in a single scoring configuration. Intent score sums recency-weighted signal contributions. Opportunity score anchors on a vertical baseline and adjusts for high-value signals and open opportunity value. Engagement score starts from a baseline and moves with positive and negative engagement signals, opt-out status, and silence.
+
+### Opportunity detection
+
+Detection rules map normalized signals to revenue opportunities (for example a trade request to a Vehicle Purchase Opportunity) with a fixed, deterministic confidence and a recommended action.
 
 ## Phase 1 scope
 
@@ -177,6 +211,10 @@ lib/
   db/                Prisma client singleton and row to domain mappers
   repositories/      data access, the only layer that talks to Prisma
   services/          business logic and composition over repositories
+  intelligence/      customer intelligence graph and profile builder
+  signals/           signal engine: normalize, classify, prioritize, enrich
+  scoring/           intent, opportunity, and engagement scoring
+  recommendations/   opportunity detection and next best action engines
   mock-data/         demo business data, used only by the seed script
   policy/            deterministic consent policy layer
   providers/         mock provider boundaries

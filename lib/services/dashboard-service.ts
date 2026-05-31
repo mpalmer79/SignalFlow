@@ -10,6 +10,11 @@ import { countOpenOpportunities } from "@/lib/repositories/opportunity-repositor
 import { findAllVerticalPacks } from "@/lib/repositories/vertical-pack-repository";
 import { listFollowUpQueue } from "./signal-service";
 import { listHighIntentOpportunities } from "./opportunity-service";
+import {
+  getIntelligenceOverview,
+  type CustomerIntelligenceSummary,
+  type DetectedOpportunitySummary,
+} from "./intelligence-service";
 import type { Signal } from "@/lib/types/signal";
 import type { Opportunity } from "@/lib/types/opportunity";
 import type { Communication } from "@/lib/types/communication";
@@ -23,6 +28,16 @@ export interface DashboardMetrics {
   blockedActions: number;
   voiceQueueCount: number;
   auditEventCount: number;
+  detectedOpportunityCount: number;
+  atRiskCount: number;
+}
+
+export interface DashboardIntelligence {
+  topIntent: CustomerIntelligenceSummary[];
+  topOpportunities: CustomerIntelligenceSummary[];
+  detectedOpportunities: DetectedOpportunitySummary[];
+  needingAttention: CustomerIntelligenceSummary[];
+  atRisk: CustomerIntelligenceSummary[];
 }
 
 export interface DashboardData {
@@ -33,6 +48,7 @@ export interface DashboardData {
   voiceQueue: Communication[];
   recentAudit: AuditEvent[];
   verticalPacks: VerticalPack[];
+  intelligence: DashboardIntelligence;
 }
 
 export async function getDashboardData(): Promise<DashboardData> {
@@ -48,6 +64,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     voiceQueue,
     recentAudit,
     verticalPacks,
+    overview,
   ] = await Promise.all([
     countSignals(),
     countOpenOpportunities(),
@@ -60,6 +77,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     findCommunicationsByChannel("voice"),
     findRecentAuditEvents(4),
     findAllVerticalPacks(),
+    getIntelligenceOverview(),
   ]);
 
   const blockedActions = allCommunications.filter(
@@ -74,6 +92,8 @@ export async function getDashboardData(): Promise<DashboardData> {
       blockedActions: blockedActionsCount,
       voiceQueueCount,
       auditEventCount,
+      detectedOpportunityCount: overview.detectedOpportunities.length,
+      atRiskCount: overview.atRisk.length,
     },
     followUpQueue,
     highIntentOpportunities,
@@ -81,5 +101,12 @@ export async function getDashboardData(): Promise<DashboardData> {
     voiceQueue,
     recentAudit,
     verticalPacks,
+    intelligence: {
+      topIntent: overview.topIntent,
+      topOpportunities: overview.topOpportunities,
+      detectedOpportunities: overview.detectedOpportunities.slice(0, 5),
+      needingAttention: overview.needingAttention,
+      atRisk: overview.atRisk,
+    },
   };
 }

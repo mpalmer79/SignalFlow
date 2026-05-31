@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Bell, PhoneCall, ShieldAlert, Target } from "lucide-react";
+import Link from "next/link";
+import { Bell, Sparkles, ShieldAlert, Target, TrendingUp } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { MetricCard } from "@/components/metric-card";
 import { SignalCard } from "@/components/signal-card";
@@ -8,6 +9,10 @@ import { AuditEventCard } from "@/components/audit-event-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/status-badge";
+import {
+  IntentBadge,
+  PriorityBadge,
+} from "@/components/intelligence/score-badges";
 import { communicationStatusStyles } from "@/lib/config/status";
 import { getDashboardData } from "@/lib/services/dashboard-service";
 import { formatRelativeTime } from "@/lib/utils";
@@ -24,6 +29,7 @@ export default async function DashboardPage() {
     voiceQueue,
     recentAudit,
     verticalPacks,
+    intelligence,
   } = await getDashboardData();
 
   return (
@@ -55,11 +61,149 @@ export default async function DashboardPage() {
           tone="warning"
         />
         <MetricCard
-          label="Voice follow-ups queued"
-          value={String(metrics.voiceQueueCount)}
-          hint="Simulated calls only"
-          icon={PhoneCall}
+          label="Detected opportunities"
+          value={String(metrics.detectedOpportunityCount)}
+          hint="Found by the detection engine"
+          icon={Sparkles}
+          tone="success"
         />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              Top intent customers
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {intelligence.topIntent.map((s, index) => (
+              <Link
+                key={s.customerId}
+                href={`/intelligence/${s.customerId}`}
+                className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-accent"
+              >
+                <span className="flex items-center gap-2 text-sm">
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {index + 1}
+                  </span>
+                  {s.customerName}
+                </span>
+                <Badge variant="primary">{s.intentScore}</Badge>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-success" />
+              Top revenue opportunities
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {intelligence.topOpportunities.map((s, index) => (
+              <Link
+                key={s.customerId}
+                href={`/intelligence/${s.customerId}`}
+                className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-accent"
+              >
+                <span className="flex items-center gap-2 text-sm">
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {index + 1}
+                  </span>
+                  {s.customerName}
+                </span>
+                <Badge variant="success">{s.opportunityScore}</Badge>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-success" />
+              Recently detected opportunities
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {intelligence.detectedOpportunities.length > 0 ? (
+              intelligence.detectedOpportunities.map((opp) => (
+                <Link
+                  key={`${opp.customerId}-${opp.type}-${opp.sourceSignalId}`}
+                  href={`/intelligence/${opp.customerId}`}
+                  className="block rounded-md border border-border bg-secondary/30 p-2.5 transition-colors hover:border-primary/40"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate text-sm font-medium">
+                      {opp.type}
+                    </span>
+                    <Badge variant="success">{opp.confidence}%</Badge>
+                  </div>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {opp.customerName}
+                  </p>
+                </Link>
+              ))
+            ) : (
+              <EmptyState message="No opportunities detected." />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Customers requiring attention</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {intelligence.needingAttention.length > 0 ? (
+              intelligence.needingAttention.map((s) => (
+                <Link
+                  key={s.customerId}
+                  href={`/intelligence/${s.customerId}`}
+                  className="flex items-center justify-between gap-2 rounded-md border border-border bg-secondary/30 p-2.5 transition-colors hover:border-primary/40"
+                >
+                  <span className="text-sm font-medium">{s.customerName}</span>
+                  <div className="flex items-center gap-2">
+                    <IntentBadge intent={s.intentLevel} />
+                    <PriorityBadge priority={s.priority} />
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <EmptyState message="No customers require attention." />
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Customers at risk</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {intelligence.atRisk.length > 0 ? (
+              intelligence.atRisk.map((s) => (
+                <Link
+                  key={s.customerId}
+                  href={`/intelligence/${s.customerId}`}
+                  className="flex items-center justify-between gap-2 rounded-md border border-border bg-secondary/30 p-2.5 transition-colors hover:border-primary/40"
+                >
+                  <span className="text-sm font-medium">{s.customerName}</span>
+                  <Badge variant="danger">
+                    {s.riskCount} risk {s.riskCount === 1 ? "flag" : "flags"}
+                  </Badge>
+                </Link>
+              ))
+            ) : (
+              <EmptyState message="No customers flagged at risk." />
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

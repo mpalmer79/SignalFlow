@@ -1,4 +1,12 @@
-import { Bell, GitBranch, MessageSquare, ScrollText } from "lucide-react";
+import {
+  AlertTriangle,
+  Bell,
+  GitBranch,
+  MessageSquare,
+  ScrollText,
+  Sparkles,
+  Wand2,
+} from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
 import type { CustomerTimelineEntry } from "@/lib/services/customer-service";
 import type { LucideIcon } from "lucide-react";
@@ -22,6 +30,21 @@ const kindMeta: Record<
     label: "Opportunity",
     icon: GitBranch,
     tone: "bg-success/15 text-success",
+  },
+  "detected-opportunity": {
+    label: "Detected opportunity",
+    icon: Sparkles,
+    tone: "bg-success/15 text-success",
+  },
+  recommendation: {
+    label: "Recommendation",
+    icon: Wand2,
+    tone: "bg-primary/15 text-primary",
+  },
+  risk: {
+    label: "Risk flag",
+    icon: AlertTriangle,
+    tone: "bg-warning/15 text-warning",
   },
 };
 
