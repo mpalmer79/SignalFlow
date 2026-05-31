@@ -36,6 +36,15 @@ export async function findEffectivenessByRun(
   return row ? mapRow(row) : null;
 }
 
+export async function findAllEffectiveness(): Promise<
+  WorkflowEffectivenessRecord[]
+> {
+  const rows = await prisma.workflowEffectivenessSnapshot.findMany({
+    orderBy: { outcomeScore: "desc" },
+  });
+  return rows.map(mapRow);
+}
+
 export interface EffectivenessTotals {
   positiveRuns: number;
   totalRuns: number;

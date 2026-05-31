@@ -26,7 +26,12 @@ import {
   PriorityBadge,
 } from "@/components/intelligence/score-badges";
 import { communicationStatusStyles } from "@/lib/config/status";
-import { getDashboardData } from "@/lib/services/dashboard-service";
+import { severityStyles } from "@/lib/config/outcome-status";
+import { leakLabel } from "@/lib/analytics/revenue-leak-engine";
+import {
+  getDashboardData,
+  getShowcaseSummary,
+} from "@/lib/services/dashboard-service";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -45,6 +50,8 @@ export default async function DashboardPage() {
     workflow,
     revenue,
   } = await getDashboardData();
+
+  const showcase = await getShowcaseSummary();
 
   return (
     <>
@@ -313,6 +320,101 @@ export default async function DashboardPage() {
             icon={ShieldAlert}
             tone="warning"
           />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Industry simulation</h2>
+          <div className="flex items-center gap-3 text-xs">
+            <Link href="/scenarios" className="text-primary hover:underline">
+              Scenarios
+            </Link>
+            <Link
+              href="/simulation-center"
+              className="text-primary hover:underline"
+            >
+              Simulation center
+            </Link>
+            <Link
+              href="/executive-insights"
+              className="text-primary hover:underline"
+            >
+              Executive insights
+            </Link>
+          </div>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Top scenarios</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {showcase.topScenarios.map((scenario) => (
+                <Link
+                  key={scenario.id}
+                  href={`/scenarios/${scenario.id}`}
+                  className="flex items-center justify-between gap-2 rounded-md border border-border bg-secondary/30 p-2.5 transition-colors hover:border-primary/40"
+                >
+                  <span className="truncate text-sm font-medium">
+                    {scenario.title}
+                  </span>
+                  <Badge variant="muted" className="capitalize">
+                    {scenario.vertical.replace("-", " ")}
+                  </Badge>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Industry comparison</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {showcase.industryComparison.map((row) => (
+                <div
+                  key={row.vertical}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <span className="text-sm">{row.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatCurrency(row.revenueInfluenced)} ({row.completionRate}%)
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Revenue leak summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {showcase.revenueLeaks.length > 0 ? (
+                showcase.revenueLeaks.map((leak) => (
+                  <div
+                    key={leak.leakType}
+                    className="flex items-center justify-between gap-3"
+                  >
+                    <span className="text-sm">{leakLabel(leak.leakType)}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {formatCurrency(leak.estimatedImpact)}
+                      </span>
+                      <Badge variant={severityStyles[leak.severity].variant}>
+                        {severityStyles[leak.severity].label}
+                      </Badge>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                  No revenue leaks detected.
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 

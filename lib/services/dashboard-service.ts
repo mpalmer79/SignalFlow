@@ -20,11 +20,17 @@ import {
   getRevenueOverview,
   type RevenueOverviewMetrics,
 } from "./revenue-engine-service";
+import { getRevenueLeakSummary } from "./analytics-service";
+import { listScenarios } from "@/lib/scenarios/scenario-runner";
+import { runAllSimulations } from "@/lib/simulation/simulation-results";
+import { verticalPackConfigs } from "@/lib/verticals/registry";
 import type { Signal } from "@/lib/types/signal";
 import type { Opportunity } from "@/lib/types/opportunity";
 import type { Communication } from "@/lib/types/communication";
 import type { AuditEvent } from "@/lib/types/audit";
 import type { VerticalPack } from "@/lib/types/vertical-pack";
+import type { RevenueLeak } from "@/lib/types/analytics";
+import type { ScenarioDefinition } from "@/lib/types/scenario";
 
 export interface DashboardMetrics {
   totalSignals: number;
@@ -121,5 +127,56 @@ export async function getDashboardData(): Promise<DashboardData> {
     },
     workflow,
     revenue: revenueOverview.metrics,
+  };
+}
+
+export interface ShowcaseVerticalRow {
+  vertical: string;
+  name: string;
+  revenueInfluenced: number;
+  completionRate: number;
+  averageIntent: number;
+}
+
+export interface ShowcaseWorkflowRanking {
+  title: string;
+  averageOutcomeScore: number;
+  revenueInfluenced: number;
+}
+
+export interface ShowcaseSummary {
+  topScenarios: ScenarioDefinition[];
+  verticalPacks: { id: string; name: string; tagline: string }[];
+  revenueLeaks: RevenueLeak[];
+  industryComparison: ShowcaseVerticalRow[];
+}
+
+// The Phase 5 showcase additions for the dashboard. Scenario and vertical data
+// come from the pure libraries, simulations run in memory, and revenue leaks
+// come from persistence.
+export async function getShowcaseSummary(): Promise<ShowcaseSummary> {
+  const revenueLeaks = await getRevenueLeakSummary();
+  const simulations = runAllSimulations();
+
+  const industryComparison: ShowcaseVerticalRow[] = simulations.map((sim) => {
+    const pack = verticalPackConfigs.find((p) => p.id === sim.config.vertical);
+    return {
+      vertical: sim.config.vertical,
+      name: pack?.name ?? sim.config.vertical,
+      revenueInfluenced: sim.metrics.revenueInfluenced,
+      completionRate: sim.metrics.workflowCompletionRate,
+      averageIntent: sim.metrics.averageIntentScore,
+    };
+  });
+
+  return {
+    topScenarios: listScenarios().slice(0, 4),
+    verticalPacks: verticalPackConfigs.map((pack) => ({
+      id: pack.id,
+      name: pack.name,
+      tagline: pack.tagline,
+    })),
+    revenueLeaks: revenueLeaks.slice(0, 4),
+    industryComparison,
   };
 }

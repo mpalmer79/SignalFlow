@@ -62,7 +62,19 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - New audit events for outcome and attribution activity
 - No external model calls, no live communication, no secrets
 
-## Phase 5: Access and authentication
+## Phase 5: Industry simulation environment (complete)
+
+- Formal vertical pack framework with automotive, dental, home services, legal, and insurance packs
+- Deterministic synthetic data generator shared by scenarios and simulations
+- Scenario Builder that launches complete end to end industry scenarios
+- Simulation Center that runs large multi-customer simulations and aggregates outcomes
+- Executive Insights with revenue leak detection, workflow analytics, and opportunity analytics
+- Revenue Leak Engine that classifies and ranks where revenue is lost
+- Guided product walkthrough, upgraded landing page, and upgraded dashboard
+- Expanded seed data with generated populations across every vertical
+- No external model calls, no live communication, no secrets
+
+## Phase 6: Access and authentication
 
 - Add Clerk authentication and organization scoping
 - Enforce organization-level data isolation in the repository layer
@@ -70,7 +82,7 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Protected routes and server-side authorization
 - Keep all outbound communication mocked
 
-## Phase 6: Live providers behind interfaces
+## Phase 7: Live providers behind interfaces
 
 - Implement AI provider adapters (OpenAI, Anthropic Claude, Google Gemini)
 - Implement SMS and telephony adapters (Twilio)
@@ -79,21 +91,21 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Add provider configuration and credential handling
 - Gate live sends behind explicit organization settings
 
-## Phase 7: Live orchestration
+## Phase 8: Live orchestration
 
 - Real workflow execution with wait windows and fallbacks
 - Quiet hours and rate limiting enforced at send time
 - Human task queue with assignment and resolution
 - Opt-out handling that halts active workflows immediately
 
-## Phase 8: Outcomes intelligence
+## Phase 9: Outcomes intelligence
 
 - Feedback loops that improve next best action from recorded outcomes
 - Vertical-specific scoring refinements driven by outcome memory
 - Predictive close probability and best time to contact
 - Reporting and export of attribution and effectiveness
 
-## Phase 9: Vertical expansion
+## Phase 10: Vertical expansion
 
 - Promote additional packs from research and design to production
 - Vertical-specific compliance rules and message libraries
