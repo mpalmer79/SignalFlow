@@ -4,6 +4,16 @@ on:
   push:
   pull_request:
 
+# A placeholder database URL for the whole job. Prisma needs the DATABASE_URL
+# environment variable to resolve when it loads the datasource block, but none
+# of the CI steps connect to a database: prisma validate only checks the schema
+# and that the variable is well formed, prisma generate reads the schema, and
+# the Next.js build does not query at build time. The value below is a syntactic
+# placeholder that points at a non-existent host, not a real database and not a
+# secret. PostgreSQL remains the production datasource provider.
+env:
+  DATABASE_URL: "postgresql://placeholder:placeholder@db.invalid:5432/signalflow?schema=public"
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -43,7 +53,3 @@ jobs:
 
       - name: Build
         run: npm run build
-        env:
-          # The build does not connect to a database. A placeholder URL lets
-          # Prisma client initialization succeed during the Next.js build.
-          DATABASE_URL: postgresql://user:pass@localhost:5432/db?schema=public

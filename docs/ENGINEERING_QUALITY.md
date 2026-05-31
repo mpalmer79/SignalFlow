@@ -7,10 +7,23 @@ guarantees that are enforced automatically.
 ## Continuous integration
 
 GitHub Actions runs on every push and pull request. The workflow runs, in
-order: install, typecheck, lint, unit tests, the safety scan, the architecture
-boundary check, Prisma schema validation, and the production build. A failure
-in any step fails the pipeline. The workflow lives at
-`.github/workflows/ci.yml`.
+order: install, generate the Prisma client, typecheck, lint, unit tests, the
+safety scan, the architecture boundary check, Prisma schema validation, and the
+production build. A failure in any step fails the pipeline. The workflow lives
+at `.github/workflows/ci.yml`.
+
+### CI database URL
+
+The Prisma datasource reads `DATABASE_URL`, so the variable must resolve when
+Prisma loads the schema, even though no CI step connects to a database. The
+workflow sets a job-level placeholder `DATABASE_URL` that points at a
+non-existent host. This is a syntactic placeholder, not a real database and not
+a secret: `prisma validate` only checks that the schema is well formed and that
+the variable resolves, `prisma generate` reads the schema, and the Next.js build
+does not query at build time because the data pages are dynamic. PostgreSQL
+remains the production datasource provider, and a real `DATABASE_URL` is still
+required to run the application or the seed. The placeholder keeps `prisma
+validate` in CI without suppressing it and without provisioning a database.
 
 ## Test strategy
 
