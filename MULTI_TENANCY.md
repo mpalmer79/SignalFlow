@@ -85,3 +85,12 @@ When Clerk is not configured, the demo context resolves to the demo organization
 ## What remains mocked
 
 Tenancy is real, but delivery is not. There are no AI provider calls, no SMS, email, or voice, and no outbound communication. Those remain disabled. Invitation flows are out of scope for this phase; members are seeded rather than invited.
+
+## Demo fallback production guard (Phase 12)
+
+The demo owner context is a development and review convenience. It is refused in
+production unless ALLOW_DEMO_MODE is set to true, so a production deployment
+without a configured authentication provider returns an unauthenticated state
+rather than granting owner access to the seeded demo organization. See
+AUTHORIZATION.md for the rule. Organization scoping is unchanged: every query
+still filters by the organization id from the resolved server context.

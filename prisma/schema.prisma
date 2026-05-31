@@ -414,6 +414,12 @@ model Customer {
   optedOut            Boolean                     @default(false)
   lastAction          String?
   lastActionAt        DateTime?
+  // Soft delete marker. A customer is never hard deleted in normal operation.
+  // Setting deletedAt removes the customer from active views while preserving
+  // every outcome, attribution, AI, voice, and audit record. The cascade
+  // relations below therefore only fire on a genuine hard purge such as
+  // organization teardown. The audit log uses SetNull so it survives even then.
+  deletedAt           DateTime?
   contactMethods      ContactMethod[]
   consentRecords      ConsentRecord[]
   riskFlags           RiskFlag[]
@@ -490,6 +496,7 @@ model Signal {
   @@index([customerId])
   @@index([opportunityId])
   @@index([organizationId])
+  @@index([organizationId, receivedAt])
 }
 
 model Opportunity {
@@ -541,6 +548,7 @@ model Communication {
   @@index([customerId])
   @@index([channel])
   @@index([organizationId])
+  @@index([organizationId, createdAt])
 }
 
 model AuditEvent {
@@ -549,13 +557,13 @@ model AuditEvent {
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   type           AuditEventType
   customerId     String?
-  customer       Customer?      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer       Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
   signalId       String?
-  signal         Signal?        @relation(fields: [signalId], references: [id])
+  signal         Signal?        @relation(fields: [signalId], references: [id], onDelete: SetNull)
   opportunityId  String?
-  opportunity    Opportunity?   @relation(fields: [opportunityId], references: [id])
+  opportunity    Opportunity?   @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
   workflowRunId  String?
-  workflowRun    WorkflowRun?   @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  workflowRun    WorkflowRun?   @relation(fields: [workflowRunId], references: [id], onDelete: SetNull)
   policyDecision String
   action         String
   outcome        AuditOutcome
@@ -565,6 +573,7 @@ model AuditEvent {
   @@index([occurredAt])
   @@index([workflowRunId])
   @@index([organizationId])
+  @@index([organizationId, occurredAt])
 }
 
 model PolicyDecision {
@@ -626,6 +635,7 @@ model WorkflowRun {
   @@index([customerId])
   @@index([outcome])
   @@index([organizationId])
+  @@index([organizationId, createdAt])
 }
 
 model WorkflowAction {
@@ -679,6 +689,7 @@ model OutcomeEvent {
   @@index([opportunityId])
   @@index([workflowRunId])
   @@index([organizationId])
+  @@index([organizationId, occurredAt])
 }
 
 model RevenueAttribution {
@@ -701,6 +712,7 @@ model RevenueAttribution {
   @@index([opportunityId])
   @@index([attributionType])
   @@index([organizationId])
+  @@index([organizationId, createdAt])
 }
 
 model StageTransition {
@@ -773,12 +785,14 @@ model AIRecommendation {
   reviewState         AIReviewState          @default(pending_review)
   explanation         AIExplanation?
   reviewDecisions     AIReviewDecision[]
+  voicePlans          VoicePlan[]
   createdAt           DateTime               @default(now())
 
   @@index([organizationId])
   @@index([customerId])
   @@index([reviewState])
   @@index([status])
+  @@index([organizationId, createdAt])
 }
 
 model AIExplanation {
@@ -819,8 +833,9 @@ model VoicePlan {
   customerId         String
   customer           Customer                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
   opportunityId      String?
-  opportunity        Opportunity?              @relation(fields: [opportunityId], references: [id])
+  opportunity        Opportunity?              @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
   recommendationId   String?
+  recommendation     AIRecommendation?         @relation(fields: [recommendationId], references: [id], onDelete: SetNull)
   purpose            String
   priority           String
   scriptType         String
@@ -829,6 +844,9 @@ model VoicePlan {
   blockedReason      String?
   expectedOutcome    String
   requiresApproval   Boolean                   @default(false)
+  reviewedBy         String?
+  reviewedAt         DateTime?
+  reviewNotes        String?
   call               VoiceCall?
   complianceDecision VoiceComplianceDecision?
   createdAt          DateTime                  @default(now())
@@ -837,6 +855,9 @@ model VoicePlan {
   @@index([customerId])
   @@index([complianceStatus])
   @@index([status])
+  @@index([opportunityId])
+  @@index([recommendationId])
+  @@index([organizationId, createdAt])
 }
 
 model VoiceCall {
@@ -859,6 +880,8 @@ model VoiceCall {
 
   @@index([organizationId])
   @@index([customerId])
+  @@index([opportunityId])
+  @@index([organizationId, startedAt])
 }
 
 model VoiceTranscript {
@@ -902,6 +925,7 @@ model VoiceCallOutcome {
 
   @@index([organizationId])
   @@index([customerId])
+  @@index([opportunityId])
 }
 
 model ProviderConfiguration {
@@ -948,6 +972,7 @@ model ProviderAuditEvent {
 
   @@index([organizationId])
   @@index([providerKey])
+  @@index([organizationId, createdAt])
 }
 
 model ProviderReadinessCheck {

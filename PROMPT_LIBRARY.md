@@ -51,4 +51,4 @@ integration fast and consistent.
 ## Related documents
 
 - AI_PLATFORM.md for the provider abstraction
-- PROVIDERS.md for the provider posture
+- PROVIDER_MANAGEMENT.md for the provider governance posture

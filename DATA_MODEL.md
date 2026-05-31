@@ -404,3 +404,33 @@ PROVIDER_READINESS_CHECKED
 FEATURE_FLAG_EVALUATED
 FEATURE_FLAG_UPDATED
 ```
+
+## Phase 12 integrity and history changes
+
+Soft delete. Customer carries a deletedAt marker. A customer is never hard
+deleted in normal operation; setting deletedAt removes it from active views
+while preserving every outcome, attribution, AI, voice, and audit record. The
+cascade relations on history tables therefore only fire on a genuine hard purge
+such as organization teardown.
+
+Audit durability. AuditEvent uses onDelete SetNull on its customer, signal,
+opportunity, and workflow run relations, so an audit row survives even a hard
+delete of the entity it references.
+
+Voice foreign keys. VoicePlan.recommendationId now has a real relation to
+AIRecommendation with onDelete SetNull, and VoicePlan.opportunityId uses
+SetNull. VoiceCallOutcome.customerId and VoiceCallOutcome.opportunityId remain
+denormalized strings copied from the parent VoiceCall by the writer. This is an
+intentional denormalization: the outcome row is always created together with its
+call inside one persistence path, and the denormalized ids serve the analytics
+read path without an extra join. They are indexed for that path.
+
+Indexes. Composite (organizationId, time) indexes were added to Signal,
+Communication, WorkflowRun, OutcomeEvent, RevenueAttribution, ProviderAuditEvent,
+AIRecommendation, VoicePlan, and VoiceCall for the recent-per-organization query
+pattern, plus indexes on the optional foreign keys VoicePlan.opportunityId,
+VoicePlan.recommendationId, VoiceCall.opportunityId, and
+VoiceCallOutcome.opportunityId.
+
+Voice review fields. VoicePlan carries reviewedBy, reviewedAt, and reviewNotes
+to record a human review decision on a needs-review plan.

@@ -94,3 +94,19 @@ Compliance approval is modeled as an explicit flag on the provider
 configuration and is one of the required gates before live use. Provider
 decisions, feature flag changes, and sandbox runs are recorded as provider
 audit events. See PROVIDER_MANAGEMENT.md and FEATURE_FLAGS.md for the design.
+
+## Audit durability (Phase 12)
+
+The audit trail is treated as immutable history. Customers are soft deleted
+rather than hard deleted, so outcome, attribution, AI, voice, and audit records
+are preserved. The audit log additionally uses SetNull on its entity relations,
+so an audit row survives even a genuine hard delete. This closes the earlier gap
+where deleting a customer would cascade and erase the audit and revenue history
+about them. See DATA_MODEL.md for the relation changes.
+
+## Voice review approval (Phase 12)
+
+A needs-review voice plan can be approved or rejected by a reviewer with the
+voice review permission. The decision is recorded with an audit event and is
+organization scoped. Approving makes the plan eligible for simulation under the
+existing compliance rules; it never places a call or triggers a simulation.

@@ -13,7 +13,12 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "db:seed": "prisma db seed",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "scan:safety": "tsx scripts/scan-safety.ts",
+    "check:architecture": "tsx scripts/check-architecture-boundaries.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -41,6 +46,7 @@
     "tailwindcss": "^3.4.13",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.22.3",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9"
   }
 }

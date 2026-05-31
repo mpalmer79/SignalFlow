@@ -151,12 +151,18 @@ Then open http://localhost:3000.
 ## Validation commands
 
 ```bash
-npm run build        # production build
-npm run typecheck    # typescript without emit
-npm run lint         # eslint
-npx prisma validate  # validate the schema
-npx prisma migrate status  # confirm migrations are applied
+npm run typecheck         # typescript without emit
+npm run lint              # eslint
+npm run test              # vitest unit tests for the pure engines
+npm run scan:safety       # fail on banned content, secrets, network calls, SDKs
+npm run check:architecture # enforce page, service, repository, engine boundaries
+npx prisma validate       # validate the schema
+npx prisma migrate status # confirm migrations are applied
+npm run build             # production build
 ```
+
+These same steps run in continuous integration on every push and pull request
+through `.github/workflows/ci.yml`. See [docs/ENGINEERING_QUALITY.md](docs/ENGINEERING_QUALITY.md).
 
 Useful scripts:
 
@@ -170,7 +176,7 @@ npm run db:studio    # open Prisma Studio
 
 ## Roadmap summary
 
-Phases 0 through 10 are complete, plus a Phase 10 hardening pass and this Phase 11 portfolio launch readiness pass.
+Phases 0 through 12 are complete.
 
 ```text
 Phase 0   Foundation and demo-safe shell
@@ -185,6 +191,7 @@ Phase 8   Revenue Command Center and mission replay
 Phase 9   Voice simulation platform and voice compliance
 Phase 10  Provider registry, feature flags, readiness, and sandbox
 Phase 11  Portfolio launch readiness
+Phase 12  Engineering quality: CI, tests, scans, audit remediation
 ```
 
 Future options are tracked in [ROADMAP.md](ROADMAP.md) and remain deterministic and gated.
@@ -198,6 +205,9 @@ Product and design:
 - [docs/TECHNICAL_HIGHLIGHTS.md](docs/TECHNICAL_HIGHLIGHTS.md): staff-level technical breakdown
 - [docs/PORTFOLIO_SUMMARY.md](docs/PORTFOLIO_SUMMARY.md): short, technical, and business summaries
 - [docs/REPO_QUALITY_CHECKLIST.md](docs/REPO_QUALITY_CHECKLIST.md): architecture, safety, and demo checklists
+- [docs/ENGINEERING_QUALITY.md](docs/ENGINEERING_QUALITY.md): CI, tests, safety scan, and boundary checks
+- [docs/AUDIT_REMEDIATION.md](docs/AUDIT_REMEDIATION.md): how the engineering audit was addressed
+- [docs/TECHNICAL_DEBT_REGISTER.md](docs/TECHNICAL_DEBT_REGISTER.md): open and closed technical debt
 
 Engineering references:
 

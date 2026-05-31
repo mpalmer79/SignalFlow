@@ -126,3 +126,23 @@ The audit event vocabulary includes authorization and membership lifecycle event
 ## What remains mocked
 
 Authentication is the only live infrastructure introduced, and it is optional. There are still no AI provider calls, no SMS, email, or voice, and no outbound communication. Those remain disabled because Phase 6 is about access and tenancy, not delivery.
+
+## Demo fallback production guard (Phase 12)
+
+The demo fallback resolves a clearly labeled owner context when no
+authentication provider is configured, so the platform stays reviewable. To
+prevent a production deployment that simply forgot to configure authentication
+from granting owner access to anonymous visitors, the fallback is now refused in
+production unless an operator explicitly opts in.
+
+The rule, in `lib/auth/auth-context.ts`:
+
+```text
+if NODE_ENV is production and ALLOW_DEMO_MODE is not "true":
+  do not use the demo owner fallback
+  resolveRequestContext returns null
+  protected pages render the unauthenticated state
+```
+
+Outside production the demo fallback is unchanged, so local development and
+review are unaffected. With Clerk configured, the demo fallback is never used.

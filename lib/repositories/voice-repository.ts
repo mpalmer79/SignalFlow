@@ -464,3 +464,69 @@ export async function findVoicePlansNeedingReview(
   });
   return rows.map(mapPlan);
 }
+
+// Record a human review decision on a needs-review voice plan. Organization
+// scoped: the update only applies to a plan in this organization that is
+// currently in the needs-review state. Approving sets the plan to allowed and
+// ready, which makes it eligible for simulation under the existing rules.
+// Rejecting blocks it. No call is placed and no simulation is triggered here.
+export async function recordVoiceReviewDecision(input: {
+  organizationId: string;
+  voicePlanId: string;
+  approve: boolean;
+  reviewerId: string;
+  reviewerName: string;
+  notes: string;
+}): Promise<{ updated: boolean }> {
+  const result = await prisma.voicePlan.updateMany({
+    where: {
+      id: input.voicePlanId,
+      organizationId: input.organizationId,
+      complianceStatus: "needs_review",
+    },
+    data: input.approve
+      ? {
+          complianceStatus: "allowed",
+          status: "ready",
+          requiresApproval: false,
+          blockedReason: null,
+          reviewedBy: input.reviewerName,
+          reviewedAt: new Date(),
+          reviewNotes: input.notes,
+        }
+      : {
+          complianceStatus: "blocked",
+          status: "blocked",
+          blockedReason: "HUMAN_REVIEW_REQUIRED",
+          reviewedBy: input.reviewerName,
+          reviewedAt: new Date(),
+          reviewNotes: input.notes,
+        },
+  });
+
+  if (result.count === 0) return { updated: false };
+
+  await prisma.voiceComplianceDecision.updateMany({
+    where: { voicePlanId: input.voicePlanId, organizationId: input.organizationId },
+    data: {
+      decision: input.approve ? "allowed" : "blocked",
+      reason: input.approve
+        ? `Approved by ${input.reviewerName}. ${input.notes}`.trim()
+        : `Rejected by ${input.reviewerName}. ${input.notes}`.trim(),
+    },
+  });
+
+  await prisma.auditEvent.create({
+    data: {
+      organizationId: input.organizationId,
+      type: input.approve ? "VOICE_COMPLIANCE_ALLOWED" : "VOICE_COMPLIANCE_BLOCKED",
+      policyDecision: input.approve
+        ? "Voice plan approved by human review"
+        : "Voice plan rejected by human review",
+      action: `${input.reviewerName} ${input.approve ? "approved" : "rejected"} a voice plan. ${input.notes}`.trim(),
+      outcome: input.approve ? "allowed" : "blocked",
+    },
+  });
+
+  return { updated: true };
+}

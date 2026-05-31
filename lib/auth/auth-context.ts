@@ -18,14 +18,31 @@ const STATIC_DEMO_CONTEXT: RequestContext = {
   source: "demo",
 };
 
+// The demo owner fallback is a development and review convenience. It must
+// never silently grant owner access on a production deployment that simply
+// forgot to configure authentication. It is allowed only outside production,
+// or when an operator explicitly opts in with ALLOW_DEMO_MODE=true.
+export function isDemoFallbackAllowed(): boolean {
+  if (process.env.NODE_ENV !== "production") return true;
+  return process.env.ALLOW_DEMO_MODE === "true";
+}
+
 // Resolve the request context for the current server request. When Clerk is
 // configured, the context comes from the authenticated session and the user
-// membership. When Clerk is not configured, a clearly labeled demo context is
-// returned so the application stays reviewable. Returns null only when Clerk is
-// configured and the user is signed in but has no provisioned membership.
+// membership. When Clerk is not configured and the demo fallback is allowed, a
+// clearly labeled demo context is returned so the application stays reviewable.
+//
+// In production without Clerk configured and without an explicit
+// ALLOW_DEMO_MODE opt in, this returns null so protected pages render a setup
+// required state rather than granting owner access by accident. Returns null
+// also when Clerk is configured and the user is signed in but has no
+// provisioned membership.
 export async function resolveRequestContext(): Promise<RequestContext | null> {
   if (isClerkConfigured()) {
     return resolveClerkContext();
+  }
+  if (!isDemoFallbackAllowed()) {
+    return null;
   }
   return resolveDemoContext();
 }
