@@ -5,10 +5,15 @@ import { SectionHeading } from "@/components/section-heading";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getScenarios } from "@/lib/services/scenario-service";
+import { guardPage } from "@/lib/auth/guard-page";
 
 export const metadata: Metadata = { title: "Scenarios" };
+export const dynamic = "force-dynamic";
 
-export default function ScenariosPage() {
+export default async function ScenariosPage() {
+  const { denied } = await guardPage("VIEW_SCENARIOS");
+  if (denied) return denied;
+
   const scenarios = getScenarios();
 
   return (

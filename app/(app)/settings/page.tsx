@@ -4,12 +4,9 @@ import { SectionHeading } from "@/components/section-heading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { guardPage } from "@/lib/auth/guard-page";
-import { isDemoContext } from "@/lib/auth/auth-context";
-import { hasPermission } from "@/lib/auth/authorization";
-import { listMembers } from "@/lib/repositories/organization-repository";
-import { ROLE_LABELS, ROLE_PERMISSIONS } from "@/lib/auth/roles";
+import { getSettingsView } from "@/lib/services/settings-service";
+import { ROLE_LABELS } from "@/lib/auth/roles";
 import { PERMISSION_LABELS } from "@/lib/auth/permissions";
-import { isClerkConfigured } from "@/lib/auth/clerk-config";
 import type { Role } from "@/lib/types/auth";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -19,18 +16,15 @@ export default async function SettingsPage() {
   const { context, denied } = await guardPage("VIEW_DASHBOARD");
   if (denied) return denied;
 
-  const canManage = hasPermission(context, "MANAGE_SETTINGS");
-  const demo = isDemoContext(context);
-  const members = await safeListMembers(context.organizationId);
-  const currentRolePermissions = ROLE_PERMISSIONS[context.role];
+  const settings = await getSettingsView(context);
 
   return (
     <>
       <SectionHeading
         title="Settings"
-        description="Organization profile, roles and permissions, and security boundaries. Management actions require the owner role and are not enabled in this phase."
+        description="Organization profile, current auth context, roles and permissions, and security boundaries. Management actions require the owner role and are not enabled in this phase."
         actions={
-          demo ? (
+          settings.isDemo ? (
             <Badge variant="warning">Demo auth context</Badge>
           ) : (
             <Badge variant="success">Clerk session</Badge>
@@ -47,12 +41,12 @@ export default async function SettingsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <Row label="Name" value={context.organizationName} />
-            <Row label="Organization id" value={context.organizationId} />
-            <Row label="Your role" value={ROLE_LABELS[context.role]} />
+            <Row label="Name" value={settings.organizationName} />
+            <Row label="Organization id" value={settings.organizationId} />
+            <Row label="Your role" value={ROLE_LABELS[settings.role]} />
             <Row
               label="Manage settings"
-              value={canManage ? "Permitted" : "Restricted to owner"}
+              value={settings.canManageSettings ? "Permitted" : "Restricted to owner"}
             />
           </CardContent>
         </Card>
@@ -60,21 +54,42 @@ export default async function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TestTube2 className="h-4 w-4 text-warning" />
-              Demo provider status
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              Current auth context
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <Row
-              label="Authentication"
-              value={isClerkConfigured() ? "Clerk configured" : "Demo fallback"}
+              label="Auth source"
+              value={settings.isDemo ? "Demo fallback context" : "Clerk session"}
             />
-            <Row label="AI providers" value="Mocked, no calls" />
-            <Row label="SMS, email, voice" value="Disabled, simulation only" />
-            <Row label="Demo mode" value="Enabled" />
+            <Row
+              label="Clerk"
+              value={settings.clerkConfigured ? "Configured" : "Not configured"}
+            />
+            <Row label="Role" value={ROLE_LABELS[settings.role]} />
+            <Row
+              label="Production auth"
+              value={settings.isDemo ? "No, demo context" : "Yes"}
+            />
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TestTube2 className="h-4 w-4 text-warning" />
+            Provider status
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
+          <Row label="AI providers" value="Mocked, no calls" />
+          <Row label="SMS, email, voice" value="Disabled, simulation only" />
+          <Row label="Outbound communication" value="Disabled" />
+          <Row label="Demo mode" value="Enabled" />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -84,8 +99,8 @@ export default async function SettingsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {members.length > 0 ? (
-            members.map((member) => (
+          {settings.members.length > 0 ? (
+            settings.members.map((member) => (
               <div
                 key={member.userId}
                 className="flex items-center justify-between gap-3 rounded-md border border-border bg-secondary/30 p-3"
@@ -128,7 +143,7 @@ export default async function SettingsPage() {
             {(Object.keys(ROLE_LABELS) as Role[]).map((role) => (
               <Badge
                 key={role}
-                variant={role === context.role ? "primary" : "muted"}
+                variant={role === settings.role ? "primary" : "muted"}
               >
                 {ROLE_LABELS[role]}
               </Badge>
@@ -136,10 +151,10 @@ export default async function SettingsPage() {
           </div>
           <div>
             <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Permissions for your role ({ROLE_LABELS[context.role]})
+              Permissions for your role ({ROLE_LABELS[settings.role]})
             </p>
             <div className="flex flex-wrap gap-2">
-              {currentRolePermissions.map((permission) => (
+              {settings.rolePermissions.map((permission) => (
                 <Badge key={permission} variant="outline">
                   {PERMISSION_LABELS[permission]}
                 </Badge>
@@ -162,7 +177,7 @@ export default async function SettingsPage() {
             The organization id comes from the resolved server context, never
             from the client.
           </p>
-          <p>Every repository query is scoped to the active organization.</p>
+          <p>Every business repository query is scoped to the active organization.</p>
           <p>
             The demo auth context is clearly labeled and is not production
             authentication.
@@ -181,14 +196,4 @@ function Row({ label, value }: { label: string; value: string }) {
       <span className="truncate font-medium">{value}</span>
     </div>
   );
-}
-
-// Members come from persistence. In a fresh demo without seeded members this
-// returns an empty list rather than failing.
-async function safeListMembers(organizationId: string) {
-  try {
-    return await listMembers(organizationId);
-  } catch {
-    return [];
-  }
 }

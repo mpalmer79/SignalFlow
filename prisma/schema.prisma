@@ -217,13 +217,30 @@ enum RiskSeverity {
 }
 
 model Organization {
-  id          String       @id @default(cuid())
-  name        String
-  slug        String       @unique
-  industry    String
-  memberships Membership[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id                     String                          @id @default(cuid())
+  name                   String
+  slug                   String                          @unique
+  industry               String
+  memberships            Membership[]
+  customers              Customer[]
+  contactMethods         ContactMethod[]
+  consentRecords         ConsentRecord[]
+  signals                Signal[]
+  opportunities          Opportunity[]
+  communications         Communication[]
+  auditEvents            AuditEvent[]
+  policyDecisions        PolicyDecision[]
+  riskFlags              RiskFlag[]
+  workflowRuns           WorkflowRun[]
+  workflowActions        WorkflowAction[]
+  workflowResults        WorkflowResult[]
+  outcomeEvents          OutcomeEvent[]
+  attributions           RevenueAttribution[]
+  stageTransitions       StageTransition[]
+  effectivenessSnapshots WorkflowEffectivenessSnapshot[]
+  missedOpportunities    MissedOpportunityEstimate[]
+  createdAt              DateTime                        @default(now())
+  updatedAt              DateTime                        @updatedAt
 }
 
 model User {
@@ -267,6 +284,7 @@ model VerticalPack {
 model Customer {
   id                  String                      @id @default(cuid())
   organizationId      String
+  organization        Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name                String
   verticalId          String
   vertical            VerticalPack                @relation(fields: [verticalId], references: [id])
@@ -296,6 +314,7 @@ model Customer {
 model ContactMethod {
   id             String       @id @default(cuid())
   organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   customerId     String
   customer       Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
   channel        Channel
@@ -309,6 +328,7 @@ model ContactMethod {
 model ConsentRecord {
   id             String       @id @default(cuid())
   organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   customerId     String
   customer       Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
   channel        Channel
@@ -324,6 +344,7 @@ model ConsentRecord {
 model Signal {
   id                 String           @id @default(cuid())
   organizationId     String
+  organization       Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   type               SignalType
   label              String
   customerId         String
@@ -349,6 +370,7 @@ model Signal {
 model Opportunity {
   id                  String                      @id @default(cuid())
   organizationId      String
+  organization        Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   title               String
   customerId          String
   customer            Customer                    @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -375,6 +397,7 @@ model Opportunity {
 model Communication {
   id             String              @id @default(cuid())
   organizationId String
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   channel        Channel
   customerId     String
   customer       Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -396,6 +419,7 @@ model Communication {
 model AuditEvent {
   id             String         @id @default(cuid())
   organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   type           AuditEventType
   customerId     String?
   customer       Customer?      @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -419,6 +443,7 @@ model AuditEvent {
 model PolicyDecision {
   id             String             @id @default(cuid())
   organizationId String
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   customerId     String
   customer       Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
   signalId       String?
@@ -436,6 +461,7 @@ model PolicyDecision {
 model RiskFlag {
   id             String       @id @default(cuid())
   organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   customerId     String
   customer       Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
   label          String
@@ -448,6 +474,7 @@ model RiskFlag {
 model WorkflowRun {
   id               String                         @id @default(cuid())
   organizationId   String
+  organization     Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   customerId       String
   customer         Customer                       @relation(fields: [customerId], references: [id], onDelete: Cascade)
   opportunityId    String?
@@ -477,6 +504,7 @@ model WorkflowRun {
 model WorkflowAction {
   id             String               @id @default(cuid())
   organizationId String
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   workflowRunId  String
   workflowRun    WorkflowRun          @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
   order          Int
@@ -494,6 +522,7 @@ model WorkflowAction {
 model WorkflowResult {
   id             String              @id @default(cuid())
   organizationId String
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   workflowRunId  String              @unique
   workflowRun    WorkflowRun         @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
   outcome        WorkflowOutcomeType
@@ -506,6 +535,7 @@ model WorkflowResult {
 model OutcomeEvent {
   id             String           @id @default(cuid())
   organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   customerId     String
   customer       Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
   opportunityId  String?
@@ -527,6 +557,7 @@ model OutcomeEvent {
 model RevenueAttribution {
   id                String          @id @default(cuid())
   organizationId    String
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   customerId        String
   customer          Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
   opportunityId     String?
@@ -548,6 +579,7 @@ model RevenueAttribution {
 model StageTransition {
   id             String           @id @default(cuid())
   organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   opportunityId  String
   opportunity    Opportunity      @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
   fromStage      OpportunityStage
@@ -561,10 +593,11 @@ model StageTransition {
 }
 
 model WorkflowEffectivenessSnapshot {
-  id                String      @id @default(cuid())
+  id                String       @id @default(cuid())
   organizationId    String
-  workflowRunId     String      @unique
-  workflowRun       WorkflowRun @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workflowRunId     String       @unique
+  workflowRun       WorkflowRun  @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
   completionStatus  String
   actionsExecuted   Int
   actionsBlocked    Int
@@ -572,7 +605,7 @@ model WorkflowEffectivenessSnapshot {
   outcomeScore      Int
   revenueInfluenced Int
   policyFriction    Int
-  createdAt         DateTime    @default(now())
+  createdAt         DateTime     @default(now())
 
   @@index([organizationId])
 }
@@ -580,6 +613,7 @@ model WorkflowEffectivenessSnapshot {
 model MissedOpportunityEstimate {
   id                        String                    @id @default(cuid())
   organizationId            String
+  organization              Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   customerId                String
   customer                  Customer                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
   opportunityId             String?

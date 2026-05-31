@@ -74,13 +74,18 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Expanded seed data with generated populations across every vertical
 - No external model calls, no live communication, no secrets
 
-## Phase 6: Access and authentication
+## Phase 6: Access and authentication (complete)
 
-- Add Clerk authentication and organization scoping
-- Enforce organization-level data isolation in the repository layer
-- Role-based access control aligned with the architecture document
-- Protected routes and server-side authorization
-- Keep all outbound communication mocked
+- Clerk as an optional authentication provider with a demo auth fallback
+- Organization, User, and Membership models with roles and membership statuses
+- organizationId, an index, and a foreign key relation to Organization on every business model
+- Backfill safe migration that works against an empty or a non-empty database
+- Organization scoped repositories with no cross organization business data
+- Deterministic, server side role based access control and permission checks
+- Protected routes with clear unauthenticated and forbidden states
+- Seeded demo organization, demo users, and memberships
+- Settings page and header showing organization, role, and demo status
+- No AI model calls, no outbound communication, no secrets
 
 ## Phase 7: Live providers behind interfaces
 

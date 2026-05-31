@@ -15,10 +15,6 @@ function stageToDb(stage: OpportunityStage): DbStage {
   return stage.replace(/-/g, "_") as DbStage;
 }
 
-function stageFromDb(stage: DbStage): OpportunityStage {
-  return stage.replace(/_/g, "-") as OpportunityStage;
-}
-
 const KNOWN_ACTION_TYPES = new Set<string>([
   "SEND_SMS",
   "SEND_EMAIL",
@@ -237,13 +233,3 @@ export async function findOutcomeEventsByOpportunity(
     occurredAt: row.occurredAt.toISOString(),
   }));
 }
-
-export async function deleteAllOutcomeData(): Promise<void> {
-  await prisma.missedOpportunityEstimate.deleteMany();
-  await prisma.workflowEffectivenessSnapshot.deleteMany();
-  await prisma.stageTransition.deleteMany();
-  await prisma.revenueAttribution.deleteMany();
-  await prisma.outcomeEvent.deleteMany();
-}
-
-export { stageFromDb };

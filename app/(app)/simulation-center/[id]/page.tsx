@@ -15,24 +15,22 @@ import { MetricCard } from "@/components/metric-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { outcomeLabel, outcomeVariant } from "@/lib/config/outcome-status";
-import {
-  getSimulationResult,
-  getSimulations,
-} from "@/lib/services/simulation-service";
+import { getSimulationResult } from "@/lib/services/simulation-service";
+import { guardPage } from "@/lib/auth/guard-page";
 import { formatCurrency } from "@/lib/utils";
 import type { OutcomeType } from "@/lib/types/outcome";
 
 export const metadata: Metadata = { title: "Simulation" };
+export const dynamic = "force-dynamic";
 
-export function generateStaticParams() {
-  return getSimulations().map((simulation) => ({ id: simulation.id }));
-}
-
-export default function SimulationDetailPage({
+export default async function SimulationDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
+  const { denied } = await guardPage("RUN_SIMULATION");
+  if (denied) return denied;
+
   const result = getSimulationResult(params.id);
 
   if (!result) {

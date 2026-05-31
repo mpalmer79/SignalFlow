@@ -50,3 +50,11 @@ The legal intake vertical does not provide legal advice. Intake is qualified and
 ## No live communication in Phase 0
 
 Phase 0 sends nothing. There is no live SMS, email, voice, or telephony. All providers are mocked and return deterministic demo responses. All communication records are labeled as simulated. A persistent demo banner communicates these limits across the app.
+
+## Access control and tenancy
+
+From Phase 6, access is governed server side. Authorization is deterministic and based on a fixed role to permission map. Every protected page resolves a request context on the server and checks a permission before rendering. The organization id always comes from the resolved server context, never from the client, and every business repository query is scoped to the active organization, so no customer data crosses organization boundaries. Deleting an organization cascades to its business records.
+
+Authentication uses Clerk and is optional. When Clerk is not configured, a clearly labeled demo auth context keeps the application reviewable. The demo context is never treated as production authentication.
+
+This strengthens compliance: consent records, policy decisions, communications, and audit events are all organization scoped, so a compliance reviewer only ever sees their own organization. Outbound communication remains disabled for the same reasons as earlier phases. Phase 6 adds access and tenancy, not delivery, so there is still no live SMS, email, voice, or telephony, and no AI provider calls.

@@ -5,10 +5,15 @@ import { SectionHeading } from "@/components/section-heading";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getSimulations } from "@/lib/services/simulation-service";
+import { guardPage } from "@/lib/auth/guard-page";
 
 export const metadata: Metadata = { title: "Simulation Center" };
+export const dynamic = "force-dynamic";
 
-export default function SimulationCenterPage() {
+export default async function SimulationCenterPage() {
+  const { denied } = await guardPage("RUN_SIMULATION");
+  if (denied) return denied;
+
   const simulations = getSimulations();
 
   return (
