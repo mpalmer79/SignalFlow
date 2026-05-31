@@ -87,35 +87,6 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Settings page and header showing organization, role, and demo status
 - No AI model calls, no outbound communication, no secrets
 
-## Phase 7: Live providers behind interfaces
-
-- Implement AI provider adapters (OpenAI, Anthropic Claude, Google Gemini)
-- Implement SMS and telephony adapters (Twilio)
-- Implement email adapter (SendGrid)
-- Implement voice synthesis adapter (ElevenLabs)
-- Add provider configuration and credential handling
-- Gate live sends behind explicit organization settings
-
-## Phase 8: Live orchestration
-
-- Real workflow execution with wait windows and fallbacks
-- Quiet hours and rate limiting enforced at send time
-- Human task queue with assignment and resolution
-- Opt-out handling that halts active workflows immediately
-
-## Phase 9: Outcomes intelligence
-
-- Feedback loops that improve next best action from recorded outcomes
-- Vertical-specific scoring refinements driven by outcome memory
-- Predictive close probability and best time to contact
-- Reporting and export of attribution and effectiveness
-
-## Phase 10: Vertical expansion
-
-- Promote additional packs from research and design to production
-- Vertical-specific compliance rules and message libraries
-- Pack marketplace structure for faster onboarding
-
 ## Phase 7: AI Platform Layer (complete)
 
 Phase 7 introduces an AI native architecture without introducing AI
@@ -140,9 +111,31 @@ Delivered in Phase 7:
 The pipeline now reads Signal to Intelligence to AI Recommendation to Human
 Review to Workflow to Outcome.
 
-## Recommended Phase 8 scope
+## Phase 8: Live providers behind interfaces
 
-- Optional live provider adapters behind the existing AIProvider interface
-- Reviewer assignment, SLA tracking, and queue routing rules
-- Recommendation feedback loop that learns from review outcomes
-- Per recommendation revenue attribution once a workflow executes
+- Implement AI provider adapters behind the existing AIProvider interface (OpenAI, Anthropic Claude, Google Gemini)
+- Implement SMS and telephony adapters (Twilio)
+- Implement email adapter (SendGrid)
+- Implement voice synthesis adapter (ElevenLabs)
+- Add provider configuration and credential handling
+- Gate live sends behind explicit organization settings
+
+## Phase 9: Live orchestration
+
+- Real workflow execution with wait windows and fallbacks
+- Quiet hours and rate limiting enforced at send time
+- Human task queue with assignment, SLA tracking, and resolution
+- Opt-out handling that halts active workflows immediately
+
+## Phase 10: Outcomes intelligence
+
+- Feedback loops that improve next best action and AI recommendations from recorded outcomes
+- Vertical-specific scoring refinements driven by outcome memory
+- Predictive close probability and best time to contact
+- Reporting and export of attribution and effectiveness
+
+## Phase 11: Vertical expansion
+
+- Promote additional packs from research and design to production
+- Vertical-specific compliance rules and message libraries
+- Pack marketplace structure for faster onboarding
