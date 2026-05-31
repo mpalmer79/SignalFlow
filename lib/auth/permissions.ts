@@ -22,6 +22,11 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   VIEW_AI_RECOMMENDATIONS: "View AI recommendations",
   REVIEW_AI_RECOMMENDATIONS: "Review AI recommendations",
   VIEW_VOICE: "View voice platform",
+  VIEW_PROVIDERS: "View provider management",
+  MANAGE_PROVIDER_SETTINGS: "Manage provider settings",
+  RUN_PROVIDER_SANDBOX: "Run provider sandbox",
+  VIEW_FEATURE_FLAGS: "View feature flags",
+  MANAGE_FEATURE_FLAGS: "Manage feature flags",
 };
 
 export const ALL_PERMISSIONS = Object.keys(PERMISSION_LABELS) as Permission[];

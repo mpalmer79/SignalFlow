@@ -117,6 +117,42 @@ enum AuditEventType {
   VOICE_TRANSCRIPT_CREATED
   VOICE_OUTCOME_CREATED
   VOICE_REVENUE_ATTRIBUTED
+  PROVIDER_SELECTED
+  PROVIDER_BLOCKED_BY_FLAG
+  PROVIDER_BLOCKED_BY_COMPLIANCE
+  PROVIDER_SANDBOX_RUN
+  PROVIDER_READINESS_CHECKED
+  FEATURE_FLAG_EVALUATED
+  FEATURE_FLAG_UPDATED
+}
+
+enum ProviderCategoryEnum {
+  AI_TEXT
+  AI_VOICE
+  TELEPHONY
+  SMS
+  EMAIL
+  INTERNAL_MOCK
+}
+
+enum ProviderStatusEnum {
+  mocked
+  future_ready
+  disabled
+  blocked
+}
+
+enum ProviderReadinessStatusEnum {
+  live_ready
+  sandbox_ready
+  not_ready
+}
+
+enum ProviderAuditResultEnum {
+  allowed
+  blocked
+  simulated
+  recorded
 }
 
 enum VoiceComplianceStatusEnum {
@@ -321,6 +357,10 @@ model Organization {
   voiceTranscripts         VoiceTranscript[]
   voiceComplianceDecisions VoiceComplianceDecision[]
   voiceCallOutcomes        VoiceCallOutcome[]
+  providerConfigurations   ProviderConfiguration[]
+  featureFlags             FeatureFlag[]
+  providerAuditEvents      ProviderAuditEvent[]
+  providerReadinessChecks  ProviderReadinessCheck[]
   createdAt                DateTime                        @default(now())
   updatedAt                DateTime                        @updatedAt
 }
@@ -862,4 +902,64 @@ model VoiceCallOutcome {
 
   @@index([organizationId])
   @@index([customerId])
+}
+
+model ProviderConfiguration {
+  id                 String               @id @default(cuid())
+  organizationId     String
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  providerKey        String
+  category           ProviderCategoryEnum
+  status             ProviderStatusEnum
+  sandboxEnabled     Boolean              @default(false)
+  liveEnabled        Boolean              @default(false)
+  complianceApproved Boolean              @default(false)
+  configuredAt       DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  @@unique([organizationId, providerKey])
+  @@index([organizationId])
+}
+
+model FeatureFlag {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  flagKey        String
+  enabled        Boolean      @default(false)
+  reason         String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, flagKey])
+  @@index([organizationId])
+}
+
+model ProviderAuditEvent {
+  id             String                  @id @default(cuid())
+  organizationId String
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  providerKey    String
+  action         String
+  result         ProviderAuditResultEnum
+  reason         String
+  createdAt      DateTime                @default(now())
+
+  @@index([organizationId])
+  @@index([providerKey])
+}
+
+model ProviderReadinessCheck {
+  id                  String                      @id @default(cuid())
+  organizationId      String
+  organization        Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  providerKey         String
+  capability          String
+  status              ProviderReadinessStatusEnum
+  missingRequirements String[]
+  createdAt           DateTime                    @default(now())
+
+  @@index([organizationId])
+  @@index([providerKey])
 }

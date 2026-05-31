@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Building2, KeyRound, ShieldCheck, TestTube2, Users } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { guardPage } from "@/lib/auth/guard-page";
 import { getSettingsView } from "@/lib/services/settings-service";
+import { getFeatureFlags } from "@/lib/services/feature-flag-service";
+import { flagStateStyles } from "@/lib/config/provider-status";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { PERMISSION_LABELS } from "@/lib/auth/permissions";
 import type { Role } from "@/lib/types/auth";
@@ -16,7 +19,10 @@ export default async function SettingsPage() {
   const { context, denied } = await guardPage("VIEW_DASHBOARD");
   if (denied) return denied;
 
-  const settings = await getSettingsView(context);
+  const [settings, providerFlags] = await Promise.all([
+    getSettingsView(context),
+    getFeatureFlags(context),
+  ]);
 
   return (
     <>
@@ -80,14 +86,34 @@ export default async function SettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TestTube2 className="h-4 w-4 text-warning" />
-            Provider status
+            Provider readiness and feature flags
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
-          <Row label="AI providers" value="Mocked, no calls" />
-          <Row label="SMS, email, voice" value="Disabled, simulation only" />
-          <Row label="Outbound communication" value="Disabled" />
-          <Row label="Demo mode" value="Enabled" />
+        <CardContent className="space-y-3 text-sm">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Row
+              label="Demo mode"
+              value={providerFlags.demoMode ? "Enabled" : "Disabled"}
+            />
+            <Row label="Live providers" value="Locked out" />
+            <Row label="Mock providers" value="Active, no calls" />
+            <Row label="Stored secrets" value="None" />
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {providerFlags.flags
+              .filter((flag) => flag.governsLive)
+              .map((flag) => (
+                <Badge key={flag.key} variant="muted">
+                  {flag.label}: {flagStateStyles[flag.state].label}
+                </Badge>
+              ))}
+          </div>
+          <Link
+            href="/provider-management"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            Open provider management
+          </Link>
         </CardContent>
       </Card>
 

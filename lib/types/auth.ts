@@ -33,7 +33,12 @@ export type Permission =
   | "MANAGE_SETTINGS"
   | "VIEW_AI_RECOMMENDATIONS"
   | "REVIEW_AI_RECOMMENDATIONS"
-  | "VIEW_VOICE";
+  | "VIEW_VOICE"
+  | "VIEW_PROVIDERS"
+  | "MANAGE_PROVIDER_SETTINGS"
+  | "RUN_PROVIDER_SANDBOX"
+  | "VIEW_FEATURE_FLAGS"
+  | "MANAGE_FEATURE_FLAGS";
 
 // The request context every server-side service call receives. It identifies
 // the authenticated user, their organization, and their role, plus whether it

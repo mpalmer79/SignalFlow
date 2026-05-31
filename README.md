@@ -32,7 +32,7 @@ Key differences from a traditional CRM:
 
 ## Current status
 
-Phase 0 through Phase 9 are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, a workflow engine converts recommendations into governed simulated execution plans, an outcome engine turns those runs into measurable revenue outcomes, and a simulation environment lets a reviewer explore the platform across industries. Phase 6 adds multi-tenancy: organizations, users, memberships, role based access control, server side authorization, and organization scoped persistence, with Clerk as an optional authentication provider and a clearly labeled demo fallback. Phase 7 adds the AI Platform Layer: a provider abstraction, a deterministic recommendation engine, confidence and explanation engines, and a human review queue, all governed and audited. Phase 8 adds the Revenue Command Center, a flagship product experience that walks signal to intelligence to AI recommendation to human review to workflow to outcome to revenue on a single page, with a mission replay for any seeded customer. Phase 9 adds the Voice AI Simulation Platform: a voice provider abstraction, a voice plan engine, a deterministic voice compliance engine, a call simulator, a transcript generator, and a voice outcome engine, surfaced through a voice command center and a voice replay. There are still no AI model calls, no outbound communication, no telephony, and no provider integrations. Everything outside of optional authentication is deterministic and demo safe.
+Phase 0 through Phase 9 are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, a workflow engine converts recommendations into governed simulated execution plans, an outcome engine turns those runs into measurable revenue outcomes, and a simulation environment lets a reviewer explore the platform across industries. Phase 6 adds multi-tenancy: organizations, users, memberships, role based access control, server side authorization, and organization scoped persistence, with Clerk as an optional authentication provider and a clearly labeled demo fallback. Phase 7 adds the AI Platform Layer: a provider abstraction, a deterministic recommendation engine, confidence and explanation engines, and a human review queue, all governed and audited. Phase 8 adds the Revenue Command Center, a flagship product experience that walks signal to intelligence to AI recommendation to human review to workflow to outcome to revenue on a single page, with a mission replay for any seeded customer. Phase 9 adds the Voice AI Simulation Platform: a voice provider abstraction, a voice plan engine, a deterministic voice compliance engine, a call simulator, a transcript generator, and a voice outcome engine, surfaced through a voice command center and a voice replay. Phase 10 adds Provider Readiness and Feature Flag Architecture: a provider registry, a capability matrix, deterministic feature flags, provider configuration and readiness models, a provider selection engine, and a provider sandbox, surfaced through a provider management page and a provider sandbox page. There are still no AI model calls, no outbound communication, no telephony, no provider SDKs, and no provider integrations. Every live provider is disabled and only internal mock providers are active. Everything outside of optional authentication is deterministic and demo safe.
 
 ## Phase 6 scope
 
@@ -362,6 +362,9 @@ Repositories contain no UI or React code. Services contain business logic only. 
 - VOICE_PLATFORM.md: simulated voice platform, provider abstraction, and pipeline
 - VOICE_COMPLIANCE.md: voice compliance checks, verdicts, and audit
 - VOICE_SIMULATION.md: voice call simulation, transcripts, and outcome mapping
+- PROVIDER_MANAGEMENT.md: provider registry, capability matrix, and readiness gates
+- FEATURE_FLAGS.md: deterministic feature flag framework and evaluation states
+- PROVIDER_SANDBOX.md: deterministic provider request simulations
 
 ## Phase 7: AI Platform Layer
 
@@ -451,3 +454,27 @@ Highlights:
 - Eight voice audit event types
 
 Documentation: VOICE_PLATFORM.md, VOICE_COMPLIANCE.md, VOICE_SIMULATION.md.
+
+## Phase 10: Provider Readiness and Feature Flag Architecture
+
+Phase 10 adds a provider governance layer that can describe, configure, gate,
+audit, and simulate providers safely. It does not enable any real provider. No
+SDK is installed, no API is called, no network request is made, and no secret
+is stored.
+
+Highlights:
+
+- A provider registry covering OpenAI, Anthropic Claude, Google Gemini, Azure
+  OpenAI, ElevenLabs, OpenAI Realtime, Twilio, Retell, Vapi, SendGrid, and four
+  internal mock providers
+- A capability matrix across ten capabilities
+- A deterministic feature flag framework where every live flag defaults to
+  disabled and is locked off in demo mode
+- Provider configuration, feature flag, provider audit, and provider readiness
+  models, all organization scoped, with no secret fields
+- A provider selection engine that always chooses the internal mock provider in
+  demo mode, and a provider sandbox that shows what a live request would require
+- A provider management page and a provider sandbox page, plus a dashboard
+  provider status card and a settings provider readiness section
+
+Documentation: PROVIDER_MANAGEMENT.md, FEATURE_FLAGS.md, PROVIDER_SANDBOX.md.

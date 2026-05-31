@@ -573,6 +573,11 @@ export default async function RevenueCommandCenterPage() {
         title="Voice follow-up"
         subhead="Simulated voice operations. No calls are placed and no provider is contacted. Every plan passes a deterministic compliance check before a call is simulated."
       >
+        <p className="rounded-md border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">
+          All AI and voice outputs are generated through internal mock providers
+          in demo mode. Live providers are disabled. See provider management for
+          readiness and feature flags.
+        </p>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

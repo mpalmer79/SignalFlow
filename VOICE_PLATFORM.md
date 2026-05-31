@@ -182,3 +182,14 @@ reproducible while leaving a clean seam for a real provider.
 - VOICE_SIMULATION.md for the call simulation and transcript model
 - COMPLIANCE.md for the platform wide consent and compliance posture
 - DATA_MODEL.md for the voice persistence entities
+
+## Provider governance (Phase 10)
+
+Phase 10 places the voice provider abstraction under the provider governance
+layer. Voice capabilities (voice synthesis, realtime voice, call transport,
+transcript summary, call outcome classification) are governed by the
+ENABLE_LIVE_VOICE feature flag. While demo mode is active that flag is locked
+off, so the provider selection engine always chooses the internal mock voice
+provider. ElevenLabs, OpenAI Realtime, Twilio, Retell, and Vapi are registered
+as future ready providers with placeholder secret names only. No voice provider
+SDK is installed and no call is placed. See PROVIDER_MANAGEMENT.md.
