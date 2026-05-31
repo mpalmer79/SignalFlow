@@ -37,7 +37,19 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Risk flag system that influences recommendations
 - No external model calls, no authentication, no live integrations, no secrets
 
-## Phase 3: Access and authentication
+## Phase 3: Action graph and orchestration (complete)
+
+- Action Graph with typed action nodes and edges
+- Policy Evaluation Layer returning allowed, blocked, or needs review per action
+- Workflow Engine that builds, validates, evaluates, and simulates workflows
+- Deterministic Execution Simulator that emits workflow audit events
+- Persisted workflow runs, actions, and results
+- Execution timeline with a stable demo clock
+- Upgraded Action Graph and Orchestrator pages, with a workflow run detail page
+- Dashboard workflow metrics, intelligence workflow preview, and enriched timelines
+- No outbound communication, no scheduling infrastructure, no external model calls
+
+## Phase 4: Access and authentication
 
 - Add Clerk authentication and organization scoping
 - Enforce organization-level data isolation in the repository layer
@@ -45,7 +57,7 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Protected routes and server-side authorization
 - Keep all outbound communication mocked
 
-## Phase 4: Live providers behind interfaces
+## Phase 5: Live providers behind interfaces
 
 - Implement AI provider adapters (OpenAI, Anthropic Claude, Google Gemini)
 - Implement SMS and telephony adapters (Twilio)
@@ -54,21 +66,21 @@ SignalFlow is delivered in phases. Each phase keeps the domain model stable whil
 - Add provider configuration and credential handling
 - Gate live sends behind explicit organization settings
 
-## Phase 5: Orchestration engine
+## Phase 6: Live orchestration
 
 - Real workflow execution with wait windows and fallbacks
 - Quiet hours and rate limiting enforced at send time
 - Human task queue with assignment and resolution
 - Opt-out handling that halts active workflows immediately
 
-## Phase 6: Outcomes and analytics
+## Phase 7: Outcomes and analytics
 
 - Outcome tracking tied to revenue
 - Reporting and analytics on signals, actions, and results
 - Feedback loops that improve next best action
 - Vertical-specific scoring refinements
 
-## Phase 7: Vertical expansion
+## Phase 8: Vertical expansion
 
 - Promote additional packs from research and design to production
 - Vertical-specific compliance rules and message libraries

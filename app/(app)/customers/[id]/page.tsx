@@ -12,6 +12,7 @@ import {
   PriorityBadge,
 } from "@/components/intelligence/score-badges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { WorkflowOutcomeBadge } from "@/components/workflow/workflow-outcome-badge";
 import { getCustomerProfile } from "@/lib/services/customer-service";
 
 export const metadata: Metadata = { title: "Customer" };
@@ -28,7 +29,8 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
-  const { customer, opportunities, timeline, intelligence } = profile;
+  const { customer, opportunities, timeline, intelligence, workflowRuns } =
+    profile;
 
   return (
     <>
@@ -93,6 +95,35 @@ export default async function CustomerDetailPage({
                 <PriorityBadge priority={intelligence.priority} />
                 <IntentBadge intent={intelligence.intentLevel} />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Workflow runs</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {workflowRuns.length > 0 ? (
+                workflowRuns.map((run) => (
+                  <Link
+                    key={run.id}
+                    href={`/orchestrator/${run.id}`}
+                    className="flex items-center justify-between gap-2 rounded-md border border-border bg-secondary/30 p-3 transition-colors hover:border-primary/40"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{run.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {run.actionsExecuted} executed, {run.actionsBlocked} blocked
+                      </p>
+                    </div>
+                    <WorkflowOutcomeBadge outcome={run.outcome} />
+                  </Link>
+                ))
+              ) : (
+                <p className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                  No workflow runs for this customer.
+                </p>
+              )}
             </CardContent>
           </Card>
 

@@ -5,6 +5,12 @@ import { signals } from "../lib/mock-data/signals";
 import { opportunities } from "../lib/mock-data/opportunities";
 import { communications } from "../lib/mock-data/communications";
 import { auditEvents } from "../lib/mock-data/audit-events";
+import { findAllCustomers } from "../lib/repositories/customer-repository";
+import { findSignalsByCustomer } from "../lib/repositories/signal-repository";
+import { findOpportunitiesByCustomer } from "../lib/repositories/opportunity-repository";
+import { findCommunicationsByCustomer } from "../lib/repositories/communication-repository";
+import { planWorkflowWithScores } from "../lib/orchestrator/workflow-runner";
+import { persistWorkflowRun } from "../lib/repositories/workflow-repository";
 
 const prisma = new PrismaClient();
 
@@ -17,8 +23,11 @@ function toDbEnum(value: string): string {
 async function reset() {
   // Delete in dependency order. Cascades cover most of this, but explicit
   // deletes keep reseeding deterministic.
+  await prisma.workflowResult.deleteMany();
+  await prisma.workflowAction.deleteMany();
   await prisma.policyDecision.deleteMany();
   await prisma.auditEvent.deleteMany();
+  await prisma.workflowRun.deleteMany();
   await prisma.communication.deleteMany();
   await prisma.opportunity.deleteMany();
   await prisma.signal.deleteMany();
@@ -207,6 +216,41 @@ async function seedPolicyDecisions() {
   }
 }
 
+// Build and persist one simulated workflow run per customer from the data that
+// was just seeded. This reads through the repositories so the engine sees the
+// same domain shapes the application uses.
+async function seedWorkflowRuns() {
+  const persistedCustomers = await findAllCustomers();
+
+  for (const customer of persistedCustomers) {
+    const [customerSignals, customerOpportunities, customerCommunications] =
+      await Promise.all([
+        findSignalsByCustomer(customer.id),
+        findOpportunitiesByCustomer(customer.id),
+        findCommunicationsByCustomer(customer.id),
+      ]);
+
+    const planned = planWorkflowWithScores({
+      customer,
+      signals: customerSignals,
+      opportunities: customerOpportunities,
+      communications: customerCommunications,
+    });
+
+    const openOpportunity = customerOpportunities.find(
+      (opp) => !["won", "lost", "dormant"].includes(opp.stage),
+    );
+
+    await persistWorkflowRun({
+      plan: planned.plan,
+      opportunityId: openOpportunity?.id ?? null,
+      intentScore: planned.intentScore,
+      opportunityScore: planned.opportunityScore,
+      engagementScore: planned.engagementScore,
+    });
+  }
+}
+
 async function main() {
   await reset();
   await seedVerticalPacks();
@@ -216,15 +260,18 @@ async function main() {
   await seedCommunications();
   await seedAuditEvents();
   await seedPolicyDecisions();
+  await seedWorkflowRuns();
 
-  const [customerCount, signalCount, opportunityCount] = await Promise.all([
-    prisma.customer.count(),
-    prisma.signal.count(),
-    prisma.opportunity.count(),
-  ]);
+  const [customerCount, signalCount, opportunityCount, workflowCount] =
+    await Promise.all([
+      prisma.customer.count(),
+      prisma.signal.count(),
+      prisma.opportunity.count(),
+      prisma.workflowRun.count(),
+    ]);
 
   console.log(
-    `Seed complete: ${customerCount} customers, ${signalCount} signals, ${opportunityCount} opportunities.`,
+    `Seed complete: ${customerCount} customers, ${signalCount} signals, ${opportunityCount} opportunities, ${workflowCount} workflow runs.`,
   );
 }
 

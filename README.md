@@ -32,7 +32,35 @@ Key differences from a traditional CRM:
 
 ## Current status
 
-Phase 0 (foundation), Phase 1 (persistence), and Phase 2 (customer intelligence) are complete. PostgreSQL is the source of truth, and a deterministic intelligence layer turns persisted signals into intent, opportunity, and engagement scores with recommended next best actions. There are still no live integrations, no authentication, no multi-tenancy, no outbound communication, and no external model calls. Every score and recommendation is computed locally.
+Phase 0 (foundation), Phase 1 (persistence), Phase 2 (customer intelligence), and Phase 3 (action graph and orchestration) are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, and a workflow engine converts recommendations into governed, simulated execution plans. There are still no live integrations, no authentication, no multi-tenancy, no outbound communication, and no external model calls. Everything is deterministic and computed locally.
+
+## Phase 3 scope
+
+Phase 3 introduces the Action Graph and the Follow-Up Orchestrator. Recommendations become governed execution plans that pass policy evaluation and run through a deterministic execution simulator. Nothing is ever sent.
+
+Phase 3 includes:
+
+- An Action Graph that turns an intelligence profile into typed action nodes and edges
+- A Policy Evaluation Layer that returns allowed, blocked, or needs review for every action
+- A Workflow Engine that builds, validates, evaluates, and simulates workflows
+- A deterministic Execution Simulator that walks the plan, executes allowed actions, skips blocked actions, and emits audit events
+- Persisted workflow runs, actions, and results, with linked workflow audit events
+- An execution timeline with a stable demo clock
+- An upgraded Action Graph page that shows a live workflow plan, policy decisions, and execution
+- An upgraded Orchestrator page that lists persisted runs, with a workflow run detail page
+- Workflow metrics on the dashboard, a workflow preview on the intelligence detail page, and workflow activity in customer timelines and the audit trail
+
+### Action Graph
+
+The Action Graph is the decision layer between intelligence and execution. It determines the allowed actions, their order, escalation paths, stop conditions, and human handoff moments. Nodes carry an action type, reason, status, and policy decision. Edges carry the relationship, including wait durations.
+
+### Workflow Engine and Execution Simulation
+
+The Workflow Builder generates a plan from intent, opportunity, and engagement scores, consent, risk flags, and intent class. The Workflow Validator checks plan integrity. The Simulated Execution Engine walks the plan, evaluates policy per action, executes allowed actions, blocks or escalates the rest, and produces a typed outcome (completed, partially completed, blocked, escalated, paused, or failed validation) along with audit events. Nothing is sent and no scheduling or queue infrastructure is used.
+
+### Policy Evaluation Layer
+
+Every action is evaluated against a policy context derived from persisted consent and risk flags. Opt-out blocks all outreach, missing channel consent blocks that channel, medical sensitive content and high value leads route to human review, and stop actions are always permitted. Decisions are recorded as workflow audit events.
 
 ## Phase 2 scope
 
@@ -215,8 +243,11 @@ lib/
   signals/           signal engine: normalize, classify, prioritize, enrich
   scoring/           intent, opportunity, and engagement scoring
   recommendations/   opportunity detection and next best action engines
+  action-graph/      typed action nodes, edges, and graph builder
+  orchestrator/      workflow builder, validator, engine, and runner
+  execution/         simulated execution engine and execution timeline
+  policy/            consent policy and action policy evaluation
   mock-data/         demo business data, used only by the seed script
-  policy/            deterministic consent policy layer
   providers/         mock provider boundaries
   types/             explicit domain types
 prisma/

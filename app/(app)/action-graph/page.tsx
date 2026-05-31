@@ -10,12 +10,16 @@ import {
   Timer,
   UserCog,
 } from "lucide-react";
+import Link from "next/link";
 import { SectionHeading } from "@/components/section-heading";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { WorkflowPlanView } from "@/components/workflow/workflow-plan-view";
+import { getShowcaseWorkflow } from "@/lib/services/workflow-service";
 import type { LucideIcon } from "lucide-react";
 
 export const metadata: Metadata = { title: "Action Graph" };
+export const dynamic = "force-dynamic";
 
 interface GraphStep {
   title: string;
@@ -69,13 +73,39 @@ const steps: GraphStep[] = [
   },
 ];
 
-export default function ActionGraphPage() {
+export default async function ActionGraphPage() {
+  const showcase = await getShowcaseWorkflow();
+
   return (
     <>
       <SectionHeading
         title="Action graph"
-        description="How SignalFlow decides what happens next. The flow is deterministic and consent first."
+        description="How SignalFlow turns a recommendation into a governed, simulated execution plan. The flow is deterministic and consent first."
       />
+
+      {showcase ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold">
+              Live workflow: {showcase.plan.customerName}
+            </h2>
+            <Link
+              href={`/customers/${showcase.plan.customerId}`}
+              className="text-xs text-primary hover:underline"
+            >
+              View customer
+            </Link>
+          </div>
+          <WorkflowPlanView plan={showcase.plan} />
+        </div>
+      ) : null}
+
+      <div>
+        <h2 className="text-sm font-semibold">Decision flow</h2>
+        <p className="text-xs text-muted-foreground">
+          Every workflow follows the same deterministic decision path.
+        </p>
+      </div>
 
       <div className="mx-auto max-w-2xl space-y-2">
         {steps.map((step, index) => {

@@ -1,132 +1,108 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MetricCard } from "@/components/metric-card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { WorkflowOutcomeBadge } from "@/components/workflow/workflow-outcome-badge";
+import {
+  getWorkflowMetrics,
+  listWorkflowRuns,
+} from "@/lib/services/workflow-service";
+import { formatRelativeTime } from "@/lib/utils";
+import { CheckCircle2, ShieldAlert, Workflow, Zap } from "lucide-react";
 
 export const metadata: Metadata = { title: "Orchestrator" };
+export const dynamic = "force-dynamic";
 
-interface WorkflowStep {
-  label: string;
-  state: "done" | "active" | "blocked" | "waiting";
-}
+export default async function OrchestratorPage() {
+  const [runs, metrics] = await Promise.all([
+    listWorkflowRuns(),
+    getWorkflowMetrics(),
+  ]);
 
-interface DemoWorkflow {
-  name: string;
-  trigger: string;
-  description: string;
-  steps: WorkflowStep[];
-}
-
-const stateStyles: Record<
-  WorkflowStep["state"],
-  { label: string; variant: "success" | "primary" | "danger" | "muted" }
-> = {
-  done: { label: "Done", variant: "success" },
-  active: { label: "Active", variant: "primary" },
-  blocked: { label: "Blocked", variant: "danger" },
-  waiting: { label: "Waiting", variant: "muted" },
-};
-
-const workflows: DemoWorkflow[] = [
-  {
-    name: "Immediate SMS after lead submission",
-    trigger: "Trigger: new automotive lead",
-    description:
-      "Responds to a new lead within seconds when SMS consent is present.",
-    steps: [
-      { label: "Lead received", state: "done" },
-      { label: "Consent check passed", state: "done" },
-      { label: "SMS drafted", state: "done" },
-      { label: "SMS delivered", state: "active" },
-    ],
-  },
-  {
-    name: "Email fallback after no reply",
-    trigger: "Trigger: no SMS reply within window",
-    description:
-      "Falls back to email when an SMS goes unanswered after the wait window.",
-    steps: [
-      { label: "SMS sent", state: "done" },
-      { label: "Wait for reply", state: "done" },
-      { label: "Email fallback drafted", state: "active" },
-      { label: "Email delivered", state: "waiting" },
-    ],
-  },
-  {
-    name: "Human task for high-value lead",
-    trigger: "Trigger: estimated value above threshold",
-    description:
-      "Routes high-value opportunities to a human before any automated send.",
-    steps: [
-      { label: "Lead scored high value", state: "done" },
-      { label: "Routed to human review", state: "active" },
-      { label: "Human confirms outreach", state: "waiting" },
-    ],
-  },
-  {
-    name: "Voice follow-up after consent approval",
-    trigger: "Trigger: voice consent granted",
-    description:
-      "Queues a simulated voice follow-up once voice consent is confirmed.",
-    steps: [
-      { label: "Voice consent granted", state: "done" },
-      { label: "Call script generated", state: "done" },
-      { label: "Simulated call queued", state: "active" },
-    ],
-  },
-  {
-    name: "Stop workflow after opt-out",
-    trigger: "Trigger: customer replies STOP",
-    description:
-      "Halts every active step immediately and records the opt-out.",
-    steps: [
-      { label: "Opt-out received", state: "done" },
-      { label: "All steps halted", state: "done" },
-      { label: "Outreach blocked", state: "blocked" },
-    ],
-  },
-];
-
-export default function OrchestratorPage() {
   return (
     <>
       <SectionHeading
-        title="Orchestrator"
-        description="Simulated multi-channel workflows. These illustrate orchestration logic and do not send live messages."
+        title="Follow-up orchestrator"
+        description="Simulated workflow runs generated from customer intelligence. Every action passes policy evaluation. Nothing is sent."
+        actions={<Badge variant="warning">Simulation only</Badge>}
       />
-      <div className="grid gap-4 lg:grid-cols-2">
-        {workflows.map((workflow) => (
-          <Card key={workflow.name}>
-            <CardHeader>
-              <CardTitle>{workflow.name}</CardTitle>
-              <p className="text-xs text-muted-foreground">{workflow.trigger}</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                {workflow.description}
-              </p>
-              <ol className="space-y-2">
-                {workflow.steps.map((step, index) => {
-                  const style = stateStyles[step.state];
-                  return (
-                    <li
-                      key={step.label}
-                      className="flex items-center justify-between gap-3 rounded-md border border-border bg-secondary/30 px-3 py-2"
-                    >
-                      <span className="flex items-center gap-2 text-sm">
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {index + 1}
-                        </span>
-                        {step.label}
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard
+          label="Workflow runs"
+          value={String(metrics.totalRuns)}
+          hint="Persisted simulations"
+          icon={Workflow}
+        />
+        <MetricCard
+          label="Actions executed"
+          value={String(metrics.actionsExecuted)}
+          hint="Simulated, nothing sent"
+          icon={Zap}
+          tone="success"
+        />
+        <MetricCard
+          label="Actions blocked"
+          value={String(metrics.actionsBlocked)}
+          hint="Held by the policy layer"
+          icon={ShieldAlert}
+          tone="warning"
+        />
+        <MetricCard
+          label="Completion rate"
+          value={`${metrics.completionRate}%`}
+          hint="Runs completed in full"
+          icon={CheckCircle2}
+          tone="success"
+        />
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold">Active workflow runs</h2>
+        {runs.length > 0 ? (
+          <div className="grid gap-3 lg:grid-cols-2">
+            {runs.map((run) => (
+              <Link key={run.id} href={`/orchestrator/${run.id}`}>
+                <Card className="transition-colors hover:border-primary/40">
+                  <CardContent className="space-y-3 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold">{run.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {run.customerName} ({formatRelativeTime(run.createdAt)})
+                        </p>
+                      </div>
+                      <WorkflowOutcomeBadge outcome={run.outcome} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">{run.trigger}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="muted">
+                        {run.actionsExecuted} executed
+                      </Badge>
+                      <Badge variant="muted">
+                        {run.actionsBlocked} blocked
+                      </Badge>
+                      <Badge variant="muted">
+                        {run.actionsEscalated} escalated
+                      </Badge>
+                      <span className="ml-auto inline-flex items-center gap-1 text-xs text-primary">
+                        View run
+                        <ArrowRight className="h-3 w-3" />
                       </span>
-                      <Badge variant={style.variant}>{style.label}</Badge>
-                    </li>
-                  );
-                })}
-              </ol>
-            </CardContent>
-          </Card>
-        ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-md border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+            No workflow runs found. Run the seed script to generate simulations.
+          </p>
+        )}
       </div>
     </>
   );

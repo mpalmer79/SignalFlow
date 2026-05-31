@@ -6,6 +6,7 @@ import {
   ScrollText,
   Sparkles,
   Wand2,
+  Workflow,
 } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
 import type { CustomerTimelineEntry } from "@/lib/services/customer-service";
@@ -45,6 +46,11 @@ const kindMeta: Record<
     label: "Risk flag",
     icon: AlertTriangle,
     tone: "bg-warning/15 text-warning",
+  },
+  workflow: {
+    label: "Workflow run",
+    icon: Workflow,
+    tone: "bg-primary/15 text-primary",
   },
 };
 

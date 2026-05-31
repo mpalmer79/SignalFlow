@@ -6,6 +6,7 @@ import { findSignalsByCustomer } from "@/lib/repositories/signal-repository";
 import { findOpportunitiesByCustomer } from "@/lib/repositories/opportunity-repository";
 import { findCommunicationsByCustomer } from "@/lib/repositories/communication-repository";
 import { findAuditEventsByCustomer } from "@/lib/repositories/audit-repository";
+import { findWorkflowRunsByCustomer } from "@/lib/repositories/workflow-repository";
 import { buildIntelligenceProfile } from "@/lib/intelligence/graph-summary";
 import type { Customer } from "@/lib/types/customer";
 import type { Signal } from "@/lib/types/signal";
@@ -13,6 +14,7 @@ import type { Opportunity } from "@/lib/types/opportunity";
 import type { Communication } from "@/lib/types/communication";
 import type { AuditEvent } from "@/lib/types/audit";
 import type { CustomerIntelligenceProfile } from "@/lib/types/intelligence";
+import type { WorkflowRunRecord } from "@/lib/types/workflow-run";
 
 export type TimelineKind =
   | "signal"
@@ -21,7 +23,8 @@ export type TimelineKind =
   | "opportunity"
   | "detected-opportunity"
   | "recommendation"
-  | "risk";
+  | "risk"
+  | "workflow";
 
 export interface CustomerTimelineEntry {
   id: string;
@@ -37,6 +40,7 @@ export interface CustomerProfile {
   opportunities: Opportunity[];
   communications: Communication[];
   auditEvents: AuditEvent[];
+  workflowRuns: WorkflowRunRecord[];
   intelligence: CustomerIntelligenceProfile;
   timeline: CustomerTimelineEntry[];
 }
@@ -51,12 +55,13 @@ export async function getCustomerProfile(
   const customer = await findCustomerById(id);
   if (!customer) return null;
 
-  const [signals, opportunities, communications, auditEvents] =
+  const [signals, opportunities, communications, auditEvents, workflowRuns] =
     await Promise.all([
       findSignalsByCustomer(id),
       findOpportunitiesByCustomer(id),
       findCommunicationsByCustomer(id),
       findAuditEventsByCustomer(id),
+      findWorkflowRunsByCustomer(id),
     ]);
 
   const intelligence = buildIntelligenceProfile({
@@ -72,6 +77,7 @@ export async function getCustomerProfile(
     communications,
     auditEvents,
     intelligence,
+    workflowRuns,
   );
 
   return {
@@ -80,6 +86,7 @@ export async function getCustomerProfile(
     opportunities,
     communications,
     auditEvents,
+    workflowRuns,
     intelligence,
     timeline,
   };
@@ -94,6 +101,7 @@ function buildTimeline(
   communications: Communication[],
   auditEvents: AuditEvent[],
   intelligence: CustomerIntelligenceProfile,
+  workflowRuns: WorkflowRunRecord[],
 ): CustomerTimelineEntry[] {
   const latestSignalAt =
     intelligence.normalizedSignals[0]?.receivedAt ??
@@ -162,6 +170,15 @@ function buildTimeline(
         title: flag.label,
         detail: flag.influence,
         occurredAt: latestSignalAt,
+      }),
+    ),
+    ...workflowRuns.map(
+      (run): CustomerTimelineEntry => ({
+        id: run.id,
+        kind: "workflow",
+        title: run.title,
+        detail: `Outcome: ${run.outcome.replace(/-/g, " ")} (${run.actionsExecuted} executed, ${run.actionsBlocked} blocked)`,
+        occurredAt: run.createdAt,
       }),
     ),
   ];
