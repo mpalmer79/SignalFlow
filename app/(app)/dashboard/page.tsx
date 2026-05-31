@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  ArrowRight,
   Banknote,
   Bell,
   BrainCircuit,
   CheckCircle2,
   Gauge,
+  Radar,
   RotateCcw,
   Sparkles,
   ShieldAlert,
@@ -68,6 +70,32 @@ export default async function DashboardPage() {
         title="Revenue command center"
         description="A live view of signals, consent-aware actions, and pipeline movement. Data is served from the database in demo mode."
       />
+
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+              <Radar className="h-5 w-5" />
+            </span>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">
+                Open the Revenue Command Center
+              </p>
+              <p className="text-sm text-muted-foreground">
+                One screen that walks signal to intelligence to AI recommendation
+                to human review to workflow to outcome to revenue.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/revenue-command-center"
+            className="inline-flex items-center gap-1 self-start text-sm text-primary hover:underline sm:self-auto"
+          >
+            Launch command center
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard

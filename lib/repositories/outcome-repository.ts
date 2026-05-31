@@ -233,3 +233,26 @@ export async function findOutcomeEventsByOpportunity(
     occurredAt: row.occurredAt.toISOString(),
   }));
 }
+
+export async function findRecentOutcomeEvents(
+  organizationId: string,
+  limit: number,
+): Promise<OutcomeEventRecord[]> {
+  const rows = await prisma.outcomeEvent.findMany({
+    where: { organizationId },
+    include: withCustomerName,
+    orderBy: { occurredAt: "desc" },
+    take: limit,
+  });
+  return rows.map((row) => ({
+    id: row.id,
+    customerId: row.customerId,
+    customerName: row.customer.name,
+    opportunityId: row.opportunityId,
+    workflowRunId: row.workflowRunId,
+    outcomeType: row.outcomeType as OutcomeType,
+    reason: row.outcomeReason,
+    confidence: row.confidence,
+    occurredAt: row.occurredAt.toISOString(),
+  }));
+}

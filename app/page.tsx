@@ -7,6 +7,7 @@ import {
   GitBranch,
   Layers,
   PlayCircle,
+  Radar,
   Radio,
   ShieldCheck,
   Workflow,
@@ -297,6 +298,46 @@ export default async function LandingPage() {
               </Link>
             ))}
           </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-6 py-12">
+          <Card className="border-primary/30 bg-primary/5">
+            <CardContent className="space-y-4 p-6">
+              <div className="flex items-center justify-between gap-4">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  <Radar className="h-5 w-5" />
+                </span>
+                <Badge variant="primary">Flagship experience</Badge>
+              </div>
+              <div className="space-y-2">
+                <p className="text-2xl font-semibold tracking-tight">
+                  See the Revenue Command Center
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  One screen, one story. Watch a customer signal travel through
+                  intelligence, AI recommendation, human review, workflow,
+                  outcome, and revenue attribution without leaving the page.
+                  Then open mission replay to walk any customer's full
+                  deterministic lifecycle.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/revenue-command-center"
+                  className={buttonVariants({ size: "lg" })}
+                >
+                  Open command center
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className={buttonVariants({ variant: "outline", size: "lg" })}
+                >
+                  Open dashboard
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </section>
 
         <section className="mx-auto max-w-6xl px-6 py-12">
