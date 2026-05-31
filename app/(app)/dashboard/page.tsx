@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  Banknote,
   Bell,
   CheckCircle2,
+  RotateCcw,
   Sparkles,
   ShieldAlert,
   Target,
+  TrendingDown,
   TrendingUp,
   Workflow,
   Zap,
@@ -24,7 +27,7 @@ import {
 } from "@/components/intelligence/score-badges";
 import { communicationStatusStyles } from "@/lib/config/status";
 import { getDashboardData } from "@/lib/services/dashboard-service";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Dashboard" };
 export const dynamic = "force-dynamic";
@@ -40,6 +43,7 @@ export default async function DashboardPage() {
     verticalPacks,
     intelligence,
     workflow,
+    revenue,
   } = await getDashboardData();
 
   return (
@@ -253,6 +257,61 @@ export default async function DashboardPage() {
             hint={`${workflow.actionsEscalated} escalations`}
             icon={CheckCircle2}
             tone="success"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Revenue outcomes</h2>
+          <Link
+            href="/revenue-engine"
+            className="text-xs text-primary hover:underline"
+          >
+            View revenue engine
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <MetricCard
+            label="Revenue influenced"
+            value={formatCurrency(revenue.revenueInfluenced)}
+            hint="Gross influence estimate"
+            icon={Banknote}
+            tone="success"
+          />
+          <MetricCard
+            label="Recovered opportunities"
+            value={String(revenue.recoveredOpportunities)}
+            hint="Workflows that recovered value"
+            icon={RotateCcw}
+            tone="success"
+          />
+          <MetricCard
+            label="Missed opportunity estimate"
+            value={formatCurrency(revenue.missedEstimate)}
+            hint={`${revenue.criticalMissed} critical`}
+            icon={TrendingDown}
+            tone="warning"
+          />
+          <MetricCard
+            label="Workflows with positive outcomes"
+            value={`${revenue.positiveWorkflows} / ${revenue.totalWorkflows}`}
+            hint="Outcome score 50 and above"
+            icon={TrendingUp}
+          />
+          <MetricCard
+            label="Customers reactivated"
+            value={String(revenue.customersReactivated)}
+            hint="Dormant to reactivated"
+            icon={Sparkles}
+            tone="success"
+          />
+          <MetricCard
+            label="Policy blocks with revenue impact"
+            value={String(revenue.criticalMissed)}
+            hint="Critical missed estimates"
+            icon={ShieldAlert}
+            tone="warning"
           />
         </div>
       </div>

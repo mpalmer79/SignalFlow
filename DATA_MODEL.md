@@ -82,3 +82,71 @@ A consent profile holds a per-channel consent state, an opted out flag, and a qu
 ## Phase 1 alignment
 
 `prisma/schema.prisma` encodes these entities with PostgreSQL enums and relations. The TypeScript types remain the source of truth for the UI, so the persistence layer can be introduced without changing the domain contract.
+
+## Workflow entities (Phase 3)
+
+### Workflow run
+
+A persisted, simulated workflow plan for one customer.
+
+- id, customer reference, optional opportunity reference
+- title, trigger, and the intent, opportunity, and engagement scores that drove it
+- outcome (completed, partially completed, blocked, escalated, paused, failed validation)
+- counts of executed, blocked, and escalated actions
+- has many workflow actions and one workflow result
+
+### Workflow action
+
+A single action within a run, with order, action type, channel, status, policy outcome, offset minutes, and reason.
+
+### Workflow result
+
+A summary row for a run, with the outcome and a text summary.
+
+## Outcome and revenue entities (Phase 4)
+
+### Outcome event
+
+A deterministic outcome produced from a workflow run.
+
+- id, customer reference, optional opportunity and workflow run references
+- outcome type (for example APPOINTMENT_SCHEDULED, NO_RESPONSE, COMPLIANCE_STOP)
+- reason, confidence, and the action type that produced it
+- occurred timestamp
+
+### Revenue attribution
+
+An estimate of influenced revenue from a run.
+
+- id, customer reference, optional opportunity and workflow run references
+- attributed amount and attribution type (influenced, assisted, recovered, prevented loss, missed)
+- reason, confidence, and created timestamp
+
+### Stage transition
+
+A recorded movement of an opportunity between stages.
+
+- id, opportunity reference, from stage, to stage, reason, triggered by, created timestamp
+
+### Workflow effectiveness snapshot
+
+A per-run effectiveness score.
+
+- id, workflow run reference (unique)
+- completion status, executed, blocked, and escalated counts
+- outcome score (0 to 100), revenue influenced, policy friction, created timestamp
+
+### Missed opportunity estimate
+
+An estimate of revenue at risk.
+
+- id, customer reference, optional opportunity reference
+- estimated value, missed reason, severity (low, medium, high, critical)
+- recommended recovery action, created timestamp
+
+## Phase 4 relationships
+
+- A workflow run has many outcome events and revenue attributions, and one effectiveness snapshot.
+- An opportunity has many stage transitions, outcome events, attributions, and missed opportunity estimates.
+- A customer has many outcome events, attributions, and missed opportunity estimates.
+- Outcome and attribution activity also produces audit events for traceability.

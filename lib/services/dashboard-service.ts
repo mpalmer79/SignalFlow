@@ -16,6 +16,10 @@ import {
   type DetectedOpportunitySummary,
 } from "./intelligence-service";
 import { getWorkflowMetrics, type WorkflowMetrics } from "./workflow-service";
+import {
+  getRevenueOverview,
+  type RevenueOverviewMetrics,
+} from "./revenue-engine-service";
 import type { Signal } from "@/lib/types/signal";
 import type { Opportunity } from "@/lib/types/opportunity";
 import type { Communication } from "@/lib/types/communication";
@@ -51,6 +55,7 @@ export interface DashboardData {
   verticalPacks: VerticalPack[];
   intelligence: DashboardIntelligence;
   workflow: WorkflowMetrics;
+  revenue: RevenueOverviewMetrics;
 }
 
 export async function getDashboardData(): Promise<DashboardData> {
@@ -68,6 +73,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     verticalPacks,
     overview,
     workflow,
+    revenueOverview,
   ] = await Promise.all([
     countSignals(),
     countOpenOpportunities(),
@@ -82,6 +88,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     findAllVerticalPacks(),
     getIntelligenceOverview(),
     getWorkflowMetrics(),
+    getRevenueOverview(),
   ]);
 
   const blockedActions = allCommunications.filter(
@@ -113,5 +120,6 @@ export async function getDashboardData(): Promise<DashboardData> {
       atRisk: overview.atRisk,
     },
     workflow,
+    revenue: revenueOverview.metrics,
   };
 }

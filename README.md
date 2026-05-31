@@ -32,7 +32,25 @@ Key differences from a traditional CRM:
 
 ## Current status
 
-Phase 0 (foundation), Phase 1 (persistence), Phase 2 (customer intelligence), and Phase 3 (action graph and orchestration) are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, and a workflow engine converts recommendations into governed, simulated execution plans. There are still no live integrations, no authentication, no multi-tenancy, no outbound communication, and no external model calls. Everything is deterministic and computed locally.
+Phase 0 (foundation), Phase 1 (persistence), Phase 2 (customer intelligence), Phase 3 (action graph and orchestration), and Phase 4 (outcome memory and revenue attribution) are complete. PostgreSQL is the source of truth, a deterministic intelligence layer scores every customer, a workflow engine converts recommendations into governed simulated execution plans, and an outcome engine turns those runs into measurable revenue outcomes. There are still no live integrations, no authentication, no multi-tenancy, no outbound communication, and no external model calls. Everything is deterministic and computed locally.
+
+## Phase 4 scope
+
+Phase 4 introduces Outcome Memory and Revenue Attribution. Simulated workflow runs become measurable business outcomes: outcome events, stage transitions, revenue attribution, workflow effectiveness, and missed opportunity estimates. No revenue is real and nothing is sent.
+
+Phase 4 includes:
+
+- An Outcome Engine that classifies a workflow run into deterministic outcome events
+- A Stage Transition Engine that advances opportunities and persists transitions
+- A Revenue Attribution Engine with influenced, assisted, recovered, prevented loss, and missed types
+- A Missed Opportunity Engine that estimates value at risk with a severity and a recovery action
+- Workflow Effectiveness scoring on a 0 to 100 scale from a centralized configuration
+- An Outcome Memory engine that summarizes which signals, actions, and verticals produce the strongest outcomes
+- A flagship Revenue Engine page that walks signal to intelligence to workflow to outcome to revenue
+- Dashboard revenue metrics, opportunity outcome history, and revenue enrichment in customer timelines
+- New audit events for outcome, stage, attribution, missed opportunity, and effectiveness activity
+
+See REVENUE_ENGINE.md for the full design and demo-safe limitations.
 
 ## Phase 3 scope
 
@@ -246,6 +264,8 @@ lib/
   action-graph/      typed action nodes, edges, and graph builder
   orchestrator/      workflow builder, validator, engine, and runner
   execution/         simulated execution engine and execution timeline
+  outcomes/          outcome engine, classifier, memory, and stage transitions
+  attribution/       revenue attribution, missed opportunity, effectiveness
   policy/            consent policy and action policy evaluation
   mock-data/         demo business data, used only by the seed script
   providers/         mock provider boundaries

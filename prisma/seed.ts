@@ -10,7 +10,14 @@ import { findSignalsByCustomer } from "../lib/repositories/signal-repository";
 import { findOpportunitiesByCustomer } from "../lib/repositories/opportunity-repository";
 import { findCommunicationsByCustomer } from "../lib/repositories/communication-repository";
 import { planWorkflowWithScores } from "../lib/orchestrator/workflow-runner";
-import { persistWorkflowRun } from "../lib/repositories/workflow-repository";
+import {
+  persistWorkflowRun,
+  findWorkflowRunById,
+} from "../lib/repositories/workflow-repository";
+import { buildIntelligenceProfile } from "../lib/intelligence/graph-summary";
+import { assessOutcomes } from "../lib/outcomes/outcome-engine";
+import { buildOutcomeContext } from "../lib/services/outcome-service";
+import { persistAssessment } from "../lib/repositories/outcome-repository";
 
 const prisma = new PrismaClient();
 
@@ -23,6 +30,11 @@ function toDbEnum(value: string): string {
 async function reset() {
   // Delete in dependency order. Cascades cover most of this, but explicit
   // deletes keep reseeding deterministic.
+  await prisma.missedOpportunityEstimate.deleteMany();
+  await prisma.workflowEffectivenessSnapshot.deleteMany();
+  await prisma.stageTransition.deleteMany();
+  await prisma.revenueAttribution.deleteMany();
+  await prisma.outcomeEvent.deleteMany();
   await prisma.workflowResult.deleteMany();
   await prisma.workflowAction.deleteMany();
   await prisma.policyDecision.deleteMany();
@@ -216,8 +228,9 @@ async function seedPolicyDecisions() {
   }
 }
 
-// Build and persist one simulated workflow run per customer from the data that
-// was just seeded. This reads through the repositories so the engine sees the
+// Build and persist one simulated workflow run per customer, then assess and
+// persist its outcomes, attribution, stage movement, effectiveness, and any
+// missed opportunity. Reads through the repositories so the engines see the
 // same domain shapes the application uses.
 async function seedWorkflowRuns() {
   const persistedCustomers = await findAllCustomers();
@@ -241,12 +254,39 @@ async function seedWorkflowRuns() {
       (opp) => !["won", "lost", "dormant"].includes(opp.stage),
     );
 
-    await persistWorkflowRun({
+    const runId = await persistWorkflowRun({
       plan: planned.plan,
       opportunityId: openOpportunity?.id ?? null,
       intentScore: planned.intentScore,
       opportunityScore: planned.opportunityScore,
       engagementScore: planned.engagementScore,
+    });
+
+    const run = await findWorkflowRunById(runId);
+    if (!run) continue;
+
+    const profile = buildIntelligenceProfile({
+      customer,
+      signals: customerSignals,
+      opportunities: customerOpportunities,
+      communications: customerCommunications,
+    });
+
+    const context = buildOutcomeContext({
+      customer,
+      profile,
+      communications: customerCommunications,
+      opportunities: customerOpportunities,
+      run,
+    });
+
+    const assessment = assessOutcomes(context);
+
+    await persistAssessment({
+      customerId: customer.id,
+      opportunityId: context.opportunity?.id ?? openOpportunity?.id ?? null,
+      workflowRunId: runId,
+      assessment,
     });
   }
 }
@@ -262,16 +302,26 @@ async function main() {
   await seedPolicyDecisions();
   await seedWorkflowRuns();
 
-  const [customerCount, signalCount, opportunityCount, workflowCount] =
-    await Promise.all([
-      prisma.customer.count(),
-      prisma.signal.count(),
-      prisma.opportunity.count(),
-      prisma.workflowRun.count(),
-    ]);
+  const [
+    customerCount,
+    signalCount,
+    opportunityCount,
+    workflowCount,
+    outcomeCount,
+    attributionCount,
+    missedCount,
+  ] = await Promise.all([
+    prisma.customer.count(),
+    prisma.signal.count(),
+    prisma.opportunity.count(),
+    prisma.workflowRun.count(),
+    prisma.outcomeEvent.count(),
+    prisma.revenueAttribution.count(),
+    prisma.missedOpportunityEstimate.count(),
+  ]);
 
   console.log(
-    `Seed complete: ${customerCount} customers, ${signalCount} signals, ${opportunityCount} opportunities, ${workflowCount} workflow runs.`,
+    `Seed complete: ${customerCount} customers, ${signalCount} signals, ${opportunityCount} opportunities, ${workflowCount} workflow runs, ${outcomeCount} outcome events, ${attributionCount} attributions, ${missedCount} missed estimates.`,
   );
 }
 

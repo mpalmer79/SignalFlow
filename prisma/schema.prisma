@@ -92,6 +92,43 @@ enum AuditEventType {
   ACTION_EXECUTED
   ESCALATION_CREATED
   WORKFLOW_COMPLETED
+  OUTCOME_EVENT_CREATED
+  STAGE_TRANSITION_CREATED
+  REVENUE_ATTRIBUTED
+  MISSED_OPPORTUNITY_ESTIMATED
+  WORKFLOW_EFFECTIVENESS_SCORED
+}
+
+enum OutcomeEventType {
+  CUSTOMER_REPLIED
+  EMAIL_OPENED
+  APPOINTMENT_SCHEDULED
+  APPOINTMENT_CONFIRMED
+  HUMAN_TASK_CREATED
+  HUMAN_HANDOFF_COMPLETED
+  OPPORTUNITY_ADVANCED
+  OPPORTUNITY_WON
+  OPPORTUNITY_LOST
+  OPPORTUNITY_DORMANT
+  OPPORTUNITY_REACTIVATED
+  NO_RESPONSE
+  ACTION_BLOCKED
+  COMPLIANCE_STOP
+}
+
+enum AttributionType {
+  INFLUENCED
+  ASSISTED
+  RECOVERED
+  PREVENTED_LOSS
+  MISSED
+}
+
+enum MissedOpportunitySeverity {
+  low
+  medium
+  high
+  critical
 }
 
 enum WorkflowOutcomeType {
@@ -170,25 +207,28 @@ model VerticalPack {
 }
 
 model Customer {
-  id               String           @id @default(cuid())
-  name             String
-  verticalId       String
-  vertical         VerticalPack     @relation(fields: [verticalId], references: [id])
-  preferredChannel Channel
-  optedOut         Boolean          @default(false)
-  lastAction       String?
-  lastActionAt     DateTime?
-  contactMethods   ContactMethod[]
-  consentRecords   ConsentRecord[]
-  riskFlags        RiskFlag[]
-  signals          Signal[]
-  opportunities    Opportunity[]
-  communications   Communication[]
-  auditEvents      AuditEvent[]
-  policyDecisions  PolicyDecision[]
-  workflowRuns     WorkflowRun[]
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  id                  String                      @id @default(cuid())
+  name                String
+  verticalId          String
+  vertical            VerticalPack                @relation(fields: [verticalId], references: [id])
+  preferredChannel    Channel
+  optedOut            Boolean                     @default(false)
+  lastAction          String?
+  lastActionAt        DateTime?
+  contactMethods      ContactMethod[]
+  consentRecords      ConsentRecord[]
+  riskFlags           RiskFlag[]
+  signals             Signal[]
+  opportunities       Opportunity[]
+  communications      Communication[]
+  auditEvents         AuditEvent[]
+  policyDecisions     PolicyDecision[]
+  workflowRuns        WorkflowRun[]
+  outcomeEvents       OutcomeEvent[]
+  attributions        RevenueAttribution[]
+  missedOpportunities MissedOpportunityEstimate[]
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
 
   @@index([verticalId])
 }
@@ -241,20 +281,24 @@ model Signal {
 }
 
 model Opportunity {
-  id             String           @id @default(cuid())
-  title          String
-  customerId     String
-  customer       Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  stage          OpportunityStage
-  intentScore    Int
-  estimatedValue Int
-  owner          String
-  signals        Signal[]
-  communications Communication[]
-  auditEvents    AuditEvent[]
-  workflowRuns   WorkflowRun[]
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  id                  String                      @id @default(cuid())
+  title               String
+  customerId          String
+  customer            Customer                    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  stage               OpportunityStage
+  intentScore         Int
+  estimatedValue      Int
+  owner               String
+  signals             Signal[]
+  communications      Communication[]
+  auditEvents         AuditEvent[]
+  workflowRuns        WorkflowRun[]
+  outcomeEvents       OutcomeEvent[]
+  attributions        RevenueAttribution[]
+  stageTransitions    StageTransition[]
+  missedOpportunities MissedOpportunityEstimate[]
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
 
   @@index([customerId])
   @@index([stage])
@@ -326,24 +370,27 @@ model RiskFlag {
 }
 
 model WorkflowRun {
-  id               String              @id @default(cuid())
+  id               String                         @id @default(cuid())
   customerId       String
-  customer         Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer         Customer                       @relation(fields: [customerId], references: [id], onDelete: Cascade)
   opportunityId    String?
-  opportunity      Opportunity?        @relation(fields: [opportunityId], references: [id])
+  opportunity      Opportunity?                   @relation(fields: [opportunityId], references: [id])
   title            String
   trigger          String
   intentScore      Int
   opportunityScore Int
   engagementScore  Int
   outcome          WorkflowOutcomeType
-  actionsExecuted  Int                 @default(0)
-  actionsBlocked   Int                 @default(0)
-  actionsEscalated Int                 @default(0)
+  actionsExecuted  Int                            @default(0)
+  actionsBlocked   Int                            @default(0)
+  actionsEscalated Int                            @default(0)
   actions          WorkflowAction[]
   result           WorkflowResult?
   auditEvents      AuditEvent[]
-  createdAt        DateTime            @default(now())
+  outcomeEvents    OutcomeEvent[]
+  attributions     RevenueAttribution[]
+  effectiveness    WorkflowEffectivenessSnapshot?
+  createdAt        DateTime                       @default(now())
 
   @@index([customerId])
   @@index([outcome])
@@ -371,4 +418,85 @@ model WorkflowResult {
   outcome       WorkflowOutcomeType
   summary       String
   createdAt     DateTime            @default(now())
+}
+
+model OutcomeEvent {
+  id            String           @id @default(cuid())
+  customerId    String
+  customer      Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  opportunityId String?
+  opportunity   Opportunity?     @relation(fields: [opportunityId], references: [id])
+  workflowRunId String?
+  workflowRun   WorkflowRun?     @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  outcomeType   OutcomeEventType
+  outcomeReason String
+  confidence    Int
+  actionType    ActionTypeEnum?
+  occurredAt    DateTime         @default(now())
+
+  @@index([customerId])
+  @@index([opportunityId])
+  @@index([workflowRunId])
+}
+
+model RevenueAttribution {
+  id                String          @id @default(cuid())
+  customerId        String
+  customer          Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  opportunityId     String?
+  opportunity       Opportunity?    @relation(fields: [opportunityId], references: [id])
+  workflowRunId     String?
+  workflowRun       WorkflowRun?    @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  attributedAmount  Int
+  attributionType   AttributionType
+  attributionReason String
+  confidence        Int
+  createdAt         DateTime        @default(now())
+
+  @@index([customerId])
+  @@index([opportunityId])
+  @@index([attributionType])
+}
+
+model StageTransition {
+  id            String           @id @default(cuid())
+  opportunityId String
+  opportunity   Opportunity      @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  fromStage     OpportunityStage
+  toStage       OpportunityStage
+  reason        String
+  triggeredBy   String
+  createdAt     DateTime         @default(now())
+
+  @@index([opportunityId])
+}
+
+model WorkflowEffectivenessSnapshot {
+  id                String      @id @default(cuid())
+  workflowRunId     String      @unique
+  workflowRun       WorkflowRun @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  completionStatus  String
+  actionsExecuted   Int
+  actionsBlocked    Int
+  actionsEscalated  Int
+  outcomeScore      Int
+  revenueInfluenced Int
+  policyFriction    Int
+  createdAt         DateTime    @default(now())
+}
+
+model MissedOpportunityEstimate {
+  id                        String                    @id @default(cuid())
+  customerId                String
+  customer                  Customer                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  opportunityId             String?
+  opportunity               Opportunity?              @relation(fields: [opportunityId], references: [id])
+  estimatedValue            Int
+  missedReason              String
+  severity                  MissedOpportunitySeverity
+  recommendedRecoveryAction String
+  createdAt                 DateTime                  @default(now())
+
+  @@index([customerId])
+  @@index([severity])
 }

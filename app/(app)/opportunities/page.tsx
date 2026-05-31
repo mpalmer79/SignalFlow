@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SectionHeading } from "@/components/section-heading";
 import { OpportunityCard } from "@/components/opportunity-card";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,9 @@ export default async function OpportunitiesPage() {
               <div className="space-y-3">
                 {column.opportunities.length > 0 ? (
                   column.opportunities.map((opp) => (
-                    <OpportunityCard key={opp.id} opportunity={opp} />
+                    <Link key={opp.id} href={`/opportunities/${opp.id}`}>
+                      <OpportunityCard opportunity={opp} />
+                    </Link>
                   ))
                 ) : (
                   <p className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
