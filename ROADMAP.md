@@ -154,30 +154,55 @@ A polish pass over the Revenue Command Center and Mission Replay:
 Validated locally: TypeScript clean, ESLint clean, no em dashes, no pages
 importing repositories, Prisma schema validates.
 
-## Phase 9: Live providers behind interfaces
+## Phase 9: Voice AI Simulation Platform (complete)
+
+Phase 9 adds a complete simulated voice follow-up platform. Voice is fully
+simulated. No telephony provider is integrated, no calls are placed, no network
+calls are made, and no secrets are required.
+
+Delivered in Phase 9:
+
+- Voice provider abstraction with a deterministic mock implementation
+- Voice plan engine, voice compliance engine, and voice script engine
+- Call simulator, transcript generator, and voice outcome engine
+- Voice persistence: voice plans, calls, transcripts, compliance decisions,
+  and call outcomes, all organization scoped
+- Eight voice audit event types
+- A voice command center and a voice replay page
+- Voice metrics on the dashboard and voice visibility on the revenue command
+  center
+- Seeded voice plans across every vertical with a spread of allowed, blocked,
+  and needs-review states and a range of call outcomes
+- VOICE_PLATFORM, VOICE_COMPLIANCE, and VOICE_SIMULATION documentation
+
+The pipeline now branches into voice: AI Recommendation to Human Review to
+Voice Plan to Voice Compliance Check to Simulated Call to Transcript to Call
+Outcome to Revenue Attribution to Audit Trail.
+
+## Phase 10: Live providers behind interfaces
 
 - Implement AI provider adapters behind the existing AIProvider interface (OpenAI, Anthropic Claude, Google Gemini)
+- Implement voice provider adapters behind the existing VoiceProvider interface (ElevenLabs, OpenAI Realtime, Twilio, Retell, Vapi)
 - Implement SMS and telephony adapters (Twilio)
 - Implement email adapter (SendGrid)
-- Implement voice synthesis adapter (ElevenLabs)
 - Add provider configuration and credential handling
-- Gate live sends behind explicit organization settings
+- Gate live sends and live calls behind explicit organization settings
 
-## Phase 10: Live orchestration
+## Phase 11: Live orchestration
 
 - Real workflow execution with wait windows and fallbacks
 - Quiet hours and rate limiting enforced at send time
 - Human task queue with assignment, SLA tracking, and resolution
 - Opt-out handling that halts active workflows immediately
 
-## Phase 11: Outcomes intelligence
+## Phase 12: Outcomes intelligence
 
 - Feedback loops that improve next best action and AI recommendations from recorded outcomes
 - Vertical-specific scoring refinements driven by outcome memory
 - Predictive close probability and best time to contact
 - Reporting and export of attribution and effectiveness
 
-## Phase 12: Vertical expansion
+## Phase 13: Vertical expansion
 
 - Promote additional packs from research and design to production
 - Vertical-specific compliance rules and message libraries

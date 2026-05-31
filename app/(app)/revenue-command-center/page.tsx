@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ClipboardCheck,
   History,
+  PhoneCall,
   RotateCcw,
   ShieldAlert,
   ShieldQuestion,
@@ -124,6 +125,7 @@ export default async function RevenueCommandCenterPage() {
     topVerticals,
     customers,
     featuredJourney,
+    voice,
   } = overview;
 
   const featuredCustomerIds = new Set<string>();
@@ -565,6 +567,57 @@ export default async function RevenueCommandCenterPage() {
             </CardContent>
           </Card>
         </div>
+      </Section>
+
+      <Section
+        title="Voice follow-up"
+        subhead="Simulated voice operations. No calls are placed and no provider is contacted. Every plan passes a deterministic compliance check before a call is simulated."
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PhoneCall className="h-4 w-4 text-primary" />
+              Voice command center
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <SmallStat
+                label="Voice plans"
+                value={String(voice.totalPlans)}
+                hint={`${voice.allowed} allowed, ${voice.blocked} blocked`}
+                icon={PhoneCall}
+              />
+              <SmallStat
+                label="Calls simulated"
+                value={String(voice.totalCalls)}
+                hint={`${voice.needsReview} need review`}
+                icon={PhoneCall}
+              />
+              <SmallStat
+                label="Appointments from voice"
+                value={String(voice.appointments)}
+                hint={`${voice.positiveOutcomes} positive outcomes`}
+                icon={CheckCircle2}
+                tone="success"
+              />
+              <SmallStat
+                label="Voice influenced revenue"
+                value={formatCurrency(voice.influencedRevenue)}
+                hint="Attributed from simulated calls"
+                icon={Banknote}
+                tone="success"
+              />
+            </div>
+            <Link
+              href="/voice-command-center"
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            >
+              Open voice command center
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </CardContent>
+        </Card>
       </Section>
 
       <Section

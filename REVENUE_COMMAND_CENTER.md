@@ -153,3 +153,12 @@ A traditional CRM dashboard reports what is stored. The Revenue Command Center
 reports what the system decided, what a human approved, what executed, and
 what it produced, in one narrative. That is the SignalFlow story, and Phase 8
 makes it obvious without navigation.
+
+## Voice follow-up (Phase 9)
+
+Phase 9 adds a concise voice section to the command center. It shows voice
+plans, simulated calls, appointments from voice, and voice influenced revenue,
+all drawn from the voice aggregation in the service. The section links to the
+voice command center for the full voice operations view. Voice is fully
+simulated: no calls are placed and no provider is contacted. See
+VOICE_PLATFORM.md for the design.

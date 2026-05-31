@@ -31,6 +31,7 @@ import { generateRecommendation } from "../lib/ai/ai-engine";
 import { determineReviewRequirement } from "../lib/review/review-engine";
 import { persistRecommendation, recordReviewDecision } from "../lib/repositories/ai-repository";
 import type { ReviewDecision } from "../lib/types/ai";
+import { simulateAndPersistVoiceForCustomer } from "../lib/services/voice-simulation-service";
 
 const prisma = new PrismaClient();
 
@@ -103,6 +104,11 @@ function toDbEnum(value: string): string {
 async function reset() {
   // Delete in dependency order. Cascades cover most of this, but explicit
   // deletes keep reseeding deterministic.
+  await prisma.voiceCallOutcome.deleteMany();
+  await prisma.voiceTranscript.deleteMany();
+  await prisma.voiceComplianceDecision.deleteMany();
+  await prisma.voiceCall.deleteMany();
+  await prisma.voicePlan.deleteMany();
   await prisma.missedOpportunityEstimate.deleteMany();
   await prisma.workflowEffectivenessSnapshot.deleteMany();
   await prisma.stageTransition.deleteMany();
@@ -602,6 +608,36 @@ async function seedAIRecommendations() {
   }
 }
 
+// Seed deterministic voice plans across every customer. The voice consent,
+// quiet hours, no-response count, and review approval are derived from the
+// customer index so the seed produces a spread of allowed, blocked, and
+// needs-review plans, plus a range of simulated call outcomes. Voice is fully
+// simulated: no call is placed and no provider is contacted.
+async function seedVoicePlans() {
+  const persistedCustomers = await findAllCustomers(DEMO_ORG_ID);
+
+  let index = 0;
+  for (const customer of persistedCustomers) {
+    // Derive deterministic conditions from the index so the demo shows every
+    // compliance state. Voice consent and opt-out come from the persisted
+    // customer channels, read inside the simulation service. Quiet hours,
+    // no-response count, and review approval are derived here.
+    const quietHours = index % 7 === 3; // a slice fall inside quiet hours
+    const noResponseCount = index % 9 === 4 ? 3 : index % 3; // a slice hit the limit
+    const reviewApproved = index % 4 !== 2; // a slice await human approval
+
+    await simulateAndPersistVoiceForCustomer({
+      organizationId: DEMO_ORG_ID,
+      customerId: customer.id,
+      reviewApproved,
+      quietHours,
+      noResponseCount,
+    });
+
+    index += 1;
+  }
+}
+
 async function main() {
   await reset();
   await seedOrganization();
@@ -615,6 +651,7 @@ async function main() {
   await seedGeneratedPopulations();
   await seedWorkflowRuns();
   await seedAIRecommendations();
+  await seedVoicePlans();
 
   const [
     customerCount,
@@ -626,6 +663,9 @@ async function main() {
     missedCount,
     recommendationCount,
     reviewDecisionCount,
+    voicePlanCount,
+    voiceCallCount,
+    voiceOutcomeCount,
   ] = await Promise.all([
     prisma.customer.count(),
     prisma.signal.count(),
@@ -636,10 +676,13 @@ async function main() {
     prisma.missedOpportunityEstimate.count(),
     prisma.aIRecommendation.count(),
     prisma.aIReviewDecision.count(),
+    prisma.voicePlan.count(),
+    prisma.voiceCall.count(),
+    prisma.voiceCallOutcome.count(),
   ]);
 
   console.log(
-    `Seed complete: ${customerCount} customers, ${signalCount} signals, ${opportunityCount} opportunities, ${workflowCount} workflow runs, ${outcomeCount} outcome events, ${attributionCount} attributions, ${missedCount} missed estimates, ${recommendationCount} AI recommendations, ${reviewDecisionCount} review decisions.`,
+    `Seed complete: ${customerCount} customers, ${signalCount} signals, ${opportunityCount} opportunities, ${workflowCount} workflow runs, ${outcomeCount} outcome events, ${attributionCount} attributions, ${missedCount} missed estimates, ${recommendationCount} AI recommendations, ${reviewDecisionCount} review decisions, ${voicePlanCount} voice plans, ${voiceCallCount} voice calls, ${voiceOutcomeCount} voice outcomes.`,
   );
 }
 

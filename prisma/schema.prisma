@@ -109,6 +109,49 @@ enum AuditEventType {
   AI_EXPLANATION_GENERATED
   AI_REVIEW_REQUIRED
   AI_REVIEW_COMPLETED
+  VOICE_PLAN_CREATED
+  VOICE_COMPLIANCE_ALLOWED
+  VOICE_COMPLIANCE_BLOCKED
+  VOICE_COMPLIANCE_NEEDS_REVIEW
+  VOICE_CALL_SIMULATED
+  VOICE_TRANSCRIPT_CREATED
+  VOICE_OUTCOME_CREATED
+  VOICE_REVENUE_ATTRIBUTED
+}
+
+enum VoiceComplianceStatusEnum {
+  allowed
+  blocked
+  needs_review
+}
+
+enum VoicePlanStatusEnum {
+  planned
+  blocked
+  needs_review
+  ready
+  simulated
+  archived
+}
+
+enum VoiceCallStatusEnum {
+  pending
+  simulated
+  blocked
+  no_answer
+  completed
+}
+
+enum VoiceCallOutcomeEnum {
+  APPOINTMENT_SCHEDULED
+  CALLBACK_REQUESTED
+  CUSTOMER_INTERESTED
+  CUSTOMER_NOT_INTERESTED
+  NEEDS_HUMAN_FOLLOW_UP
+  NO_ANSWER
+  VOICEMAIL_LEFT
+  WRONG_NUMBER
+  COMPLIANCE_STOP
 }
 
 enum AIRecommendationStatus {
@@ -248,33 +291,38 @@ enum RiskSeverity {
 }
 
 model Organization {
-  id                     String                          @id @default(cuid())
-  name                   String
-  slug                   String                          @unique
-  industry               String
-  memberships            Membership[]
-  customers              Customer[]
-  contactMethods         ContactMethod[]
-  consentRecords         ConsentRecord[]
-  signals                Signal[]
-  opportunities          Opportunity[]
-  communications         Communication[]
-  auditEvents            AuditEvent[]
-  policyDecisions        PolicyDecision[]
-  riskFlags              RiskFlag[]
-  workflowRuns           WorkflowRun[]
-  workflowActions        WorkflowAction[]
-  workflowResults        WorkflowResult[]
-  outcomeEvents          OutcomeEvent[]
-  attributions           RevenueAttribution[]
-  stageTransitions       StageTransition[]
-  effectivenessSnapshots WorkflowEffectivenessSnapshot[]
-  missedOpportunities    MissedOpportunityEstimate[]
-  aiRecommendations      AIRecommendation[]
-  aiExplanations         AIExplanation[]
-  aiReviewDecisions      AIReviewDecision[]
-  createdAt              DateTime                        @default(now())
-  updatedAt              DateTime                        @updatedAt
+  id                       String                          @id @default(cuid())
+  name                     String
+  slug                     String                          @unique
+  industry                 String
+  memberships              Membership[]
+  customers                Customer[]
+  contactMethods           ContactMethod[]
+  consentRecords           ConsentRecord[]
+  signals                  Signal[]
+  opportunities            Opportunity[]
+  communications           Communication[]
+  auditEvents              AuditEvent[]
+  policyDecisions          PolicyDecision[]
+  riskFlags                RiskFlag[]
+  workflowRuns             WorkflowRun[]
+  workflowActions          WorkflowAction[]
+  workflowResults          WorkflowResult[]
+  outcomeEvents            OutcomeEvent[]
+  attributions             RevenueAttribution[]
+  stageTransitions         StageTransition[]
+  effectivenessSnapshots   WorkflowEffectivenessSnapshot[]
+  missedOpportunities      MissedOpportunityEstimate[]
+  aiRecommendations        AIRecommendation[]
+  aiExplanations           AIExplanation[]
+  aiReviewDecisions        AIReviewDecision[]
+  voicePlans               VoicePlan[]
+  voiceCalls               VoiceCall[]
+  voiceTranscripts         VoiceTranscript[]
+  voiceComplianceDecisions VoiceComplianceDecision[]
+  voiceCallOutcomes        VoiceCallOutcome[]
+  createdAt                DateTime                        @default(now())
+  updatedAt                DateTime                        @updatedAt
 }
 
 model User {
@@ -339,6 +387,8 @@ model Customer {
   attributions        RevenueAttribution[]
   missedOpportunities MissedOpportunityEstimate[]
   aiRecommendations   AIRecommendation[]
+  voicePlans          VoicePlan[]
+  voiceCalls          VoiceCall[]
   createdAt           DateTime                    @default(now())
   updatedAt           DateTime                    @updatedAt
 
@@ -422,6 +472,7 @@ model Opportunity {
   stageTransitions    StageTransition[]
   missedOpportunities MissedOpportunityEstimate[]
   aiRecommendations   AIRecommendation[]
+  voicePlans          VoicePlan[]
   createdAt           DateTime                    @default(now())
   updatedAt           DateTime                    @updatedAt
 
@@ -719,4 +770,96 @@ model AIReviewDecision {
 
   @@index([organizationId])
   @@index([recommendationId])
+}
+
+model VoicePlan {
+  id                 String                    @id @default(cuid())
+  organizationId     String
+  organization       Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customerId         String
+  customer           Customer                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  opportunityId      String?
+  opportunity        Opportunity?              @relation(fields: [opportunityId], references: [id])
+  recommendationId   String?
+  purpose            String
+  priority           String
+  scriptType         String
+  status             VoicePlanStatusEnum       @default(planned)
+  complianceStatus   VoiceComplianceStatusEnum @default(needs_review)
+  blockedReason      String?
+  expectedOutcome    String
+  requiresApproval   Boolean                   @default(false)
+  call               VoiceCall?
+  complianceDecision VoiceComplianceDecision?
+  createdAt          DateTime                  @default(now())
+
+  @@index([organizationId])
+  @@index([customerId])
+  @@index([complianceStatus])
+  @@index([status])
+}
+
+model VoiceCall {
+  id              String              @id @default(cuid())
+  organizationId  String
+  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  voicePlanId     String              @unique
+  voicePlan       VoicePlan           @relation(fields: [voicePlanId], references: [id], onDelete: Cascade)
+  customerId      String
+  customer        Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  opportunityId   String?
+  status          VoiceCallStatusEnum @default(pending)
+  connected       Boolean             @default(false)
+  durationSeconds Int                 @default(0)
+  startedAt       DateTime            @default(now())
+  completedAt     DateTime?
+  transcript      VoiceTranscript?
+  outcome         VoiceCallOutcome?
+  createdAt       DateTime            @default(now())
+
+  @@index([organizationId])
+  @@index([customerId])
+}
+
+model VoiceTranscript {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  voiceCallId    String       @unique
+  voiceCall      VoiceCall    @relation(fields: [voiceCallId], references: [id], onDelete: Cascade)
+  transcript     String
+  summary        String
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+}
+
+model VoiceComplianceDecision {
+  id             String                    @id @default(cuid())
+  organizationId String
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  voicePlanId    String                    @unique
+  voicePlan      VoicePlan                 @relation(fields: [voicePlanId], references: [id], onDelete: Cascade)
+  decision       VoiceComplianceStatusEnum
+  reason         String
+  createdAt      DateTime                  @default(now())
+
+  @@index([organizationId])
+}
+
+model VoiceCallOutcome {
+  id               String               @id @default(cuid())
+  organizationId   String
+  organization     Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  voiceCallId      String               @unique
+  voiceCall        VoiceCall            @relation(fields: [voiceCallId], references: [id], onDelete: Cascade)
+  customerId       String
+  opportunityId    String?
+  outcomeType      VoiceCallOutcomeEnum
+  outcomeReason    String
+  attributedAmount Int                  @default(0)
+  createdAt        DateTime             @default(now())
+
+  @@index([organizationId])
+  @@index([customerId])
 }

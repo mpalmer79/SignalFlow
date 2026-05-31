@@ -25,6 +25,10 @@ import {
   aggregateRecommendations,
   type AIAggregate,
 } from "@/lib/repositories/ai-repository";
+import {
+  aggregateVoice,
+  type VoiceAggregate,
+} from "@/lib/repositories/voice-repository";
 import { listScenarios } from "@/lib/scenarios/scenario-runner";
 import { runAllSimulations } from "@/lib/simulation/simulation-results";
 import { verticalPackConfigs } from "@/lib/verticals/registry";
@@ -68,6 +72,7 @@ export interface DashboardData {
   workflow: WorkflowMetrics;
   revenue: RevenueOverviewMetrics;
   ai: AIAggregate;
+  voice: VoiceAggregate;
 }
 
 export async function getDashboardData(
@@ -90,6 +95,7 @@ export async function getDashboardData(
     workflow,
     revenueOverview,
     ai,
+    voiceMetrics,
   ] = await Promise.all([
     countSignals(orgId),
     countOpenOpportunities(orgId),
@@ -106,6 +112,7 @@ export async function getDashboardData(
     getWorkflowMetrics(context),
     getRevenueOverview(context),
     aggregateRecommendations(orgId),
+    aggregateVoice(orgId),
   ]);
 
   const blockedActions = allCommunications.filter(
@@ -139,6 +146,7 @@ export async function getDashboardData(
     workflow,
     revenue: revenueOverview.metrics,
     ai,
+    voice: voiceMetrics,
   };
 }
 
