@@ -4,9 +4,11 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { IntelligenceProfile } from "@/components/intelligence/intelligence-profile";
+import { WorkflowPlanView } from "@/components/workflow/workflow-plan-view";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getCustomerIntelligence } from "@/lib/services/intelligence-service";
+import { getWorkflowPreview } from "@/lib/services/workflow-service";
 
 export const metadata: Metadata = { title: "Customer Intelligence" };
 export const dynamic = "force-dynamic";
@@ -16,7 +18,10 @@ export default async function CustomerIntelligencePage({
 }: {
   params: { id: string };
 }) {
-  const intelligence = await getCustomerIntelligence(params.id);
+  const [intelligence, workflow] = await Promise.all([
+    getCustomerIntelligence(params.id),
+    getWorkflowPreview(params.id),
+  ]);
 
   if (!intelligence) {
     notFound();
@@ -101,6 +106,19 @@ export default async function CustomerIntelligencePage({
           </CardContent>
         </Card>
       </div>
+
+      {workflow ? (
+        <div className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold">Recommended workflow</h2>
+            <p className="text-xs text-muted-foreground">
+              The action plan SignalFlow would run for this customer, with policy
+              decisions and a simulated execution. Nothing is sent.
+            </p>
+          </div>
+          <WorkflowPlanView plan={workflow.plan} />
+        </div>
+      ) : null}
     </>
   );
 }

@@ -15,6 +15,7 @@ import {
   type CustomerIntelligenceSummary,
   type DetectedOpportunitySummary,
 } from "./intelligence-service";
+import { getWorkflowMetrics, type WorkflowMetrics } from "./workflow-service";
 import type { Signal } from "@/lib/types/signal";
 import type { Opportunity } from "@/lib/types/opportunity";
 import type { Communication } from "@/lib/types/communication";
@@ -49,6 +50,7 @@ export interface DashboardData {
   recentAudit: AuditEvent[];
   verticalPacks: VerticalPack[];
   intelligence: DashboardIntelligence;
+  workflow: WorkflowMetrics;
 }
 
 export async function getDashboardData(): Promise<DashboardData> {
@@ -65,6 +67,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     recentAudit,
     verticalPacks,
     overview,
+    workflow,
   ] = await Promise.all([
     countSignals(),
     countOpenOpportunities(),
@@ -78,6 +81,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     findRecentAuditEvents(4),
     findAllVerticalPacks(),
     getIntelligenceOverview(),
+    getWorkflowMetrics(),
   ]);
 
   const blockedActions = allCommunications.filter(
@@ -108,5 +112,6 @@ export async function getDashboardData(): Promise<DashboardData> {
       needingAttention: overview.needingAttention,
       atRisk: overview.atRisk,
     },
+    workflow,
   };
 }

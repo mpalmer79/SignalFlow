@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bell, Sparkles, ShieldAlert, Target, TrendingUp } from "lucide-react";
+import {
+  Bell,
+  CheckCircle2,
+  Sparkles,
+  ShieldAlert,
+  Target,
+  TrendingUp,
+  Workflow,
+  Zap,
+} from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { MetricCard } from "@/components/metric-card";
 import { SignalCard } from "@/components/signal-card";
@@ -30,6 +39,7 @@ export default async function DashboardPage() {
     recentAudit,
     verticalPacks,
     intelligence,
+    workflow,
   } = await getDashboardData();
 
   return (
@@ -204,6 +214,47 @@ export default async function DashboardPage() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Workflow orchestration</h2>
+          <Link
+            href="/orchestrator"
+            className="text-xs text-primary hover:underline"
+          >
+            View orchestrator
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard
+            label="Workflow runs"
+            value={String(workflow.totalRuns)}
+            hint="Persisted simulations"
+            icon={Workflow}
+          />
+          <MetricCard
+            label="Actions executed"
+            value={String(workflow.actionsExecuted)}
+            hint="Simulated, nothing sent"
+            icon={Zap}
+            tone="success"
+          />
+          <MetricCard
+            label="Policy blocks"
+            value={String(workflow.actionsBlocked)}
+            hint="Actions held by policy"
+            icon={ShieldAlert}
+            tone="warning"
+          />
+          <MetricCard
+            label="Completion rate"
+            value={`${workflow.completionRate}%`}
+            hint={`${workflow.actionsEscalated} escalations`}
+            icon={CheckCircle2}
+            tone="success"
+          />
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

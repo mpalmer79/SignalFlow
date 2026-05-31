@@ -85,6 +85,43 @@ enum AuditEventType {
   VOICE_CALL_QUEUED
   HUMAN_TASK_CREATED
   CUSTOMER_OPTED_OUT
+  WORKFLOW_CREATED
+  WORKFLOW_STARTED
+  ACTION_ALLOWED
+  ACTION_BLOCKED
+  ACTION_EXECUTED
+  ESCALATION_CREATED
+  WORKFLOW_COMPLETED
+}
+
+enum WorkflowOutcomeType {
+  completed
+  partially_completed
+  blocked
+  escalated
+  paused
+  failed_validation
+}
+
+enum ActionTypeEnum {
+  SEND_SMS
+  SEND_EMAIL
+  PLACE_VOICE_CALL
+  CREATE_TASK
+  ASSIGN_OWNER
+  BOOK_APPOINTMENT
+  ESCALATE_MANAGER
+  REVIEW_OPPORTUNITY
+  PAUSE_OUTREACH
+  CLOSE_OPPORTUNITY
+}
+
+enum WorkflowActionStatus {
+  planned
+  executed
+  blocked
+  skipped
+  escalated
 }
 
 enum AuditOutcome {
@@ -149,6 +186,7 @@ model Customer {
   communications   Communication[]
   auditEvents      AuditEvent[]
   policyDecisions  PolicyDecision[]
+  workflowRuns     WorkflowRun[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -214,6 +252,7 @@ model Opportunity {
   signals        Signal[]
   communications Communication[]
   auditEvents    AuditEvent[]
+  workflowRuns   WorkflowRun[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
@@ -249,6 +288,8 @@ model AuditEvent {
   signal         Signal?        @relation(fields: [signalId], references: [id])
   opportunityId  String?
   opportunity    Opportunity?   @relation(fields: [opportunityId], references: [id])
+  workflowRunId  String?
+  workflowRun    WorkflowRun?   @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
   policyDecision String
   action         String
   outcome        AuditOutcome
@@ -256,6 +297,7 @@ model AuditEvent {
 
   @@index([customerId])
   @@index([occurredAt])
+  @@index([workflowRunId])
 }
 
 model PolicyDecision {
@@ -281,4 +323,52 @@ model RiskFlag {
   severity   RiskSeverity
 
   @@index([customerId])
+}
+
+model WorkflowRun {
+  id               String              @id @default(cuid())
+  customerId       String
+  customer         Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  opportunityId    String?
+  opportunity      Opportunity?        @relation(fields: [opportunityId], references: [id])
+  title            String
+  trigger          String
+  intentScore      Int
+  opportunityScore Int
+  engagementScore  Int
+  outcome          WorkflowOutcomeType
+  actionsExecuted  Int                 @default(0)
+  actionsBlocked   Int                 @default(0)
+  actionsEscalated Int                 @default(0)
+  actions          WorkflowAction[]
+  result           WorkflowResult?
+  auditEvents      AuditEvent[]
+  createdAt        DateTime            @default(now())
+
+  @@index([customerId])
+  @@index([outcome])
+}
+
+model WorkflowAction {
+  id            String               @id @default(cuid())
+  workflowRunId String
+  workflowRun   WorkflowRun          @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  order         Int
+  actionType    ActionTypeEnum
+  channel       Channel?
+  status        WorkflowActionStatus
+  policyOutcome PolicyDecisionType
+  offsetMinutes Int
+  reason        String
+
+  @@index([workflowRunId])
+}
+
+model WorkflowResult {
+  id            String              @id @default(cuid())
+  workflowRunId String              @unique
+  workflowRun   WorkflowRun         @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  outcome       WorkflowOutcomeType
+  summary       String
+  createdAt     DateTime            @default(now())
 }
