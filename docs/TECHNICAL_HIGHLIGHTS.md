@@ -107,3 +107,19 @@ TypeScript end to end with Next.js App Router and React server components.
 Tailwind with a small component library. PostgreSQL with Prisma as the source
 of truth. Clerk as an optional authentication provider with a deterministic
 demo fallback so the platform is fully reviewable without any keys.
+
+## Responsive, device-aware reviewer experience
+
+The frontend is responsive first, with a small device awareness layer on top.
+Tailwind responsive classes drive every layout and work during server render
+with no hydration risk. A pure, tested detection module classifies a device as
+mobile, tablet, desktop, or unknown from a weak server user agent hint and a
+reliable client refinement using viewport width, touch, and orientation. A
+client provider exposes the profile and a data-device attribute for CSS
+targeting, rendering unknown on the server and refining after mount to avoid
+hydration mismatches. The result adds a tap-friendly mobile navigation menu
+below the desktop breakpoint, a short reviewer banner on a few high value
+pages, and reduced metric density on phones, without changing any product
+logic. Device detection is used only for presentation, never for authorization,
+business logic, AI behavior, provider selection, workflow execution, or
+compliance. See docs/FRONTEND_DEVICE_EXPERIENCE.md.

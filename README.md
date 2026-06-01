@@ -205,6 +205,7 @@ Product and design:
 - [docs/TECHNICAL_HIGHLIGHTS.md](docs/TECHNICAL_HIGHLIGHTS.md): staff-level technical breakdown
 - [docs/PORTFOLIO_SUMMARY.md](docs/PORTFOLIO_SUMMARY.md): short, technical, and business summaries
 - [docs/REPO_QUALITY_CHECKLIST.md](docs/REPO_QUALITY_CHECKLIST.md): architecture, safety, and demo checklists
+- [docs/FRONTEND_DEVICE_EXPERIENCE.md](docs/FRONTEND_DEVICE_EXPERIENCE.md): the responsive, device-aware reviewer experience
 - [docs/ENGINEERING_QUALITY.md](docs/ENGINEERING_QUALITY.md): CI, tests, safety scan, and boundary checks
 - [docs/AUDIT_REMEDIATION.md](docs/AUDIT_REMEDIATION.md): how the engineering audit was addressed
 - [docs/TECHNICAL_DEBT_REGISTER.md](docs/TECHNICAL_DEBT_REGISTER.md): open and closed technical debt

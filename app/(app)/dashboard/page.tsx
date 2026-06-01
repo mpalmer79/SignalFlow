@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { MetricCard } from "@/components/metric-card";
+import { MobileReviewerBanner } from "@/components/device/mobile-reviewer-banner";
 import { SignalCard } from "@/components/signal-card";
 import { OpportunityCard } from "@/components/opportunity-card";
 import { AuditEventCard } from "@/components/audit-event-card";
@@ -74,6 +75,8 @@ export default async function DashboardPage() {
         title="Revenue command center"
         description="A live view of signals, consent-aware actions, and pipeline movement. Data is served from the database in demo mode."
       />
+
+      <MobileReviewerBanner />
 
       <Card className="border-primary/20 bg-primary/5">
         <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">

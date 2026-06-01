@@ -23,6 +23,7 @@ import { SectionHeading } from "@/components/section-heading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { MobileReviewerBanner } from "@/components/device/mobile-reviewer-banner";
 import { getCommandCenterOverview } from "@/lib/services/revenue-command-center-service";
 import type { FeaturedJourneySnapshot } from "@/lib/services/revenue-command-center-service";
 import { guardPage } from "@/lib/auth/guard-page";
@@ -167,6 +168,14 @@ export default async function RevenueCommandCenterPage() {
         }
       />
 
+      <MobileReviewerBanner
+        cta={
+          featuredJourney
+            ? { href: featuredJourney.replayHref, label: "Open the featured mission replay" }
+            : { href: "/dashboard", label: "Back to dashboard" }
+        }
+      />
+
       <Card className="border-primary/20 bg-primary/5">
         <CardContent className="space-y-4 p-5 sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -304,13 +313,13 @@ export default async function RevenueCommandCenterPage() {
         title="Revenue lifecycle"
         subhead="What the system did between an inbound signal and attributed revenue. Counts are live."
       >
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 xl:grid-cols-7">
           {LIFECYCLE.map((stage, index) => {
             const Icon = stage.icon;
             const count = lifecycleCounts[stage.key] ?? 0;
             return (
               <Card key={stage.key} className="h-full">
-                <CardContent className="space-y-2 p-4">
+                <CardContent className="space-y-1.5 p-3 sm:space-y-2 sm:p-4">
                   <div className="flex items-center justify-between">
                     <span
                       className={`flex h-8 w-8 items-center justify-center rounded-md ${stage.bg} ${stage.tone}`}
@@ -321,13 +330,15 @@ export default async function RevenueCommandCenterPage() {
                       {index + 1} of {LIFECYCLE.length}
                     </span>
                   </div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground sm:text-xs">
                     {stage.label}
                   </p>
-                  <p className="text-2xl font-semibold tracking-tight">
+                  <p className="text-xl font-semibold tracking-tight sm:text-2xl">
                     {count}
                   </p>
-                  <p className="text-xs text-muted-foreground">{stage.hint}</p>
+                  <p className="hidden text-xs text-muted-foreground sm:block">
+                    {stage.hint}
+                  </p>
                 </CardContent>
               </Card>
             );
