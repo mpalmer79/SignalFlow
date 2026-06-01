@@ -85,7 +85,7 @@ export default async function ScenarioDetailPage({
         description={definition.summary}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="primary">60-second guided demo</Badge>
+            <Badge variant="primary">Full scenario walkthrough</Badge>
             <Badge variant="muted" className="capitalize">
               {definition.vertical.replace("-", " ")}
             </Badge>
