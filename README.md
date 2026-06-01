@@ -208,6 +208,7 @@ Product and design:
 - [docs/ENGINEERING_QUALITY.md](docs/ENGINEERING_QUALITY.md): CI, tests, safety scan, and boundary checks
 - [docs/AUDIT_REMEDIATION.md](docs/AUDIT_REMEDIATION.md): how the engineering audit was addressed
 - [docs/TECHNICAL_DEBT_REGISTER.md](docs/TECHNICAL_DEBT_REGISTER.md): open and closed technical debt
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): Vercel deployment and the manual production database setup workflow
 
 Engineering references:
 

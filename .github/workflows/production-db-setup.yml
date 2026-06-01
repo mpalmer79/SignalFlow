@@ -1,0 +1,66 @@
+name: Production DB Setup
+
+# Manual only. This workflow is never triggered on push or pull request. An
+# operator runs it from the Actions tab when a production database needs its
+# schema applied and the demo data seeded. It applies committed migrations and
+# seeds; it never resets, drops, or wipes data.
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    # DATABASE_URL is read from the repository or environment secret of the same
+    # name. It is never hardcoded and never committed.
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify DATABASE_URL secret is present
+        run: |
+          echo "::group::Preflight"
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "::error::DATABASE_URL secret is not set. Add it under Settings, Secrets and variables, Actions, then re-run this workflow."
+            exit 1
+          fi
+          echo "DATABASE_URL secret is present. Proceeding."
+          echo "::endgroup::"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          echo "::group::npm ci"
+          npm ci
+          echo "::endgroup::"
+
+      - name: Generate Prisma client
+        run: |
+          echo "::group::prisma generate"
+          npx prisma generate
+          echo "::endgroup::"
+
+      - name: Apply migrations (non-destructive)
+        run: |
+          echo "::group::prisma migrate deploy"
+          echo "Applying committed migrations. This does not reset or drop data."
+          npx prisma migrate deploy
+          echo "::endgroup::"
+
+      - name: Seed demo data
+        run: |
+          echo "::group::db seed"
+          echo "Seeding demo data."
+          npm run db:seed
+          echo "::endgroup::"
+
+      - name: Done
+        run: echo "Production database setup complete. Migrations applied and demo data seeded."
