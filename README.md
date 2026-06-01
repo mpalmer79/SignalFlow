@@ -194,7 +194,7 @@ Phase 11  Portfolio launch readiness
 Phase 12  Engineering quality: CI, tests, scans, audit remediation
 ```
 
-Future options are tracked in [ROADMAP.md](ROADMAP.md) and remain deterministic and gated.
+Future options are tracked in [docs/ROADMAP.md](docs/ROADMAP.md) and remain deterministic and gated.
 
 ## Documentation
 
@@ -210,13 +210,14 @@ Product and design:
 - [docs/TECHNICAL_DEBT_REGISTER.md](docs/TECHNICAL_DEBT_REGISTER.md): open and closed technical debt
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): Vercel deployment and the manual production database setup workflow
 
-Engineering references:
+Engineering references (all under docs/):
 
-- ARCHITECTURE.md, DATA_MODEL.md, AUTHORIZATION.md, MULTI_TENANCY.md, COMPLIANCE.md
-- AI_PLATFORM.md, REVIEW_QUEUE.md, REVENUE_ENGINE.md, REVENUE_COMMAND_CENTER.md
-- VOICE_PLATFORM.md, VOICE_COMPLIANCE.md, VOICE_SIMULATION.md
-- PROVIDER_MANAGEMENT.md, FEATURE_FLAGS.md, PROVIDER_SANDBOX.md
-- VERTICAL_PACKS.md, SCENARIO_ENGINE.md, SIMULATION_CENTER.md, EXECUTIVE_INSIGHTS.md
+- [docs/ROADMAP.md](docs/ROADMAP.md): phased delivery plan and future options
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/DATA_MODEL.md](docs/DATA_MODEL.md), [docs/AUTHORIZATION.md](docs/AUTHORIZATION.md), [docs/MULTI_TENANCY.md](docs/MULTI_TENANCY.md), [docs/COMPLIANCE.md](docs/COMPLIANCE.md)
+- [docs/AI_PLATFORM.md](docs/AI_PLATFORM.md), [docs/REVIEW_QUEUE.md](docs/REVIEW_QUEUE.md), [docs/REVENUE_ENGINE.md](docs/REVENUE_ENGINE.md), [docs/REVENUE_COMMAND_CENTER.md](docs/REVENUE_COMMAND_CENTER.md)
+- [docs/VOICE_PLATFORM.md](docs/VOICE_PLATFORM.md), [docs/VOICE_COMPLIANCE.md](docs/VOICE_COMPLIANCE.md), [docs/VOICE_SIMULATION.md](docs/VOICE_SIMULATION.md)
+- [docs/PROVIDER_MANAGEMENT.md](docs/PROVIDER_MANAGEMENT.md), [docs/FEATURE_FLAGS.md](docs/FEATURE_FLAGS.md), [docs/PROVIDER_SANDBOX.md](docs/PROVIDER_SANDBOX.md)
+- [docs/VERTICAL_PACKS.md](docs/VERTICAL_PACKS.md), [docs/SCENARIO_ENGINE.md](docs/SCENARIO_ENGINE.md), [docs/SIMULATION_CENTER.md](docs/SIMULATION_CENTER.md), [docs/EXECUTIVE_INSIGHTS.md](docs/EXECUTIVE_INSIGHTS.md), [docs/PROMPT_LIBRARY.md](docs/PROMPT_LIBRARY.md)
 
 ## Recruiter-friendly summary
 
