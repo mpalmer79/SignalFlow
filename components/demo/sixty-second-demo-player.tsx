@@ -34,7 +34,6 @@ const TICK_MS = 100;
 // zero means the stage waits for input or is terminal); this constant sets the
 // uniform play speed.
 const STAGE_DURATION_MS = 5000;
-const REVIEW_INDEX = DEMO_STAGES.findIndex((stage) => stage.id === "review");
 const WORKFLOW_INDEX = DEMO_STAGES.findIndex((stage) => stage.id === "workflow");
 const LAST_INDEX = DEMO_STAGES.length - 1;
 
@@ -60,8 +59,12 @@ export function SixtySecondDemoPlayer() {
 
   const awaitingDecision = stage.interactive && decision === null;
   const isTerminal = stage.terminal;
-  const autoAdvancing =
-    isPlaying && !awaitingDecision && !isTerminal && stage.autoAdvanceMs > 0;
+  // Every non terminal stage auto advances while playing, including human
+  // review. Review keeps its approve and reject choice available during the
+  // five second window, but it no longer blocks the walkthrough: if no choice
+  // is made the demo continues to the next stage on its own. Only the terminal
+  // summary stops the cycle.
+  const autoAdvancing = isPlaying && !isTerminal;
 
   // Tick the elapsed time while a stage is auto advancing.
   useEffect(() => {
@@ -109,12 +112,9 @@ export function SixtySecondDemoPlayer() {
     goToStage(stageIndex + 1);
   }, [goToStage, stageIndex]);
 
-  const stageFraction =
-    stage.autoAdvanceMs > 0
-      ? Math.min(elapsedMs / STAGE_DURATION_MS, 1)
-      : isTerminal || stageIndex > REVIEW_INDEX
-        ? 1
-        : 0;
+  const stageFraction = isTerminal
+    ? 1
+    : Math.min(elapsedMs / STAGE_DURATION_MS, 1);
 
   // A stable key per distinct stage view. Changing it remounts the content
   // wrapper and the wash overlay so their entrance animations replay on every
@@ -154,13 +154,11 @@ export function SixtySecondDemoPlayer() {
                 className="text-[11px] uppercase tracking-wide text-muted-foreground"
                 aria-live="polite"
               >
-                {awaitingDecision
-                  ? "Waiting for your decision"
-                  : isTerminal
-                    ? "Demo complete"
-                    : isPlaying
-                      ? "Playing"
-                      : "Paused"}
+                {isTerminal
+                  ? "Demo complete"
+                  : isPlaying
+                    ? "Playing"
+                    : "Paused"}
               </span>
             </div>
 
@@ -183,7 +181,6 @@ export function SixtySecondDemoPlayer() {
       <Controls
         isPlaying={isPlaying}
         isTerminal={isTerminal}
-        awaitingDecision={awaitingDecision}
         canGoPrevious={stageIndex > 0}
         canGoNext={stageIndex < LAST_INDEX}
         onTogglePlay={() => setIsPlaying((value) => !value)}
@@ -462,7 +459,6 @@ function SummaryScreen({
 function Controls({
   isPlaying,
   isTerminal,
-  awaitingDecision,
   canGoPrevious,
   canGoNext,
   onTogglePlay,
@@ -472,7 +468,6 @@ function Controls({
 }: {
   isPlaying: boolean;
   isTerminal: boolean;
-  awaitingDecision: boolean;
   canGoPrevious: boolean;
   canGoNext: boolean;
   onTogglePlay: () => void;
@@ -495,7 +490,7 @@ function Controls({
       <button
         type="button"
         onClick={onTogglePlay}
-        disabled={isTerminal || awaitingDecision}
+        disabled={isTerminal}
         className={cn(buttonVariants({ size: "sm" }))}
         aria-label={isPlaying ? "Pause the demo" : "Resume the demo"}
       >
