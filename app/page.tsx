@@ -127,17 +127,17 @@ export default async function LandingPage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
-              href="/dashboard"
+              href="/scenarios/automotive-high-intent"
               className={buttonVariants({ size: "lg" })}
             >
-              Explore the command center
+              Run the 60-second demo
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/demo"
+              href="/dashboard"
               className={buttonVariants({ variant: "outline", size: "lg" })}
             >
-              Watch the walkthrough
+              Open dashboard
             </Link>
           </div>
           <p className="mt-6 text-xs text-muted-foreground">
@@ -146,7 +146,10 @@ export default async function LandingPage() {
           </p>
           <div className="mx-auto mt-8 max-w-md text-left">
             <MobileReviewerBanner
-              cta={{ href: "/dashboard", label: "Open the dashboard" }}
+              cta={{
+                href: "/scenarios/automotive-high-intent",
+                label: "Run the 60-second demo",
+              }}
             />
           </div>
         </section>
@@ -307,50 +310,79 @@ export default async function LandingPage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-6 py-12">
-          <Card className="border-primary/30 bg-primary/5">
+          <Card>
             <CardContent className="space-y-4 p-6">
               <div className="flex items-center justify-between gap-4">
                 <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
                   <Radar className="h-5 w-5" />
                 </span>
-                <Badge variant="primary">Flagship experience</Badge>
+                <Badge variant="muted">After the demo, explore</Badge>
               </div>
-              <div className="space-y-2">
-                <p className="text-2xl font-semibold tracking-tight">
-                  See the Revenue Command Center
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  One screen, one story. Watch a customer signal travel through
-                  intelligence, AI recommendation, human review, workflow,
-                  outcome, and revenue attribution without leaving the page.
-                  Then open mission replay to walk any customer&apos;s full
-                  deterministic lifecycle.
-                </p>
+              <p className="text-sm text-muted-foreground">
+                These are the depth pages the guided demo leads into. Open any
+                of them after the 60 second walk.
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {[
+                  { href: "/dashboard", label: "Dashboard" },
+                  { href: "/revenue-command-center", label: "Revenue Command Center" },
+                  { href: "/ai-center", label: "AI Center" },
+                  { href: "/review-queue", label: "Review Queue" },
+                  { href: "/voice-command-center", label: "Voice Command Center" },
+                  { href: "/provider-management", label: "Provider Management" },
+                  { href: "/executive-insights", label: "Executive Insights" },
+                ].map((destination) => (
+                  <Link
+                    key={destination.href}
+                    href={destination.href}
+                    className="flex min-h-[44px] items-center justify-between gap-2 rounded-md border border-border bg-secondary/30 px-3 py-2 text-sm transition-colors hover:border-primary/40"
+                  >
+                    {destination.label}
+                    <ArrowRight className="h-3.5 w-3.5 text-primary" />
+                  </Link>
+                ))}
               </div>
-              <div className="flex flex-wrap gap-3">
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-6 py-12">
+          <Card>
+            <CardContent className="space-y-3 p-6">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                How it is built
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Domain driven design with strict page, service, repository, and
+                engine boundaries. Multi tenant by organization. AI output is
+                deterministic with explanations and human review. Voice and
+                providers are governed behind feature flags and readiness checks.
+              </p>
+              <div className="flex flex-wrap gap-3 text-sm">
                 <Link
-                  href="/revenue-command-center"
-                  className={buttonVariants({ size: "lg" })}
+                  href="/provider-management"
+                  className="text-primary hover:underline"
                 >
-                  Open command center
-                  <ArrowRight className="h-4 w-4" />
+                  Provider Management
                 </Link>
                 <Link
-                  href="/dashboard"
-                  className={buttonVariants({ variant: "outline", size: "lg" })}
+                  href="/docs/ARCHITECTURE.md"
+                  className="text-primary hover:underline"
                 >
-                  Open dashboard
+                  Architecture
                 </Link>
-              </div>
-              <div className="rounded-md border border-border bg-background/60 p-4">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Recommended demo path
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Revenue Command Center, then Mission Replay, AI Center, Review
-                  Queue, Voice Command Center, Provider Management, and Executive
-                  Insights. Everything is deterministic and demo safe.
-                </p>
+                <Link
+                  href="/docs/AI_PLATFORM.md"
+                  className="text-primary hover:underline"
+                >
+                  AI Platform
+                </Link>
+                <Link
+                  href="/docs/VOICE_PLATFORM.md"
+                  className="text-primary hover:underline"
+                >
+                  Voice Platform
+                </Link>
               </div>
             </CardContent>
           </Card>

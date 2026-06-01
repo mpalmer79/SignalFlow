@@ -38,8 +38,8 @@ export default async function ReviewQueuePage() {
   return (
     <>
       <SectionHeading
-        title="Human review queue"
-        description="AI recommendations and simulated voice plans do not become actions automatically. Each one is reviewed by a human. Recommendations are grouped by review state. Voice plans needing review are surfaced below."
+        title="Actionable triage"
+        description="Items awaiting a human decision. Pending recommendations and simulated voice plans are at the top; resolved decisions are collapsed below for audit."
         actions={
           <Badge variant="warning">
             {pendingCount + voiceNeedingReview.length} awaiting review
@@ -118,16 +118,34 @@ export default async function ReviewQueuePage() {
       ) : null}
 
       {groups.length > 0 ? (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {groups.map((group) => {
             const style = reviewStateStyles[group.state];
+            const isPending = group.state === "pending-review";
             return (
-              <section key={group.state} className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-semibold">{style.label}</h2>
-                  <Badge variant={style.variant}>{group.items.length}</Badge>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <details
+                key={group.state}
+                open={isPending}
+                className="group rounded-md border border-border bg-card"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 [&::-webkit-details-marker]:hidden">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-semibold">{style.label}</h2>
+                    <Badge variant={style.variant}>{group.items.length}</Badge>
+                    {isPending ? (
+                      <span className="text-xs text-muted-foreground">
+                        Action needed
+                      </span>
+                    ) : null}
+                  </div>
+                  <span className="text-xs text-muted-foreground group-open:hidden">
+                    Show
+                  </span>
+                  <span className="hidden text-xs text-muted-foreground group-open:inline">
+                    Hide
+                  </span>
+                </summary>
+                <div className="grid gap-4 border-t border-border p-4 sm:grid-cols-2 lg:grid-cols-3">
                   {group.items.map((recommendation) => (
                     <RecommendationCard
                       key={recommendation.id}
@@ -136,7 +154,7 @@ export default async function ReviewQueuePage() {
                     />
                   ))}
                 </div>
-              </section>
+              </details>
             );
           })}
         </div>

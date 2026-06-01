@@ -65,6 +65,7 @@ export interface CommandCenterSummary {
   signals: number;
   recommendations: number;
   approvedRecommendations: number;
+  rejectedRecommendations: number;
   pendingReview: number;
   workflowRuns: number;
   positiveOutcomes: number;
@@ -209,6 +210,7 @@ export async function getCommandCenterOverview(
     signals: signalCount,
     recommendations: aiAggregate.total,
     approvedRecommendations: aiAggregate.approved,
+    rejectedRecommendations: aiAggregate.rejected,
     pendingReview: aiAggregate.pendingReview,
     workflowRuns: workflowAggregate.totalRuns,
     positiveOutcomes: effectiveness.positiveRuns,
