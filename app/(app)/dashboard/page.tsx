@@ -182,7 +182,7 @@ export default async function DashboardPage() {
             {intelligence.topIntent.map((s, index) => (
               <Link
                 key={s.customerId}
-                href={`/intelligence/${s.customerId}`}
+                href={`/customers/${s.customerId}`}
                 className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-accent"
               >
                 <span className="flex items-center gap-2 text-sm">
@@ -208,7 +208,7 @@ export default async function DashboardPage() {
             {intelligence.topOpportunities.map((s, index) => (
               <Link
                 key={s.customerId}
-                href={`/intelligence/${s.customerId}`}
+                href={`/customers/${s.customerId}`}
                 className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-accent"
               >
                 <span className="flex items-center gap-2 text-sm">
@@ -235,7 +235,7 @@ export default async function DashboardPage() {
               intelligence.detectedOpportunities.map((opp) => (
                 <Link
                   key={`${opp.customerId}-${opp.type}-${opp.sourceSignalId}`}
-                  href={`/intelligence/${opp.customerId}`}
+                  href={`/customers/${opp.customerId}`}
                   className="block rounded-md border border-border bg-secondary/30 p-2.5 transition-colors hover:border-primary/40"
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -263,10 +263,10 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {intelligence.needingAttention.length > 0 ? (
-              intelligence.needingAttention.map((s) => (
+              intelligence.needingAttention.slice(0, 5).map((s) => (
                 <Link
                   key={s.customerId}
-                  href={`/intelligence/${s.customerId}`}
+                  href={`/customers/${s.customerId}`}
                   className="flex items-center justify-between gap-2 rounded-md border border-border bg-secondary/30 p-2.5 transition-colors hover:border-primary/40"
                 >
                   <span className="text-sm font-medium">{s.customerName}</span>
@@ -288,10 +288,10 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {intelligence.atRisk.length > 0 ? (
-              intelligence.atRisk.map((s) => (
+              intelligence.atRisk.slice(0, 5).map((s) => (
                 <Link
                   key={s.customerId}
-                  href={`/intelligence/${s.customerId}`}
+                  href={`/customers/${s.customerId}`}
                   className="flex items-center justify-between gap-2 rounded-md border border-border bg-secondary/30 p-2.5 transition-colors hover:border-primary/40"
                 >
                   <span className="text-sm font-medium">{s.customerName}</span>
@@ -727,7 +727,7 @@ export default async function DashboardPage() {
         </div>
         {recentAudit.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2">
-            {recentAudit.map((event) => (
+            {recentAudit.slice(0, 5).map((event) => (
               <AuditEventCard key={event.id} event={event} />
             ))}
           </div>

@@ -195,6 +195,23 @@ export default async function ProviderManagementPage() {
         </div>
       </section>
 
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="space-y-2 p-5">
+          <p className="text-xs font-medium uppercase tracking-wide text-primary">
+            What would it take to go live?
+          </p>
+          <p className="text-sm">
+            Each external provider stays not live ready until every gate is
+            satisfied: the governing feature flag is allowed, demo mode is off,
+            the documented placeholder secrets are supplied through a real
+            secret manager, compliance approval is granted, sandbox validation
+            passes, and live use is explicitly enabled in the configuration.
+            None of these are satisfied here by design, so the platform stays
+            demo safe.
+          </p>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

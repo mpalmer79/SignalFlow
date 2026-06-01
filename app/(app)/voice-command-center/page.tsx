@@ -27,16 +27,61 @@ import {
 } from "@/lib/types/voice";
 import type { VoiceBlockedReason } from "@/lib/types/voice";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
+import {
+  filterByFacet,
+  paginate,
+  parsePositiveInt,
+  readParam,
+} from "@/lib/lists/list-helpers";
+import { FilterChipGroup } from "@/components/lists/filter-chip-group";
+import { PaginationControl } from "@/components/lists/pagination-control";
+import { ResultCount } from "@/components/lists/result-count";
 
 export const metadata: Metadata = { title: "Voice Command Center" };
 export const dynamic = "force-dynamic";
 
-export default async function VoiceCommandCenterPage() {
+interface VoiceCommandCenterPageProps {
+  searchParams?: Record<string, string | string[] | undefined>;
+}
+
+const PAGE_SIZE = 12;
+
+export default async function VoiceCommandCenterPage({
+  searchParams = {},
+}: VoiceCommandCenterPageProps) {
   const { context, denied } = await guardPage("VIEW_VOICE");
   if (denied) return denied;
 
   const { metrics, plans, calls, needingReview, blockedPlans } =
     await getVoiceCommandCenter(context);
+
+  const complianceParam = readParam(searchParams.compliance) ?? "all";
+  const verticalParam = readParam(searchParams.vertical) ?? "all";
+  const page = parsePositiveInt(searchParams.page, 1);
+
+  const baseParams = new URLSearchParams();
+  if (complianceParam !== "all") baseParams.set("compliance", complianceParam);
+  if (verticalParam !== "all") baseParams.set("vertical", verticalParam);
+
+  const verticalCounts = new Map<string, number>();
+  for (const plan of plans) {
+    verticalCounts.set(plan.vertical, (verticalCounts.get(plan.vertical) ?? 0) + 1);
+  }
+  const verticalOptions = [
+    { label: "All verticals", value: "all", count: plans.length },
+    ...Array.from(verticalCounts.entries()).map(([id, count]) => ({
+      label: id.replace("-", " "),
+      value: id,
+      count,
+    })),
+  ];
+
+  const filteredPlans = filterByFacet(
+    filterByFacet(plans, complianceParam, (p) => p.complianceStatus),
+    verticalParam,
+    (p) => p.vertical,
+  );
+  const pagedPlans = paginate(filteredPlans, { page, pageSize: PAGE_SIZE });
 
   return (
     <>
@@ -241,12 +286,94 @@ export default async function VoiceCommandCenterPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-success" />
+            Voice compliance legend
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-2 sm:grid-cols-2">
+          <div className="rounded-md border border-border bg-secondary/30 p-3 text-xs">
+            <p className="font-medium">Missing voice consent</p>
+            <p className="text-muted-foreground">
+              No granted voice channel on file. The compliance engine blocks the
+              call before any simulation runs.
+            </p>
+          </div>
+          <div className="rounded-md border border-border bg-secondary/30 p-3 text-xs">
+            <p className="font-medium">Customer opted out</p>
+            <p className="text-muted-foreground">
+              The customer has opted out of all contact. The call is blocked and
+              a compliance stop is recorded.
+            </p>
+          </div>
+          <div className="rounded-md border border-border bg-secondary/30 p-3 text-xs">
+            <p className="font-medium">Quiet hours</p>
+            <p className="text-muted-foreground">
+              Calls outside permitted hours are blocked. The plan stays in the
+              queue for a later run.
+            </p>
+          </div>
+          <div className="rounded-md border border-border bg-secondary/30 p-3 text-xs">
+            <p className="font-medium">Needs review</p>
+            <p className="text-muted-foreground">
+              Sensitive verticals such as legal intake or medical, or
+              unapproved AI recommendations, route to a human reviewer before
+              the call can be simulated.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-success" />
             Voice plans and compliance
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
-          {plans.length > 0 ? (
-            plans.map((plan) => {
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-2">
+            <FilterChipGroup
+              label="Compliance"
+              paramName="compliance"
+              current={complianceParam}
+              baseParams={baseParams}
+              pathname="/voice-command-center"
+              options={[
+                { label: "All", value: "all", count: plans.length },
+                {
+                  label: "Allowed",
+                  value: "allowed",
+                  count: plans.filter((p) => p.complianceStatus === "allowed").length,
+                },
+                {
+                  label: "Blocked",
+                  value: "blocked",
+                  count: plans.filter((p) => p.complianceStatus === "blocked").length,
+                },
+                {
+                  label: "Needs review",
+                  value: "needs-review",
+                  count: plans.filter((p) => p.complianceStatus === "needs-review").length,
+                },
+              ]}
+            />
+            <FilterChipGroup
+              label="Vertical"
+              paramName="vertical"
+              current={verticalParam}
+              baseParams={baseParams}
+              pathname="/voice-command-center"
+              options={verticalOptions}
+            />
+          </div>
+          <ResultCount
+            showing={pagedPlans.items.length}
+            total={pagedPlans.total}
+            label="voice plans"
+            pathname="/voice-command-center"
+            hasFilters={complianceParam !== "all" || verticalParam !== "all"}
+          />
+          {pagedPlans.items.length > 0 ? (
+            pagedPlans.items.map((plan) => {
               const compliance = voiceComplianceStyles[plan.complianceStatus];
               return (
                 <div
@@ -274,8 +401,16 @@ export default async function VoiceCommandCenterPage() {
               );
             })
           ) : (
-            <EmptyHint message="No voice plans yet." />
+            <EmptyHint message="No voice plans match these filters." />
           )}
+          <PaginationControl
+            page={pagedPlans.page}
+            totalPages={pagedPlans.totalPages}
+            hasPrevious={pagedPlans.hasPrevious}
+            hasNext={pagedPlans.hasNext}
+            baseParams={baseParams}
+            pathname="/voice-command-center"
+          />
         </CardContent>
       </Card>
 

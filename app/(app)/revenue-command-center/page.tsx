@@ -151,10 +151,15 @@ export default async function RevenueCommandCenterPage() {
     summary.totalOutcomeRuns > 0
       ? Math.round((summary.positiveOutcomes / summary.totalOutcomeRuns) * 100)
       : 0;
+  // Canonical approval rate: share of reviewed recommendations approved. This
+  // matches the shared metric layer and the executive insights page so the
+  // value does not drift across the app.
+  const decidedRecommendations =
+    summary.approvedRecommendations + (summary.rejectedRecommendations ?? 0);
   const approvalRate =
-    summary.recommendations > 0
+    decidedRecommendations > 0
       ? Math.round(
-          (summary.approvedRecommendations / summary.recommendations) * 100,
+          (summary.approvedRecommendations / decidedRecommendations) * 100,
         )
       : 0;
 
