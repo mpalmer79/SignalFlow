@@ -1,0 +1,9 @@
+<svg width="248" height="56" viewBox="0 0 248 56" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SignalFlow">
+  <rect x="0" y="4" width="48" height="48" rx="12" fill="#fff" fill-opacity="0.10" stroke="#fff" stroke-opacity="0.22"></rect>
+  <circle cx="24" cy="28" r="3.4" fill="#fff"></circle>
+  <path d="M31.5 21a10 10 0 0 1 0 14" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"></path>
+  <path d="M36.5 16.5a17 17 0 0 1 0 23" stroke="#7DD3FC" stroke-width="3" stroke-linecap="round" fill="none" stroke-opacity="0.85"></path>
+  <path d="M16.5 35a10 10 0 0 1 0-14" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"></path>
+  <path d="M11.5 39.5a17 17 0 0 1 0-23" stroke="#7DD3FC" stroke-width="3" stroke-linecap="round" fill="none" stroke-opacity="0.85"></path>
+  <text x="64" y="36.5" font-family="Geist, system-ui, sans-serif" font-size="25" font-weight="600" letter-spacing="-0.5" fill="#fff">Signal<tspan fill="#7DD3FC">Flow</tspan></text>
+</svg>

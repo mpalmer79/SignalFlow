@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../foundations/colors_and_type.css">
+<style>
+  body { margin:0; background:#fff; font-family:var(--font-sans); padding:0; color:var(--fg-1); }
+  .wrap { display:grid; grid-template-columns:1fr 1fr; }
+  .panel { padding:28px 30px; display:flex; align-items:center; gap:22px; }
+  .light { background:#fff; border-right:1px solid var(--border); }
+  .dark { background:var(--brand-navy); }
+  img { display:block; }
+  .cap { font-family:var(--font-mono); font-size:10px; color:var(--fg-4); margin-top:14px; }
+  .dark .cap { color:rgba(255,255,255,.5); }
+  .col { display:flex; flex-direction:column; }
+</style></head>
+<body>
+  <div class="wrap">
+    <div class="panel light">
+      <div class="col"><img src="../../brand/logo-lockups/logo-mark.svg" width="56" height="56" alt="mark"><div class="cap">logo-mark</div></div>
+      <div class="col"><img src="../../brand/logo-lockups/logo-full.svg" width="200" alt="SignalFlow"><div class="cap">logo-full</div></div>
+    </div>
+    <div class="panel dark">
+      <div class="col"><img src="../../brand/logo-lockups/logo-full-white.svg" width="200" alt="SignalFlow"><div class="cap">logo-full-white</div></div>
+    </div>
+  </div>
+</body></html>

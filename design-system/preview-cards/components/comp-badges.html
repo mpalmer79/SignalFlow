@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../foundations/colors_and_type.css">
+<style>
+  body { margin:0; background:#fff; font-family:var(--font-sans); padding:28px 32px; color:var(--fg-1); }
+  h4 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--fg-3); margin:0 0 18px; font-weight:600; }
+  .row { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .row:last-child { margin-bottom:0; }
+  svg { width:12px; height:12px; }
+  .dot { width:6px; height:6px; border-radius:50%; }
+</style></head>
+<body>
+  <h4>Badges &amp; status pills</h4>
+  <div class="row">
+    <span class="sf-badge sf-badge-neutral">Prefers SMS</span>
+    <span class="sf-badge sf-badge-info">AI-native</span>
+    <span class="sf-badge sf-badge-success"><i data-lucide="check"></i> MVP focus</span>
+    <span class="sf-badge sf-badge-warning">Pending review</span>
+    <span class="sf-badge sf-badge-danger">Opted out</span>
+  </div>
+  <div class="row">
+    <span class="sf-badge sf-badge-success"><span class="dot" style="background:var(--success)"></span> Consent allowed</span>
+    <span class="sf-badge sf-badge-warning"><span class="dot" style="background:var(--warning)"></span> Consent review</span>
+    <span class="sf-badge sf-badge-danger"><span class="dot" style="background:var(--danger)"></span> Consent blocked</span>
+    <span class="sf-badge sf-badge-info">High priority</span>
+  </div>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body></html>

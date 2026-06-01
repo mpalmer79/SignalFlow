@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../foundations/colors_and_type.css">
+<style>
+  body { margin:0; background:#fff; font-family:var(--font-sans); padding:26px 32px; color:var(--fg-1); }
+  h4 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--fg-3); margin:0 0 18px; font-weight:600; }
+  .row { display:flex; gap:16px; flex-wrap:wrap; }
+  .cell { display:flex; flex-direction:column; align-items:center; gap:8px; width:84px; }
+  .tile { width:44px; height:44px; border-radius:11px; display:flex; align-items:center; justify-content:center; }
+  .tile svg { width:21px; height:21px; }
+  .lab { font-size:10.5px; color:var(--fg-3); text-align:center; }
+</style></head>
+<body>
+  <h4>Icon tiles · Lucide · tinted by status</h4>
+  <div class="row">
+    <div class="cell"><div class="tile" style="background:var(--blue-50);color:var(--brand-blue)"><i data-lucide="radar"></i></div><span class="lab">Command</span></div>
+    <div class="cell"><div class="tile" style="background:#EEF0FE;color:#6366F1"><i data-lucide="brain-circuit"></i></div><span class="lab">Intelligence</span></div>
+    <div class="cell"><div class="tile" style="background:var(--blue-50);color:var(--brand-blue)"><i data-lucide="sparkles"></i></div><span class="lab">AI</span></div>
+    <div class="cell"><div class="tile" style="background:var(--success-bg);color:var(--success)"><i data-lucide="shield-check"></i></div><span class="lab">Consent</span></div>
+    <div class="cell"><div class="tile" style="background:var(--warning-bg);color:var(--warning)"><i data-lucide="shield-alert"></i></div><span class="lab">Policy hold</span></div>
+    <div class="cell"><div class="tile" style="background:#E0F2FE;color:#0891B2"><i data-lucide="phone-call"></i></div><span class="lab">Voice</span></div>
+    <div class="cell"><div class="tile" style="background:var(--success-bg);color:var(--success)"><i data-lucide="banknote"></i></div><span class="lab">Revenue</span></div>
+  </div>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body></html>

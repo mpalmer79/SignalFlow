@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../foundations/colors_and_type.css">
+<style>
+  body { margin:0; background:#fff; font-family:var(--font-sans); padding:26px 32px; color:var(--fg-1); }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  .chip { border-radius:10px; padding:12px 14px; border:1px solid; }
+  .dot { width:14px; height:14px; border-radius:50%; margin-bottom:10px; }
+  .name { font-size:13px; font-weight:600; }
+  .hex { font-family:var(--font-mono); font-size:10px; margin-top:2px; opacity:.85; }
+  h4 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--fg-3); margin:0 0 14px; font-weight:600; }
+</style></head>
+<body>
+  <h4>Semantic status</h4>
+  <div class="grid">
+    <div class="chip" style="background:var(--info-bg);border-color:var(--info-border);color:var(--info-text)"><div class="dot" style="background:#2563EB"></div><div class="name">Info</div><div class="hex">#2563EB</div></div>
+    <div class="chip" style="background:var(--success-bg);border-color:var(--success-border);color:var(--success-text)"><div class="dot" style="background:#16A34A"></div><div class="name">Success</div><div class="hex">#16A34A</div></div>
+    <div class="chip" style="background:var(--warning-bg);border-color:var(--warning-border);color:var(--warning-text)"><div class="dot" style="background:#D97706"></div><div class="name">Warning</div><div class="hex">#D97706</div></div>
+    <div class="chip" style="background:var(--danger-bg);border-color:var(--danger-border);color:var(--danger-text)"><div class="dot" style="background:#DC2626"></div><div class="name">Danger</div><div class="hex">#DC2626</div></div>
+  </div>
+</body></html>

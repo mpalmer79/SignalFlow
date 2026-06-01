@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../foundations/colors_and_type.css">
+<style>
+  body { margin:0; background:var(--bg-canvas); font-family:var(--font-sans); padding:24px 28px; color:var(--fg-1); }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .card { background:#fff; border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-sm); padding:18px 20px; display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
+  .label { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--fg-3); font-weight:600; }
+  .val { font-size:28px; font-weight:600; letter-spacing:-.02em; margin-top:6px; font-variant-numeric:tabular-nums; }
+  .hint { font-size:12px; color:var(--fg-3); margin-top:4px; }
+  .tile { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  svg { width:20px; height:20px; }
+</style></head>
+<body>
+  <div class="grid">
+    <div class="card">
+      <div><div class="label">Revenue influenced</div><div class="val">$1.24M</div><div class="hint">Gross influence estimate</div></div>
+      <div class="tile" style="background:var(--success-bg);color:var(--success)"><i data-lucide="banknote"></i></div>
+    </div>
+    <div class="card">
+      <div><div class="label">High-intent opportunities</div><div class="val">38</div><div class="hint">Intent score 60 and above</div></div>
+      <div class="tile" style="background:var(--blue-50);color:var(--brand-blue)"><i data-lucide="target"></i></div>
+    </div>
+    <div class="card">
+      <div><div class="label">Consent blocked actions</div><div class="val">12</div><div class="hint">Held by the policy layer</div></div>
+      <div class="tile" style="background:var(--warning-bg);color:var(--warning)"><i data-lucide="shield-alert"></i></div>
+    </div>
+    <div class="card">
+      <div><div class="label">Pending review</div><div class="val">7</div><div class="hint">Awaiting a human decision</div></div>
+      <div class="tile" style="background:var(--blue-50);color:var(--brand-blue)"><i data-lucide="clipboard-check"></i></div>
+    </div>
+  </div>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body></html>

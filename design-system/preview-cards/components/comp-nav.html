@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../foundations/colors_and_type.css">
+<style>
+  body { margin:0; background:#fff; font-family:var(--font-sans); padding:22px 28px; color:var(--fg-1); display:flex; gap:30px; }
+  h4 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--fg-3); margin:0 0 14px; font-weight:600; }
+  .nav { width:236px; display:flex; flex-direction:column; gap:3px; }
+  .item { display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:8px; font-size:13.5px; font-weight:500; color:var(--fg-2); cursor:pointer; }
+  .item svg { width:17px; height:17px; }
+  .item:hover { background:var(--slate-100); color:var(--fg-1); }
+  .item.active { background:var(--blue-50); color:var(--brand-blue); font-weight:600; }
+</style></head>
+<body>
+  <div>
+    <h4>Sidebar nav items</h4>
+    <div class="nav">
+      <div class="item active"><i data-lucide="layout-dashboard"></i> Dashboard</div>
+      <div class="item"><i data-lucide="radar"></i> Revenue Command Center</div>
+      <div class="item"><i data-lucide="brain-circuit"></i> Intelligence</div>
+      <div class="item"><i data-lucide="bell"></i> Signals</div>
+      <div class="item"><i data-lucide="sparkles"></i> AI Center</div>
+      <div class="item"><i data-lucide="clipboard-check"></i> Review Queue</div>
+    </div>
+  </div>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body></html>

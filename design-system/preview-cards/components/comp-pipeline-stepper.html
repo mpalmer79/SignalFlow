@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../foundations/colors_and_type.css">
+<style>
+  body { margin:0; background:var(--bg-canvas); font-family:var(--font-sans); padding:28px 30px; color:var(--fg-1); }
+  h4 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--fg-3); margin:0 0 22px; font-weight:600; }
+  .pipe { display:flex; align-items:center; }
+  .node { display:flex; flex-direction:column; align-items:center; gap:9px; }
+  .ic { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#fff; box-shadow:var(--shadow-sm); }
+  .ic svg { width:21px; height:21px; }
+  .nm { font-size:11px; font-weight:600; }
+  .conn { flex:1; height:2px; background:linear-gradient(90deg,var(--c1),var(--c2)); margin:0 6px; margin-bottom:24px; border-radius:2px; }
+</style></head>
+<body>
+  <h4>Signal-to-revenue pipeline stepper</h4>
+  <div class="pipe">
+    <div class="node"><div class="ic" style="background:#0EA5E9"><i data-lucide="bell"></i></div><div class="nm">Signal</div></div>
+    <div class="conn" style="--c1:#0EA5E9;--c2:#6366F1"></div>
+    <div class="node"><div class="ic" style="background:#6366F1"><i data-lucide="brain-circuit"></i></div><div class="nm">Intelligence</div></div>
+    <div class="conn" style="--c1:#6366F1;--c2:#2563EB"></div>
+    <div class="node"><div class="ic" style="background:#2563EB"><i data-lucide="sparkles"></i></div><div class="nm">AI</div></div>
+    <div class="conn" style="--c1:#2563EB;--c2:#D97706"></div>
+    <div class="node"><div class="ic" style="background:#D97706"><i data-lucide="clipboard-check"></i></div><div class="nm">Review</div></div>
+    <div class="conn" style="--c1:#D97706;--c2:#0891B2"></div>
+    <div class="node"><div class="ic" style="background:#0891B2"><i data-lucide="workflow"></i></div><div class="nm">Workflow</div></div>
+    <div class="conn" style="--c1:#0891B2;--c2:#16A34A"></div>
+    <div class="node"><div class="ic" style="background:#16A34A"><i data-lucide="banknote"></i></div><div class="nm">Revenue</div></div>
+  </div>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body></html>

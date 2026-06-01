@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../foundations/colors_and_type.css">
+<style>
+  body { margin:0; background:#fff; font-family:var(--font-sans); padding:28px 32px; color:var(--fg-1); }
+  h4 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--fg-3); margin:0 0 18px; font-weight:600; }
+  .row { display:flex; align-items:center; gap:14px; margin-bottom:16px; flex-wrap:wrap; }
+  .row:last-child { margin-bottom:0; }
+  svg { width:16px; height:16px; }
+</style></head>
+<body>
+  <h4>Buttons</h4>
+  <div class="row">
+    <button class="sf-btn sf-btn-primary">Run the 60-second demo <i data-lucide="arrow-right"></i></button>
+    <button class="sf-btn sf-btn-secondary">Open dashboard</button>
+    <button class="sf-btn sf-btn-ghost">Cancel</button>
+  </div>
+  <div class="row">
+    <button class="sf-btn sf-btn-primary" style="height:36px;padding:0 14px;font-size:13px">Small</button>
+    <button class="sf-btn sf-btn-primary" style="height:44px;padding:0 22px;font-size:15px">Large primary</button>
+    <button class="sf-btn sf-btn-secondary"><i data-lucide="shield-check"></i> Approve</button>
+    <button class="sf-btn sf-btn-primary" disabled style="opacity:.5">Disabled</button>
+  </div>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body></html>
