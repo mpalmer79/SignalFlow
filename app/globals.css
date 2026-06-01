@@ -4,41 +4,50 @@
 
 @layer base {
   :root {
-    --background: 222 47% 5%;
-    --foreground: 210 40% 96%;
+    /* SignalFlow light enterprise design system.
+       Token values mirror design-system/foundations/colors_and_type.css,
+       expressed as HSL channels for Tailwind's hsl(var(--token)) consumption. */
+    --background: 216 45% 98%; /* #F7F9FC canvas */
+    --foreground: 218 66% 13%; /* #0B1B36 deep navy ink */
 
-    --card: 222 40% 8%;
-    --card-foreground: 210 40% 96%;
+    --card: 0 0% 100%; /* #FFFFFF surface */
+    --card-foreground: 218 66% 13%;
 
-    --primary: 199 89% 52%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 221 83% 53%; /* #2563EB keep this exact blue */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 33% 14%;
-    --secondary-foreground: 210 40% 96%;
+    --secondary: 210 40% 96%; /* #F1F5F9 subtle fill */
+    --secondary-foreground: 215 25% 27%; /* #334155 */
 
-    --muted: 217 33% 12%;
-    --muted-foreground: 215 20% 62%;
+    --muted: 216 42% 95%; /* #EEF2F8 nested fills, tracks */
+    --muted-foreground: 215 16% 47%; /* #64748B tertiary text */
 
-    --accent: 217 33% 16%;
-    --accent-foreground: 210 40% 96%;
+    --accent: 210 40% 96%; /* #F1F5F9 hover fill */
+    --accent-foreground: 222 47% 11%; /* #0F172A */
 
-    --success: 152 60% 42%;
-    --success-foreground: 152 80% 96%;
+    --success: 142 76% 36%; /* #16A34A */
+    --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 55%;
-    --warning-foreground: 38 90% 8%;
+    --warning: 32 95% 44%; /* #D97706 */
+    --warning-foreground: 0 0% 100%;
 
-    --danger: 0 72% 55%;
-    --danger-foreground: 0 80% 96%;
+    --danger: 0 72% 51%; /* #DC2626 */
+    --danger-foreground: 0 0% 100%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 199 89% 52%;
+    --border: 215 30% 92%; /* #E5EAF1 hairline */
+    --border-strong: 213 27% 84%; /* #CBD5E1 strong divider */
+    --input: 215 30% 92%;
+    --ring: 221 83% 53%; /* #2563EB */
+
+    /* Selective navy accent for command-center depth (hero chrome, CTA bands). */
+    --brand-navy: 218 66% 13%; /* #0B1B36 */
+    --brand-cyan: 199 89% 48%; /* #0EA5E9 signal accent */
 
     --radius: 0.75rem;
 
-    --font-sans: ui-sans-serif, system-ui, sans-serif;
-    --font-mono: ui-monospace, monospace;
+    --font-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI",
+      sans-serif;
+    --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
   }
 }
 
@@ -52,16 +61,68 @@
 }
 
 @layer utilities {
-  .grid-backdrop {
-    background-image:
-      linear-gradient(to right, hsl(217 33% 17% / 0.4) 1px, transparent 1px),
-      linear-gradient(to bottom, hsl(217 33% 17% / 0.4) 1px, transparent 1px);
-    background-size: 48px 48px;
+  /* Marketing homepage: document-mapped wash plus a fixed radial atmosphere.
+     Clean near the hero, a barely-there blue/silver depth through the mid
+     sections, easing back toward the footer. Ported from
+     design-system/ui-kits/marketing/marketing.css. */
+  .marketing-wash {
+    background: linear-gradient(
+      180deg,
+      #f7f9fc 0%,
+      #f7fafd 16%,
+      #f1f5fc 42%,
+      #edf2fb 54%,
+      #f1f6fc 70%,
+      #f7f9fc 100%
+    );
+    background-repeat: no-repeat;
   }
-  .glow-radial {
+  .marketing-wash::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(58% 38% at 50% 6%, rgba(37, 99, 235, 0.045), transparent 70%),
+      radial-gradient(42% 34% at 10% 44%, rgba(148, 163, 184, 0.06), transparent 72%),
+      radial-gradient(46% 38% at 90% 62%, rgba(37, 99, 235, 0.04), transparent 72%);
+    opacity: 0.65;
+  }
+  /* Soft ambient scroll fade: where supported, the atmosphere gains presence
+     through mid-page, then settles. Restrained, never flashy. Falls back to the
+     static wash above. */
+  @supports (animation-timeline: scroll()) {
+    .marketing-wash::before {
+      animation: sf-atmosphere linear both;
+      animation-timeline: scroll(root block);
+    }
+    @keyframes sf-atmosphere {
+      0% {
+        opacity: 0.42;
+      }
+      52% {
+        opacity: 0.92;
+      }
+      100% {
+        opacity: 0.7;
+      }
+    }
+  }
+
+  /* Hero chrome: faint blue grid masked to the top, and a soft blue glow. */
+  .hero-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--primary) / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--primary) / 0.05) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(70% 60% at 50% 0%, #000 0%, transparent 75%);
+    mask-image: radial-gradient(70% 60% at 50% 0%, #000 0%, transparent 75%);
+  }
+  .hero-glow {
     background: radial-gradient(
-      60% 50% at 50% 0%,
-      hsl(199 89% 52% / 0.12) 0%,
+      closest-side,
+      hsl(var(--primary) / 0.14),
       transparent 70%
     );
   }

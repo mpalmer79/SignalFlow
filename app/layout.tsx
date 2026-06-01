@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { DeviceProvider } from "@/components/device/device-provider";
 import { appConfig } from "@/lib/config/app";
@@ -24,7 +26,10 @@ export default function RootLayout({
   // outermost wrapper, unchanged.
   return (
     <AuthProvider>
-      <html lang="en" className="dark">
+      <html
+        lang="en"
+        className={`${GeistSans.variable} ${GeistMono.variable}`}
+      >
         <body
           data-device="unknown"
           className="min-h-screen bg-background font-sans text-foreground"
