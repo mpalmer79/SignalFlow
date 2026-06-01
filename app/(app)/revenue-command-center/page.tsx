@@ -4,12 +4,10 @@ import {
   ArrowRight,
   Banknote,
   Bell,
-  BrainCircuit,
   CheckCircle2,
   ClipboardCheck,
   History,
   PhoneCall,
-  RotateCcw,
   ShieldAlert,
   ShieldQuestion,
   Sparkles,
@@ -24,6 +22,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MobileReviewerBanner } from "@/components/device/mobile-reviewer-banner";
+import { KpiCardGrid } from "@/components/revenue/kpi-card-grid";
+import { buildKpiDrilldowns } from "@/lib/revenue/kpi-drilldown";
 import { getCommandCenterOverview } from "@/lib/services/revenue-command-center-service";
 import type { FeaturedJourneySnapshot } from "@/lib/services/revenue-command-center-service";
 import { guardPage } from "@/lib/auth/guard-page";
@@ -40,74 +40,6 @@ export const metadata: Metadata = {
   title: "Revenue Command Center",
 };
 export const dynamic = "force-dynamic";
-
-interface LifecycleStage {
-  key: string;
-  label: string;
-  icon: LucideIcon;
-  tone: string;
-  bg: string;
-  hint: string;
-}
-
-const LIFECYCLE: LifecycleStage[] = [
-  {
-    key: "signals",
-    label: "Signal received",
-    icon: Bell,
-    tone: "text-primary",
-    bg: "bg-primary/10",
-    hint: "Inbound revenue and risk events.",
-  },
-  {
-    key: "intelligence",
-    label: "Intelligence built",
-    icon: BrainCircuit,
-    tone: "text-primary",
-    bg: "bg-primary/10",
-    hint: "Intent, opportunity, and engagement scored.",
-  },
-  {
-    key: "recommendation",
-    label: "AI recommendation",
-    icon: Sparkles,
-    tone: "text-primary",
-    bg: "bg-primary/10",
-    hint: "Deterministic, provider free.",
-  },
-  {
-    key: "review",
-    label: "Human review",
-    icon: ClipboardCheck,
-    tone: "text-warning",
-    bg: "bg-warning/10",
-    hint: "Approved, rejected, or escalated by a human.",
-  },
-  {
-    key: "workflow",
-    label: "Workflow executed",
-    icon: Workflow,
-    tone: "text-primary",
-    bg: "bg-primary/10",
-    hint: "Simulated only. No live communication.",
-  },
-  {
-    key: "outcome",
-    label: "Outcome recorded",
-    icon: CheckCircle2,
-    tone: "text-success",
-    bg: "bg-success/10",
-    hint: "Replies, advances, wins, and dormancies.",
-  },
-  {
-    key: "attribution",
-    label: "Revenue attributed",
-    icon: Banknote,
-    tone: "text-success",
-    bg: "bg-success/10",
-    hint: "Influenced, recovered, and assisted records.",
-  },
-];
 
 export default async function RevenueCommandCenterPage() {
   const { context, denied } = await guardPage("VIEW_REVENUE");
@@ -163,6 +95,29 @@ export default async function RevenueCommandCenterPage() {
         )
       : 0;
 
+  // Deterministic drill-down data for every KPI card across the three sections.
+  // Built from the same persistence derived figures the cards display so the
+  // breakdown rows always reconcile to the headline value.
+  const kpiGroups = buildKpiDrilldowns({
+    signals: summary.signals,
+    recommendations: summary.recommendations,
+    approvedRecommendations: summary.approvedRecommendations,
+    rejectedRecommendations: summary.rejectedRecommendations,
+    pendingReview: summary.pendingReview,
+    revenueInfluenced: summary.revenueInfluenced,
+    workflowRuns: summary.workflowRuns,
+    positiveOutcomes: summary.positiveOutcomes,
+    missedOpportunityValue: summary.missedOpportunityValue,
+    criticalMissed: summary.criticalMissed,
+    openOpportunities: summary.openOpportunities,
+    customers: summary.customers,
+    reactivations: summary.reactivations,
+    recoveredOpportunities: summary.recoveredOpportunities,
+    approvalRate,
+    completionRate,
+    lifecycleCounts,
+  });
+
   return (
     <>
       <SectionHeading
@@ -211,46 +166,7 @@ export default async function RevenueCommandCenterPage() {
               </Link>
             ) : null}
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <HeroStat
-              label="Signals analyzed"
-              value={String(summary.signals)}
-              hint={`${summary.customers} customer profiles`}
-              icon={Bell}
-            />
-            <HeroStat
-              label="AI recommendations"
-              value={String(summary.recommendations)}
-              hint={`${approvalRate}% approval, ${summary.pendingReview} pending review`}
-              icon={BrainCircuit}
-            />
-            <HeroStat
-              label="Revenue influenced"
-              value={formatCurrency(summary.revenueInfluenced)}
-              hint={`${summary.recoveredOpportunities} recovered, ${summary.reactivations} reactivated`}
-              icon={Banknote}
-              tone="success"
-            />
-            <HeroStat
-              label="Workflow runs"
-              value={String(summary.workflowRuns)}
-              hint={`${completionRate}% positive outcomes`}
-              icon={Workflow}
-            />
-            <HeroStat
-              label="Missed revenue"
-              value={formatCurrency(summary.missedOpportunityValue)}
-              hint={`${summary.criticalMissed} critical`}
-              icon={TrendingDown}
-              tone="warning"
-            />
-            <HeroStat
-              label="Open opportunities"
-              value={String(summary.openOpportunities)}
-              hint="In flight across all verticals"
-              icon={TrendingUp}
-            />
-          </div>
+          <KpiCardGrid variant="hero" items={kpiGroups.today} />
         </CardContent>
       </Card>
 
@@ -258,97 +174,14 @@ export default async function RevenueCommandCenterPage() {
         title="Executive summary"
         subhead="Headline totals served from persistence, organization scoped."
       >
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <SmallStat
-            label="Customers"
-            value={String(summary.customers)}
-            hint={`${summary.openOpportunities} open opportunities`}
-            icon={Users}
-          />
-          <SmallStat
-            label="Signals"
-            value={String(summary.signals)}
-            hint="Across all vertical packs"
-            icon={Bell}
-          />
-          <SmallStat
-            label="Recommendations"
-            value={String(summary.recommendations)}
-            hint={`${summary.pendingReview} awaiting review`}
-            icon={BrainCircuit}
-          />
-          <SmallStat
-            label="Workflow runs"
-            value={String(summary.workflowRuns)}
-            hint={`${completionRate}% positive`}
-            icon={Workflow}
-            tone="success"
-          />
-          <SmallStat
-            label="Revenue influenced"
-            value={formatCurrency(summary.revenueInfluenced)}
-            hint={`${summary.recoveredOpportunities} recovered`}
-            icon={Banknote}
-            tone="success"
-          />
-          <SmallStat
-            label="Reactivations"
-            value={String(summary.reactivations)}
-            hint="Dormant to reactivated"
-            icon={RotateCcw}
-            tone="success"
-          />
-          <SmallStat
-            label="Missed revenue"
-            value={formatCurrency(summary.missedOpportunityValue)}
-            hint={`${summary.criticalMissed} critical`}
-            icon={TrendingDown}
-            tone="warning"
-          />
-          <SmallStat
-            label="Approval rate"
-            value={`${approvalRate}%`}
-            hint="Of reviewed recommendations"
-            icon={CheckCircle2}
-          />
-        </div>
+        <KpiCardGrid variant="small" items={kpiGroups.executive} />
       </Section>
 
       <Section
         title="Revenue lifecycle"
         subhead="What the system did between an inbound signal and attributed revenue. Counts are live."
       >
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 xl:grid-cols-7">
-          {LIFECYCLE.map((stage, index) => {
-            const Icon = stage.icon;
-            const count = lifecycleCounts[stage.key] ?? 0;
-            return (
-              <Card key={stage.key} className="h-full">
-                <CardContent className="space-y-1.5 p-3 sm:space-y-2 sm:p-4">
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`flex h-8 w-8 items-center justify-center rounded-md ${stage.bg} ${stage.tone}`}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <span className="font-mono text-[11px] text-muted-foreground">
-                      {index + 1} of {LIFECYCLE.length}
-                    </span>
-                  </div>
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground sm:text-xs">
-                    {stage.label}
-                  </p>
-                  <p className="text-xl font-semibold tracking-tight sm:text-2xl">
-                    {count}
-                  </p>
-                  <p className="hidden text-xs text-muted-foreground sm:block">
-                    {stage.hint}
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        <KpiCardGrid variant="lifecycle" items={kpiGroups.lifecycle} />
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -885,45 +718,6 @@ function Section({
       </div>
       {children}
     </section>
-  );
-}
-
-function HeroStat({
-  label,
-  value,
-  hint,
-  icon: Icon,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  hint: string;
-  icon: LucideIcon;
-  tone?: "default" | "success" | "warning";
-}) {
-  const ring =
-    tone === "success"
-      ? "bg-success/15 text-success"
-      : tone === "warning"
-        ? "bg-warning/15 text-warning"
-        : "bg-primary/15 text-primary";
-  return (
-    <div className="rounded-md border border-border bg-background p-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 space-y-0.5">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-            {label}
-          </p>
-          <p className="text-lg font-semibold tracking-tight">{value}</p>
-          <p className="text-[11px] text-muted-foreground">{hint}</p>
-        </div>
-        <span
-          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${ring}`}
-        >
-          <Icon className="h-4 w-4" />
-        </span>
-      </div>
-    </div>
   );
 }
 
