@@ -81,13 +81,30 @@
     content: "";
     position: fixed;
     inset: 0;
-    z-index: -1;
+    z-index: -2;
     pointer-events: none;
     background:
       radial-gradient(58% 38% at 50% 6%, rgba(37, 99, 235, 0.045), transparent 70%),
       radial-gradient(42% 34% at 10% 44%, rgba(148, 163, 184, 0.06), transparent 72%),
       radial-gradient(46% 38% at 90% 62%, rgba(37, 99, 235, 0.04), transparent 72%);
     opacity: 0.65;
+  }
+  /* Home page top band: the first eighth of the page reads as clean white,
+     then fades into the soft blue and silver wash below as the reader scrolls.
+     Sits above the atmosphere layer but behind all content. */
+  .marketing-top-fade {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 12.5vh;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      #ffffff 0%,
+      rgba(255, 255, 255, 0.6) 45%,
+      rgba(255, 255, 255, 0) 100%
+    );
   }
   /* Soft ambient scroll fade: where supported, the atmosphere gains presence
      through mid-page, then settles. Restrained, never flashy. Falls back to the
@@ -125,5 +142,64 @@
       hsl(var(--primary) / 0.14),
       transparent 70%
     );
+  }
+
+  /* Demo stage transition: the content gently fades and rises into place while
+     a soft blue, silver, and white gradient washes across the card, so a new
+     stage is clearly noticed without feeling flashy. Both replay whenever the
+     keyed elements remount on a stage change. */
+  .demo-stage-enter {
+    animation: demo-stage-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes demo-stage-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .demo-stage-wash {
+    border-radius: inherit;
+    background: linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(239, 244, 255, 0.25) 22%,
+      rgba(37, 99, 235, 0.16) 46%,
+      rgba(226, 232, 240, 0.5) 62%,
+      rgba(255, 255, 255, 0) 86%
+    );
+    background-size: 220% 100%;
+    animation: demo-stage-wash 720ms ease-out both;
+  }
+  @keyframes demo-stage-wash {
+    0% {
+      opacity: 0;
+      background-position: 130% 0;
+    }
+    35% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      background-position: -30% 0;
+    }
+  }
+
+  /* Honor reduced motion: no slide, no sweep. Content appears instantly and the
+     wash stays hidden so nothing animates for users who ask for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .demo-stage-enter {
+      animation: none;
+    }
+    .demo-stage-wash {
+      animation: none;
+      opacity: 0;
+    }
+    .marketing-wash::before {
+      animation: none;
+    }
   }
 }

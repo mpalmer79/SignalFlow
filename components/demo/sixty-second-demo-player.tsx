@@ -29,6 +29,11 @@ import {
 } from "@/lib/demo/sixty-second-demo";
 
 const TICK_MS = 100;
+// Every auto advancing stage runs for exactly five seconds. The per stage
+// durations in the data file still mark which stages auto advance (a value of
+// zero means the stage waits for input or is terminal); this constant sets the
+// uniform play speed.
+const STAGE_DURATION_MS = 5000;
 const REVIEW_INDEX = DEMO_STAGES.findIndex((stage) => stage.id === "review");
 const WORKFLOW_INDEX = DEMO_STAGES.findIndex((stage) => stage.id === "workflow");
 const LAST_INDEX = DEMO_STAGES.length - 1;
@@ -67,14 +72,15 @@ export function SixtySecondDemoPlayer() {
     return () => clearInterval(id);
   }, [autoAdvancing, stageIndex]);
 
-  // Advance to the next stage once the current stage has run its full time.
+  // Advance to the next stage once the current stage has run its full five
+  // seconds.
   useEffect(() => {
     if (!autoAdvancing) return;
-    if (elapsedMs >= stage.autoAdvanceMs) {
+    if (elapsedMs >= STAGE_DURATION_MS) {
       setStageIndex((index) => Math.min(index + 1, LAST_INDEX));
       setElapsedMs(0);
     }
-  }, [autoAdvancing, elapsedMs, stage.autoAdvanceMs]);
+  }, [autoAdvancing, elapsedMs]);
 
   const goToStage = useCallback((index: number) => {
     setStageIndex(Math.max(0, Math.min(index, LAST_INDEX)));
@@ -105,10 +111,16 @@ export function SixtySecondDemoPlayer() {
 
   const stageFraction =
     stage.autoAdvanceMs > 0
-      ? Math.min(elapsedMs / stage.autoAdvanceMs, 1)
+      ? Math.min(elapsedMs / STAGE_DURATION_MS, 1)
       : isTerminal || stageIndex > REVIEW_INDEX
         ? 1
         : 0;
+
+  // A stable key per distinct stage view. Changing it remounts the content
+  // wrapper and the wash overlay so their entrance animations replay on every
+  // stage change. Pause and resume do not change it, so they never re-trigger
+  // the transition.
+  const transitionKey = `${stageIndex}:${decision ?? "none"}`;
 
   return (
     <div className="space-y-5">
@@ -118,44 +130,53 @@ export function SixtySecondDemoPlayer() {
         onSelect={goToStage}
       />
 
-      <Card>
-        <CardContent className="space-y-6 p-5 sm:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Badge variant="primary">{stage.kicker}</Badge>
-              <span className="text-sm font-semibold">{stage.label}</span>
-              {decision ? (
-                <Badge variant={decision === "approved" ? "success" : "warning"}>
-                  {decision === "approved" ? "Approved path" : "Rejected path"}
-                </Badge>
-              ) : null}
+      <Card className="relative overflow-hidden">
+        <span
+          key={`wash-${transitionKey}`}
+          aria-hidden="true"
+          className="demo-stage-wash pointer-events-none absolute inset-0 z-10"
+        />
+        <CardContent className="relative z-0 p-5 sm:p-7">
+          <div key={transitionKey} className="demo-stage-enter space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Badge variant="primary">{stage.kicker}</Badge>
+                <span className="text-sm font-semibold">{stage.label}</span>
+                {decision ? (
+                  <Badge
+                    variant={decision === "approved" ? "success" : "warning"}
+                  >
+                    {decision === "approved" ? "Approved path" : "Rejected path"}
+                  </Badge>
+                ) : null}
+              </div>
+              <span
+                className="text-[11px] uppercase tracking-wide text-muted-foreground"
+                aria-live="polite"
+              >
+                {awaitingDecision
+                  ? "Waiting for your decision"
+                  : isTerminal
+                    ? "Demo complete"
+                    : isPlaying
+                      ? "Playing"
+                      : "Paused"}
+              </span>
             </div>
-            <span
-              className="text-[11px] uppercase tracking-wide text-muted-foreground"
-              aria-live="polite"
-            >
-              {awaitingDecision
-                ? "Waiting for your decision"
-                : isTerminal
-                  ? "Demo complete"
-                  : isPlaying
-                    ? "Playing"
-                    : "Paused"}
-            </span>
+
+            {isTerminal ? (
+              <SummaryScreen
+                decision={decision ?? "approved"}
+                onRestart={handleRestart}
+              />
+            ) : (
+              <StageBody stage={stage} />
+            )}
+
+            {awaitingDecision ? (
+              <ReviewActions onDecision={handleDecision} />
+            ) : null}
           </div>
-
-          {isTerminal ? (
-            <SummaryScreen
-              decision={decision ?? "approved"}
-              onRestart={handleRestart}
-            />
-          ) : (
-            <StageBody stage={stage} />
-          )}
-
-          {awaitingDecision ? (
-            <ReviewActions onDecision={handleDecision} />
-          ) : null}
         </CardContent>
       </Card>
 

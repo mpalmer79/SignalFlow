@@ -12,7 +12,11 @@ export function Sidebar() {
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card/40 lg:flex">
-      <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
+      <Link
+        href="/"
+        aria-label="Go to SignalFlow home"
+        className="flex h-16 items-center gap-2.5 border-b border-border px-5 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+      >
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
           <Radio className="h-5 w-5" />
         </span>
@@ -20,7 +24,7 @@ export function Sidebar() {
           <p className="text-sm font-semibold">{appConfig.name}</p>
           <p className="text-[11px] text-muted-foreground">Revenue OS</p>
         </div>
-      </div>
+      </Link>
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {primaryNav.map((item) => {

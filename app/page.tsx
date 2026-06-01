@@ -105,7 +105,8 @@ export const dynamic = "force-dynamic";
 
 export default function LandingPage() {
   return (
-    <div className="marketing-wash min-h-screen">
+    <div className="marketing-wash relative min-h-screen">
+      <div aria-hidden="true" className="marketing-top-fade" />
       <SiteNav />
       <Hero />
       <LogoStrip />
@@ -122,7 +123,13 @@ function SiteNav() {
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Logo />
+        <Link
+          href="/"
+          aria-label="Go to SignalFlow home"
+          className="-m-1 rounded-md p-1 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Logo />
+        </Link>
         <div className="hidden items-center gap-7 md:flex">
           <a
             href="#platform"

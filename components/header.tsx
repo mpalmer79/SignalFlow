@@ -41,12 +41,16 @@ export function Header({ org }: { org: HeaderOrg | null }) {
 
   return (
     <header className="flex h-16 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur sm:px-6">
-      <div className="flex items-center gap-2 lg:hidden">
+      <Link
+        href="/"
+        aria-label="Go to SignalFlow home"
+        className="-m-1 flex items-center gap-2 rounded-md p-1 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+      >
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
           <Radio className="h-4 w-4" />
         </span>
         <span className="text-sm font-semibold">{appConfig.name}</span>
-      </div>
+      </Link>
 
       <div className="hidden min-w-0 lg:block">
         <p className="truncate text-sm font-semibold">
