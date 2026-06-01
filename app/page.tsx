@@ -126,10 +126,7 @@ export default async function LandingPage() {
             human tasks.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/scenarios/automotive-high-intent"
-              className={buttonVariants({ size: "lg" })}
-            >
+            <Link href="/demo" className={buttonVariants({ size: "lg" })}>
               Run the 60-second demo
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -147,7 +144,7 @@ export default async function LandingPage() {
           <div className="mx-auto mt-8 max-w-md text-left">
             <MobileReviewerBanner
               cta={{
-                href: "/scenarios/automotive-high-intent",
+                href: "/demo",
                 label: "Run the 60-second demo",
               }}
             />
