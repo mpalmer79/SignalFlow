@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { MobileReviewerBanner } from "@/components/device/mobile-reviewer-banner";
 import { appConfig } from "@/lib/config/app";
 import { listVerticalPacks } from "@/lib/services/vertical-pack-service";
 import { getScenarios } from "@/lib/services/scenario-service";
@@ -143,6 +144,11 @@ export default async function LandingPage() {
             Deterministic demo. No live outbound communication, no external model
             calls, and no real customer data.
           </p>
+          <div className="mx-auto mt-8 max-w-md text-left">
+            <MobileReviewerBanner
+              cta={{ href: "/dashboard", label: "Open the dashboard" }}
+            />
+          </div>
         </section>
 
         <section className="mx-auto max-w-6xl px-6 py-12">

@@ -66,6 +66,19 @@ listed can be run locally to verify each item.
 [ ] Navigation labels are clear
 ```
 
+## Responsive, device-aware reviewer experience
+
+```text
+[ ] App is usable and polished at phone, tablet, small laptop, and desktop widths
+[ ] Mobile navigation menu is available below the desktop breakpoint
+[ ] Reviewer banner appears on landing, dashboard, and command center on small screens
+[ ] data-device marker resolves after client mount with no hydration error
+[ ] Device detection is presentation only, never authorization or business logic
+[ ] App remains fully usable when the device is unknown
+[ ] Device detection helpers are covered by unit tests
+      npm run test
+```
+
 ## Validation commands
 
 ```text

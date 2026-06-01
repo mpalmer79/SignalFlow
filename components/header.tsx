@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Radio } from "lucide-react";
 import { appConfig } from "@/lib/config/app";
 import { primaryNav } from "@/lib/config/navigation";
+import { MobileNav } from "@/components/device/mobile-nav";
 
 function currentTitle(pathname: string): string {
   const match = primaryNav.find(
@@ -56,10 +57,10 @@ export function Header({ org }: { org: HeaderOrg | null }) {
         </p>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <Link
           href="/"
-          className="text-xs font-medium text-muted-foreground hover:text-foreground"
+          className="hidden text-xs font-medium text-muted-foreground hover:text-foreground sm:inline"
         >
           Overview
         </Link>
@@ -77,6 +78,7 @@ export function Header({ org }: { org: HeaderOrg | null }) {
             </span>
           </span>
         </span>
+        <MobileNav />
       </div>
     </header>
   );
