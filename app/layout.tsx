@@ -3,6 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { DeviceProvider } from "@/components/device/device-provider";
+import { ProjectAssistant } from "@/components/project-assistant/ProjectAssistant";
 import { appConfig } from "@/lib/config/app";
 import "./globals.css";
 
@@ -35,6 +36,7 @@ export default function RootLayout({
           className="min-h-screen bg-background font-sans text-foreground"
         >
           <DeviceProvider>{children}</DeviceProvider>
+          <ProjectAssistant />
         </body>
       </html>
     </AuthProvider>
