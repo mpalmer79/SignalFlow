@@ -47,6 +47,27 @@ import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 export const metadata: Metadata = { title: "Dashboard" };
 export const dynamic = "force-dynamic";
 
+// A vertical-scoped scenario chooser. Each tile deep-links into that vertical's
+// scenario drill-down so the dashboard opens on a concrete story rather than an
+// abstract cross-vertical blend.
+const dashboardScenarios = [
+  {
+    eyebrow: "Automotive retail",
+    title: "Turn trade-ins and inventory views into booked test drives.",
+    href: "/scenarios/automotive-high-intent",
+  },
+  {
+    eyebrow: "Dentist office",
+    title: "Reactivate overdue recalls and convert treatment plans.",
+    href: "/scenarios/dental-recall",
+  },
+  {
+    eyebrow: "Life insurance agency",
+    title: "Work referrals and expand coverage in your existing book.",
+    href: "/scenarios/insurance-book-expansion",
+  },
+];
+
 export default async function DashboardPage() {
   const { context, denied } = await guardPage("VIEW_DASHBOARD");
   if (denied) return denied;
@@ -73,10 +94,44 @@ export default async function DashboardPage() {
     <>
       <SectionHeading
         title="Revenue command center"
-        description="A live view of signals, consent-aware actions, and pipeline movement. Data is served from the database in demo mode."
+        description="Every figure on this page is deterministic demo data, served from the database in demo mode. Pick a vertical below to walk a real story end to end."
       />
 
       <MobileReviewerBanner />
+
+      <section aria-labelledby="dashboard-chooser-heading" className="space-y-3">
+        <div className="space-y-1">
+          <h2 id="dashboard-chooser-heading" className="text-sm font-semibold">
+            Choose a scenario to explore
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Every figure below is deterministic demo data. Pick a vertical to
+            walk a real story end to end.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {dashboardScenarios.map((scenario) => (
+            <Link
+              key={scenario.href}
+              href={scenario.href}
+              className="group flex flex-col justify-between gap-4 rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
+                  {scenario.eyebrow}
+                </p>
+                <p className="text-sm font-medium text-foreground">
+                  {scenario.title}
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                Walk the scenario
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <Card className="border-primary/20 bg-primary/5">
         <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">

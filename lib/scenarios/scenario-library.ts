@@ -76,6 +76,18 @@ export const scenarioLibrary: ScenarioDefinition[] = [
     signalKeys: ["SERVICE_DUE", "EMAIL_CLICK"],
   },
   {
+    id: "insurance-book-expansion",
+    title: "Life agency book expansion",
+    vertical: "insurance",
+    summary:
+      "An existing policyholder with a coverage gap, primed for a cross-sell review and a referral follow-up.",
+    intentLevel: "medium",
+    consentState: "granted",
+    optedOut: false,
+    hasResponse: true,
+    signalKeys: ["SERVICE_DUE", "EMAIL_CLICK", "NEW_LEAD"],
+  },
+  {
     id: "automotive-opt-out",
     title: "Compliance stop after opt-out",
     vertical: "automotive",

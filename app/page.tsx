@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   Banknote,
@@ -101,6 +102,96 @@ const pipeline = [
   { icon: Banknote, color: "#16A34A", label: "Revenue" },
 ];
 
+// The scenario library that drives the full-viewport showcase cards. Content is
+// edited here in one place. Each href resolves to a real scenarios/[id] route.
+// Note: copy uses spaced hyphens, not em dashes, to satisfy the safety scan.
+const showcaseScenarios = [
+  {
+    id: "automotive-retail",
+    vertical: "automotive",
+    eyebrow: "Automotive retail",
+    headline:
+      "The trade-in request came in at 7pm. The sale shouldn't wait until morning.",
+    narrative:
+      "A shopper submits a trade appraisal and browses three trucks on your lot, then goes quiet. By the time a salesperson notices the lead the next day, they've already booked a test drive across town. SignalFlow reads the intent the moment it happens, confirms SMS consent is on file, and fires an instant, on-brand response with a test-drive offer - before the lead ever cools.",
+    proofPoints: [
+      {
+        signal: "Trade appraisal + 3 inventory views",
+        action: "Instant SMS lead response with test-drive slots",
+        outcome: "Test drive booked, $52K vehicle sale attributed",
+      },
+      {
+        signal: "Missed sales call, no reply in 5 days",
+        action: "Governed recovery outreach with a service coupon",
+        outcome: "Dormant lead reactivated, not lost to a competitor",
+      },
+    ],
+    image: "/scenarios/automotive.jpg",
+    imageAlt:
+      "Salesperson handing keys to a customer on a modern dealership lot",
+    href: "/scenarios/automotive-high-intent",
+    accent: "blue" as const,
+  },
+  {
+    id: "dental-office",
+    vertical: "dental",
+    eyebrow: "Dentist office",
+    headline:
+      "Twelve patients are overdue for a cleaning. Your front desk is on the phone with one of them.",
+    narrative:
+      "Recall lists rot in a spreadsheet while the schedule has open chairs. A patient opens your recall reminder twice and clicks the booking link - clear intent - but nobody follows up. SignalFlow scores that engagement, checks email consent and quiet hours, and routes a reactivation prompt. Because this is health information, the policy layer holds anything sensitive for human review before it's ever sent.",
+    proofPoints: [
+      {
+        signal: "Recall overdue 60+ days, reminder opened twice",
+        action: "Consent-checked reactivation with a booking link",
+        outcome: "Cleaning scheduled, treatment-plan conversation opened",
+      },
+      {
+        signal: "High-value treatment plan unaccepted",
+        action: "Coordinator handoff, escalated for human review",
+        outcome: "Plan accepted - revenue recovered, compliance intact",
+      },
+    ],
+    image: "/scenarios/dental.jpg",
+    imageAlt:
+      "Dental hygienist greeting a patient in a bright, modern practice",
+    href: "/scenarios/dental-recall",
+    accent: "green" as const,
+  },
+  {
+    id: "life-insurance-agency",
+    vertical: "insurance",
+    eyebrow: "Life insurance agency",
+    headline:
+      "Your best new policy this month is already a customer. You just haven't called them yet.",
+    narrative:
+      "A local life agent's growth lives in three places: cold-call lists that go stale, referrals that slip through the cracks, and a book of existing clients who are under-covered. SignalFlow watches the book for coverage gaps and life events, surfaces the warmest referral first, and prompts the next best conversation - a term-to-permanent review, an annuity rollover, a disability add-on - with every outreach gated by consent and the elevated sensitivity life insurance demands.",
+    proofPoints: [
+      {
+        signal: "Existing client, coverage-gap review due",
+        action: "Cross-sell prompt: add disability + review beneficiaries",
+        outcome: "Second policy bound from the existing book",
+      },
+      {
+        signal: "Referral submitted, no response in 4 days",
+        action: "Consent-checked referral follow-up sequence",
+        outcome: "Warm lead converted before it went cold",
+      },
+    ],
+    image: "/scenarios/insurance.jpg",
+    imageAlt:
+      "Insurance agent reviewing coverage options with a couple at a local office",
+    href: "/scenarios/insurance-book-expansion",
+    accent: "blue" as const,
+  },
+];
+
+// Accent tokens per card. Kept to existing semantic tokens (primary, success).
+const showcaseAccents = {
+  blue: { bar: "bg-primary", cta: "bg-primary hover:bg-primary/90" },
+  green: { bar: "bg-success", cta: "bg-success hover:bg-success/90" },
+} as const;
+
 export const dynamic = "force-dynamic";
 
 export default function LandingPage() {
@@ -109,6 +200,7 @@ export default function LandingPage() {
       <div aria-hidden="true" className="marketing-top-fade" />
       <SiteNav />
       <Hero />
+      <ScenarioShowcase />
       <LogoStrip />
       <Pillars />
       <NotJustCRM />
@@ -131,6 +223,12 @@ function SiteNav() {
           <Logo />
         </Link>
         <div className="hidden items-center gap-7 md:flex">
+          <a
+            href="#scenarios"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Scenarios
+          </a>
           <a
             href="#platform"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -329,6 +427,151 @@ function ProductMock() {
         </div>
       </div>
     </div>
+  );
+}
+
+function ScenarioShowcase() {
+  return (
+    <section
+      id="scenarios"
+      aria-labelledby="scenarios-heading"
+      className="relative"
+    >
+      <div className="mx-auto max-w-3xl px-6 pb-4 pt-20 text-center sm:pt-24">
+        <p className="mb-3 text-[12.5px] font-semibold uppercase tracking-wide text-primary">
+          Scenario library
+        </p>
+        <h2
+          id="scenarios-heading"
+          className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl"
+        >
+          See it work in your world, not in the abstract
+        </h2>
+        <p className="mx-auto mt-4 max-w-xl text-pretty text-[17px] leading-relaxed text-muted-foreground">
+          Three real-world stories, each one a signal turned into a governed
+          action and a booked outcome. Scroll through, then drill into the full
+          seven-step walkthrough.
+        </p>
+      </div>
+      {showcaseScenarios.map((scenario, index) => (
+        <ScenarioCard key={scenario.id} scenario={scenario} priority={index === 0} />
+      ))}
+    </section>
+  );
+}
+
+function ScenarioCard({
+  scenario,
+  priority,
+}: {
+  scenario: (typeof showcaseScenarios)[number];
+  priority: boolean;
+}) {
+  const accent = showcaseAccents[scenario.accent];
+  const headingId = `scenario-${scenario.id}-heading`;
+
+  return (
+    <article
+      aria-labelledby={headingId}
+      className="group relative flex min-h-[90vh] items-center overflow-hidden"
+    >
+      {/* TODO: replace with licensed stock photo (see public/scenarios/README.md). */}
+      <Image
+        src={scenario.image}
+        alt={scenario.imageAlt}
+        fill
+        priority={priority}
+        unoptimized
+        sizes="100vw"
+        className="object-cover motion-safe:transition-transform motion-safe:duration-700 motion-safe:ease-out motion-safe:group-hover:scale-[1.03]"
+      />
+      {/* Dark scrim built from the foreground (deep navy) token so text stays
+          legible over any photo. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-t from-foreground/95 via-foreground/80 to-foreground/55"
+      />
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-16">
+        <div className="max-w-2xl">
+          <span
+            aria-hidden="true"
+            className={`mb-5 block h-1 w-12 rounded-full ${accent.bar}`}
+          />
+          <p className="text-[12.5px] font-semibold uppercase tracking-wide text-white/80">
+            {scenario.eyebrow}
+          </p>
+          <h3
+            id={headingId}
+            className="mt-3 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-white sm:text-4xl"
+          >
+            {scenario.headline}
+          </h3>
+          <p className="mt-5 text-pretty text-base leading-relaxed text-white/85 sm:text-[17px]">
+            {scenario.narrative}
+          </p>
+
+          <ul className="mt-8 space-y-3">
+            {scenario.proofPoints.map((point) => (
+              <li
+                key={point.signal}
+                className="rounded-xl border border-white/15 bg-white/[0.06] p-4 backdrop-blur-sm"
+              >
+                <dl className="grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-center">
+                  <div>
+                    <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/55">
+                      Signal
+                    </dt>
+                    <dd className="mt-0.5 text-sm font-medium text-white">
+                      {point.signal}
+                    </dd>
+                  </div>
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="hidden h-4 w-4 shrink-0 text-white/40 sm:block"
+                  />
+                  <div>
+                    <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/55">
+                      Action
+                    </dt>
+                    <dd className="mt-0.5 text-sm font-medium text-white">
+                      {point.action}
+                    </dd>
+                  </div>
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="hidden h-4 w-4 shrink-0 text-white/40 sm:block"
+                  />
+                  <div>
+                    <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/55">
+                      Outcome
+                    </dt>
+                    <dd className="mt-0.5 text-sm font-semibold text-white">
+                      {point.outcome}
+                    </dd>
+                  </div>
+                </dl>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-9 flex flex-wrap items-center gap-3">
+            <Link
+              href={scenario.href}
+              className={`inline-flex h-12 items-center gap-2 rounded-[9px] px-6 text-[15px] font-medium text-primary-foreground shadow-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-foreground ${accent.cta}`}
+            >
+              See how it works
+              <ArrowRight className="h-[17px] w-[17px]" />
+            </Link>
+            <Link
+              href="/demo"
+              className="inline-flex h-12 items-center rounded-[9px] border border-white/25 bg-white/10 px-6 text-[15px] font-medium text-white transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-foreground"
+            >
+              Run the 60-second demo
+            </Link>
+          </div>
+        </div>
+      </div>
+    </article>
   );
 }
 
