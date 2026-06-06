@@ -23,12 +23,6 @@ import {
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { appConfig } from "@/lib/config/app";
 
-// The marketing homepage, ported from design-system/ui-kits/marketing into the
-// production app. Light enterprise direction: off-white canvas, deep-navy ink,
-// #2563EB primary, Geist type, with the soft ambient scroll wash and selective
-// navy accents for command-center depth. Deterministic and demo safe: no live
-// communication, no external model calls, no real customer data.
-
 const pillars = [
   {
     icon: Bell,
@@ -102,9 +96,6 @@ const pipeline = [
   { icon: Banknote, color: "#16A34A", label: "Revenue" },
 ];
 
-// The scenario library that drives the full-viewport showcase cards. Content is
-// edited here in one place. Each href resolves to a real scenarios/[id] route.
-// Note: copy uses spaced hyphens, not em dashes, to satisfy the safety scan.
 const showcaseScenarios = [
   {
     id: "automotive-retail",
@@ -186,7 +177,6 @@ const showcaseScenarios = [
   },
 ];
 
-// Accent tokens per card. Kept to existing semantic tokens (primary, success).
 const showcaseAccents = {
   blue: { bar: "bg-primary", cta: "bg-primary hover:bg-primary/90" },
   green: { bar: "bg-success", cta: "bg-success hover:bg-success/90" },
@@ -454,7 +444,11 @@ function ScenarioShowcase() {
         </p>
       </div>
       {showcaseScenarios.map((scenario, index) => (
-        <ScenarioCard key={scenario.id} scenario={scenario} priority={index === 0} />
+        <ScenarioCard
+          key={scenario.id}
+          scenario={scenario}
+          priority={index === 0}
+        />
       ))}
     </section>
   );
@@ -475,7 +469,6 @@ function ScenarioCard({
       aria-labelledby={headingId}
       className="group relative flex min-h-[90vh] items-center overflow-hidden"
     >
-      {/* TODO: replace with licensed stock photo (see public/scenarios/README.md). */}
       <Image
         src={scenario.image}
         alt={scenario.imageAlt}
@@ -485,11 +478,10 @@ function ScenarioCard({
         sizes="100vw"
         className="object-cover motion-safe:transition-transform motion-safe:duration-700 motion-safe:ease-out motion-safe:group-hover:scale-[1.03]"
       />
-      {/* Dark scrim built from the foreground (deep navy) token so text stays
-          legible over any photo. */}
+      <div aria-hidden="true" className="absolute inset-0 bg-slate-950/20" />
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-foreground/95 via-foreground/80 to-foreground/55"
+        className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-slate-950/35 to-transparent"
       />
       <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-16">
         <div className="max-w-2xl">
@@ -685,7 +677,9 @@ function NotJustCRM() {
               <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-sky-300/15 font-mono text-xs font-semibold text-sky-300">
                 {index + 1}
               </span>
-              <span className="text-sm font-medium text-[#E8EEF8]">{step}</span>
+              <span className="text-sm font-medium text-[#E8EEF8]">
+                {step}
+              </span>
             </div>
           ))}
         </div>
