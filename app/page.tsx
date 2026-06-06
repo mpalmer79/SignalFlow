@@ -513,7 +513,7 @@ function DesktopScenarioCard({
           >
             {scenario.headline}
           </h3>
-          <p className="mt-5 text-pretty text-base leading-relaxed text-white/85 sm:text-[17px]">
+          <p className="mt-5 text-pretty text-base font-medium leading-relaxed text-white sm:text-[17px]">
             {scenario.narrative}
           </p>
 
@@ -571,7 +571,7 @@ function MobileScenarioCard({
         >
           {scenario.headline}
         </h3>
-        <p className="mt-5 text-pretty text-[15px] leading-relaxed text-white/78">
+        <p className="mt-5 text-pretty text-[15px] font-medium leading-relaxed text-white">
           {scenario.narrative}
         </p>
 
@@ -597,7 +597,7 @@ function ProofPoints({
         >
           <dl className="grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-center">
             <div>
-              <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/55">
+              <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/75">
                 Signal
               </dt>
               <dd className="mt-0.5 text-sm font-medium text-white">
@@ -609,7 +609,7 @@ function ProofPoints({
               className="hidden h-4 w-4 shrink-0 text-white/40 sm:block"
             />
             <div>
-              <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/55">
+              <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/75">
                 Action
               </dt>
               <dd className="mt-0.5 text-sm font-medium text-white">
@@ -621,7 +621,7 @@ function ProofPoints({
               className="hidden h-4 w-4 shrink-0 text-white/40 sm:block"
             />
             <div>
-              <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/55">
+              <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/75">
                 Outcome
               </dt>
               <dd className="mt-0.5 text-sm font-semibold text-white">
