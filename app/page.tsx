@@ -5,19 +5,10 @@ import {
   Banknote,
   Bell,
   BrainCircuit,
-  ClipboardCheck,
-  Clock,
-  Gauge,
   GitBranch,
-  LayoutDashboard,
-  Lock,
-  PhoneCall,
-  Radar,
   Radio,
   ShieldCheck,
   Sparkles,
-  TrendingUp,
-  Workflow,
   X,
 } from "lucide-react";
 import { Logo, LogoMark } from "@/components/brand/logo";
@@ -86,15 +77,6 @@ const systemModel = [
 ];
 
 const verticals = ["Automotive", "Insurance", "Healthcare", "Home Services"];
-
-const pipeline = [
-  { icon: Bell, color: "#0EA5E9", label: "Signal" },
-  { icon: BrainCircuit, color: "#6366F1", label: "Intel" },
-  { icon: Sparkles, color: "#2563EB", label: "AI" },
-  { icon: ClipboardCheck, color: "#D97706", label: "Review" },
-  { icon: Workflow, color: "#0891B2", label: "Flow" },
-  { icon: Banknote, color: "#16A34A", label: "Revenue" },
-];
 
 const showcaseScenarios = [
   {
@@ -265,7 +247,7 @@ function SiteNav() {
 
 function Hero() {
   return (
-    <header className="relative overflow-hidden px-6 pb-14 pt-20">
+    <header className="relative overflow-hidden px-6 pb-12 pt-20">
       <div className="pointer-events-none absolute inset-0 hero-grid" />
       <div className="pointer-events-none absolute left-1/2 top-[-120px] h-[420px] w-[760px] -translate-x-1/2 hero-glow" />
       <div className="relative mx-auto max-w-3xl text-center">
@@ -301,122 +283,8 @@ function Hero() {
           Deterministic demo. No live SMS, email, or voice. No external model
           calls. No real customer data.
         </p>
-        <ProductMock />
       </div>
     </header>
-  );
-}
-
-function ProductMock() {
-  return (
-    <div className="mx-auto mt-12 max-w-[1000px] overflow-hidden rounded-2xl border border-border bg-card text-left shadow-xl">
-      <div className="flex h-10 items-center gap-4 border-b border-border bg-secondary px-4">
-        <div className="flex gap-[7px]">
-          <span className="h-[11px] w-[11px] rounded-full bg-border-strong" />
-          <span className="h-[11px] w-[11px] rounded-full bg-border-strong" />
-          <span className="h-[11px] w-[11px] rounded-full bg-border-strong" />
-        </div>
-        <div className="flex h-6 max-w-[360px] flex-1 items-center gap-[7px] rounded-md border border-border bg-card px-2.5 font-mono text-[11px] text-muted-foreground">
-          <Lock className="h-3 w-3" />
-          app.signalflow.io/dashboard
-        </div>
-      </div>
-      <div className="grid min-h-[420px] grid-cols-1 sm:grid-cols-[188px_1fr]">
-        <aside className="hidden border-r border-border bg-card p-3 sm:block">
-          {[
-            { icon: LayoutDashboard, label: "Dashboard", on: true },
-            { icon: Radar, label: "Command Center", on: false },
-            { icon: Sparkles, label: "AI Center", on: false },
-            { icon: ClipboardCheck, label: "Review Queue", on: false },
-            { icon: PhoneCall, label: "Voice", on: false },
-            { icon: Gauge, label: "Executive", on: false },
-          ].map((item) => {
-            const ItemIcon = item.icon;
-            return (
-              <div
-                key={item.label}
-                className={`flex items-center gap-2.5 rounded-md px-2.5 py-[7px] text-xs font-medium ${
-                  item.on
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground"
-                }`}
-              >
-                <ItemIcon className="h-[15px] w-[15px]" />
-                {item.label}
-              </div>
-            );
-          })}
-        </aside>
-        <div className="bg-background p-[18px]">
-          <p className="text-[15px] font-semibold text-foreground">
-            Revenue command center
-          </p>
-          <p className="mb-3.5 mt-0.5 font-mono text-[11.5px] text-muted-foreground">
-            Deterministic view. Nothing sent.
-          </p>
-          <div className="mb-3.5 grid grid-cols-3 gap-2.5">
-            {[
-              { l: "Influenced", v: "$1.24M", d: "+18%", warn: false },
-              { l: "High intent", v: "38", d: "+6", warn: false },
-              { l: "In review", v: "7", d: "pending", warn: true },
-            ].map((m) => (
-              <div
-                key={m.l}
-                className="rounded-[10px] border border-border bg-card p-3"
-              >
-                <p className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {m.l}
-                </p>
-                <p className="mt-1 text-xl font-semibold tabular-nums tracking-tight text-foreground">
-                  {m.v}
-                </p>
-                <p
-                  className={`mt-[3px] flex items-center gap-[3px] text-[9.5px] ${
-                    m.warn ? "text-warning" : "text-success"
-                  }`}
-                >
-                  {m.warn ? (
-                    <Clock className="h-[11px] w-[11px]" />
-                  ) : (
-                    <TrendingUp className="h-[11px] w-[11px]" />
-                  )}
-                  {m.d}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="rounded-[10px] border border-border bg-card p-4">
-            <p className="mb-3.5 text-[11px] font-semibold text-muted-foreground">
-              Signal to revenue pipeline
-            </p>
-            <div className="flex items-start">
-              {pipeline.map((node, index) => {
-                const NodeIcon = node.icon;
-                return (
-                  <div
-                    key={node.label}
-                    className="relative flex flex-1 flex-col items-center gap-[7px]"
-                  >
-                    {index < pipeline.length - 1 ? (
-                      <span className="absolute left-1/2 top-4 -z-0 h-[2px] w-full bg-border-strong" />
-                    ) : null}
-                    <span
-                      className="z-10 flex h-8 w-8 items-center justify-center rounded-[9px] text-white"
-                      style={{ background: node.color }}
-                    >
-                      <NodeIcon className="h-[15px] w-[15px]" />
-                    </span>
-                    <span className="text-[9.5px] font-semibold text-foreground">
-                      {node.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -427,7 +295,7 @@ function ScenarioShowcase() {
       aria-labelledby="scenarios-heading"
       className="relative"
     >
-      <div className="mx-auto max-w-3xl px-6 pb-4 pt-20 text-center sm:pt-24">
+      <div className="mx-auto max-w-3xl px-6 pb-4 pt-10 text-center sm:pt-14">
         <p className="mb-3 text-[12.5px] font-semibold uppercase tracking-wide text-primary">
           Scenario library
         </p>
