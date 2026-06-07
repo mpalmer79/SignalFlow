@@ -16,6 +16,31 @@ updates:
         update-types:
           - minor
           - patch
+    # Core framework and toolchain packages move in lockstep and have breaking
+    # major releases that require a deliberate, tested migration (for example
+    # @clerk/nextjs 7 requires Next 15 or 16, and Tailwind 4 needs a config
+    # rewrite). Major bumps for these are ignored here so they are never merged
+    # automatically; do them by hand on a dedicated branch. Minor and patch
+    # updates for these packages are still proposed.
+    ignore:
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@clerk/nextjs"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: "/"
