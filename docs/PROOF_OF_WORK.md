@@ -23,6 +23,9 @@ production SaaS, and the sections below say exactly where that line sits.
   context, never from the client.
 - An end-to-end audit trail, revenue attribution, and a voice simulation
   platform, all behind a consent and compliance policy layer.
+- A local, deterministic project assistant that answers from curated repository
+  knowledge only, with no model, no network, no embeddings, and no vector
+  database. See docs/PROJECT_ASSISTANT.md.
 
 ## What is intentionally simulated
 

@@ -1,25 +1,30 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  FALLBACK_ANSWER,
-  getEntryById,
-} from "@/lib/project-assistant/knowledge";
-import { answerQuestion } from "@/lib/project-assistant/matchQuestion";
-import type { AssistantMessage } from "@/lib/project-assistant/types";
+import { usePathname } from "next/navigation";
+import { getEntryById } from "@/lib/project-assistant/knowledge";
+import { getAssistantResponse } from "@/lib/project-assistant/matchQuestion";
+import type {
+  AssistantAnswer,
+  AssistantMessage,
+} from "@/lib/project-assistant/types";
 import { ProjectAssistantButton } from "./ProjectAssistantButton";
 import { ProjectAssistantPanel } from "./ProjectAssistantPanel";
 
 // The persistent project assistant. Mounted once in the root layout so it shows
 // on every page. State is in memory only: nothing is persisted, and every
-// answer comes from the local knowledge base with no network call. Messages are
-// kept for the session so the conversation survives same-page navigation while
-// the layout stays mounted.
+// answer comes from the local knowledge base with no network call. The current
+// pathname is read only to improve answer relevance; it never affects any
+// business logic.
 export function ProjectAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const messageCounter = useRef(0);
+  const pathname = usePathname();
+  // Keep the latest route in a ref so the ask callbacks stay stable.
+  const routeRef = useRef(pathname);
+  routeRef.current = pathname;
 
   const nextId = useCallback((role: AssistantMessage["role"]) => {
     messageCounter.current += 1;
@@ -35,11 +40,16 @@ export function ProjectAssistant() {
   }, []);
 
   const appendExchange = useCallback(
-    (question: string, answer: string) => {
+    (question: string, answer: AssistantAnswer) => {
       setMessages((prev) => [
         ...prev,
         { id: nextId("user"), role: "user", text: question },
-        { id: nextId("assistant"), role: "assistant", text: answer },
+        {
+          id: nextId("assistant"),
+          role: "assistant",
+          text: answer.text,
+          answer,
+        },
       ]);
     },
     [nextId],
@@ -47,15 +57,18 @@ export function ProjectAssistant() {
 
   const askText = useCallback(
     (text: string) => {
-      appendExchange(text, answerQuestion(text));
+      appendExchange(text, getAssistantResponse(text, routeRef.current));
     },
     [appendExchange],
   );
 
   const askStarter = useCallback(
     (entryId: string, label: string) => {
+      // Use the canonical question for the matched entry so the structured
+      // answer is stable, then fall back to free-text resolution.
       const entry = getEntryById(entryId);
-      appendExchange(label, entry ? entry.answer : FALLBACK_ANSWER);
+      const query = entry ? entry.question : label;
+      appendExchange(label, getAssistantResponse(query, routeRef.current));
     },
     [appendExchange],
   );
