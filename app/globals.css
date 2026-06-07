@@ -188,6 +188,28 @@
     }
   }
 
+  /* Signal wave: a thin navy line that drifts slowly behind the hero, like a
+     quiet system signal moving through the page. The SVG is twice the viewport
+     width, so translating it by half its width loops seamlessly. The motion is
+     defined only inside the no-preference query, so reduced-motion users see a
+     static wave with no animation at all. */
+  .signal-wave {
+    will-change: transform;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .signal-wave {
+      animation: signal-wave-drift 28s linear infinite;
+    }
+  }
+  @keyframes signal-wave-drift {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
   /* Honor reduced motion: no slide, no sweep. Content appears instantly and the
      wash stays hidden so nothing animates for users who ask for less motion. */
   @media (prefers-reduced-motion: reduce) {
@@ -199,6 +221,9 @@
       opacity: 0;
     }
     .marketing-wash::before {
+      animation: none;
+    }
+    .signal-wave {
       animation: none;
     }
   }
