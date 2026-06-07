@@ -266,22 +266,7 @@ function Hero() {
           orchestrates the next best action with consent, explanation, and human
           review at the center. A CRM records. {appConfig.name} acts.
         </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href="/demo"
-            className="inline-flex h-12 items-center gap-2 rounded-[9px] bg-primary px-6 text-[15px] font-medium text-primary-foreground shadow-md transition-colors hover:bg-primary/90"
-          >
-            Run the 60-second demo
-            <ArrowRight className="h-[17px] w-[17px]" />
-          </Link>
-          <Link
-            href="/dashboard"
-            className="inline-flex h-12 items-center rounded-[9px] border border-border-strong bg-card px-6 text-[15px] font-medium text-foreground shadow-sm transition-colors hover:bg-secondary"
-          >
-            Open dashboard
-          </Link>
-        </div>
-        <p className="mt-[18px] text-[12.5px] text-muted-foreground/90">
+        <p className="mt-8 text-[12.5px] text-muted-foreground/90">
           Deterministic demo. No live SMS, email, or voice. No external model
           calls. No real customer data.
         </p>
