@@ -30,6 +30,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Supply-chain visibility. Audits production dependencies at high severity
+      # and above, ignoring dev-only dependency noise. This step is reported but
+      # non-blocking: the current advisories are upstream Next.js issues that are
+      # only resolved by a major framework upgrade, which is tracked separately
+      # in docs/TECHNICAL_DEBT_REGISTER.md. It runs no external scanner and makes
+      # no network calls beyond the npm registry advisory database.
+      - name: Dependency audit
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
+
       - name: Generate Prisma client
         run: npx prisma generate
 

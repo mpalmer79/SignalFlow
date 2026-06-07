@@ -31,7 +31,7 @@ SignalFlow is built to decide and act, with governance at the center:
 
 ## Flagship demo path
 
-Reviewers in a hurry should start with [docs/REVIEWER_EXPERIENCE.md](docs/REVIEWER_EXPERIENCE.md) and click `Run the 60-second demo` from the landing page. The longer ten minute walkthrough is in [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md).
+Reviewers in a hurry should start with [docs/REVIEWER_EXPERIENCE.md](docs/REVIEWER_EXPERIENCE.md) and click `Run the 60-second demo` from the landing page. The longer ten minute walkthrough is in [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md). For a direct account of what is real, what is simulated, and how to verify it, read [docs/PROOF_OF_WORK.md](docs/PROOF_OF_WORK.md).
 
 ```text
 Landing page
