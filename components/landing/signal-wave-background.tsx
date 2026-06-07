@@ -34,7 +34,7 @@ export function SignalWaveBackground() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 -z-0 hidden overflow-hidden md:block"
+      className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden md:block"
     >
       <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
         <svg
@@ -47,14 +47,14 @@ export function SignalWaveBackground() {
           <path
             d={PRIMARY_WAVE}
             stroke="currentColor"
-            strokeOpacity={0.08}
-            strokeWidth={1.5}
+            strokeOpacity={0.14}
+            strokeWidth={2}
             vectorEffect="non-scaling-stroke"
           />
           <path
             d={ECHO_WAVE}
             stroke="currentColor"
-            strokeOpacity={0.05}
+            strokeOpacity={0.08}
             strokeWidth={1}
             vectorEffect="non-scaling-stroke"
           />
