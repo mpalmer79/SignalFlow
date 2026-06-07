@@ -8,6 +8,7 @@ import {
   EMPTY_STATE,
   STARTER_QUESTIONS,
 } from "@/lib/project-assistant/knowledge";
+import { getAssistantPanelView } from "@/lib/project-assistant/panel-state";
 import type {
   AssistantAnswer,
   AssistantMessage,
@@ -24,17 +25,15 @@ const CONFIDENCE_LABEL: Record<ConfidenceLevel, string> = {
   low: "Loose match",
 };
 
-function AnswerMeta({
-  answer,
-  onAskText,
-}: {
-  answer: AssistantAnswer;
-  onAskText: (text: string) => void;
-}) {
+function AnswerMeta({ answer }: { answer: AssistantAnswer }) {
   // Source chips: knowledge sources, plus any supporting document sources, kept
-  // compact and de-duplicated. All point at local repository files only.
+  // compact and de-duplicated. All point at local repository files only. Related
+  // follow-up questions are rendered once, near the input, by the panel footer,
+  // so they are not repeated here under every answer.
   const docSources = answer.docMatches.map((match) => match.source);
   const sources = Array.from(new Set([...answer.sources, ...docSources])).slice(0, 4);
+
+  if (answer.isFallback && sources.length === 0) return null;
 
   return (
     <div className="mt-1.5 space-y-2">
@@ -57,26 +56,6 @@ function AnswerMeta({
           ))}
         </div>
       ) : null}
-
-      {answer.related.length > 0 ? (
-        <div className="space-y-1">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-            Related
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {answer.related.map((related) => (
-              <button
-                key={related.id}
-                type="button"
-                onClick={() => onAskText(related.label)}
-                className="rounded-full border border-border bg-background px-2.5 py-1 text-left text-[11px] font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {related.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -95,6 +74,11 @@ export function ProjectAssistantPanel({
   const [draft, setDraft] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Suggested starter questions belong to the empty state; related follow-ups
+  // belong to an active chat. This view decides which set is shown, and the two
+  // are never visible at the same time.
+  const view = getAssistantPanelView(messages);
 
   // Move focus into the panel when it opens.
   useEffect(() => {
@@ -177,7 +161,7 @@ export function ProjectAssistantPanel({
               </div>
               {message.role === "assistant" && message.answer ? (
                 <div className="max-w-[92%]">
-                  <AnswerMeta answer={message.answer} onAskText={onAskText} />
+                  <AnswerMeta answer={message.answer} />
                 </div>
               ) : null}
             </div>
@@ -186,21 +170,48 @@ export function ProjectAssistantPanel({
       </div>
 
       <div className="border-t border-border p-3">
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-          Suggested questions
-        </p>
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          {STARTER_QUESTIONS.map((starter) => (
-            <button
-              key={starter.entryId}
-              type="button"
-              onClick={() => onAskStarter(starter.entryId, starter.label)}
-              className="rounded-full border border-border bg-secondary/40 px-2.5 py-1 text-left text-[11px] font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {starter.label}
-            </button>
-          ))}
-        </div>
+        {/* Empty state only: suggested starter questions. */}
+        {view.showSuggestedQuestions ? (
+          <div className="mb-3">
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Suggested questions
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {STARTER_QUESTIONS.map((starter) => (
+                <button
+                  key={starter.entryId}
+                  type="button"
+                  onClick={() => onAskStarter(starter.entryId, starter.label)}
+                  className="rounded-full border border-border bg-secondary/40 px-2.5 py-1 text-left text-[11px] font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {starter.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Active chat only: related follow-ups from the latest answer. Never
+            shown together with the suggested questions above. */}
+        {view.showRelatedQuestions ? (
+          <div className="mb-3">
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Related
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {view.relatedQuestions.map((related) => (
+                <button
+                  key={related.id}
+                  type="button"
+                  onClick={() => onAskText(related.label)}
+                  className="rounded-full border border-border bg-secondary/40 px-2.5 py-1 text-left text-[11px] font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {related.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="flex items-end gap-2">
           <textarea
