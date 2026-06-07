@@ -8,7 +8,7 @@ import { appConfig } from "@/lib/config/app";
 import "./globals.css";
 
 const siteUrl = "https://signalflow-revenue.vercel.app";
-const socialImage = "/og-signalflow.png";
+const socialImage = "/og-signalflow.png?v=2";
 const socialTitle = `${appConfig.name}: ${appConfig.subtitle}`;
 const socialDescription = appConfig.positioning;
 
