@@ -5,29 +5,14 @@ import {
   Banknote,
   Bell,
   BrainCircuit,
-  ClipboardCheck,
-  Clock,
-  Gauge,
   GitBranch,
-  LayoutDashboard,
-  Lock,
-  PhoneCall,
-  Radar,
   Radio,
   ShieldCheck,
   Sparkles,
-  TrendingUp,
-  Workflow,
   X,
 } from "lucide-react";
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { appConfig } from "@/lib/config/app";
-
-// The marketing homepage, ported from design-system/ui-kits/marketing into the
-// production app. Light enterprise direction: off-white canvas, deep-navy ink,
-// #2563EB primary, Geist type, with the soft ambient scroll wash and selective
-// navy accents for command-center depth. Deterministic and demo safe: no live
-// communication, no external model calls, no real customer data.
 
 const pillars = [
   {
@@ -93,18 +78,6 @@ const systemModel = [
 
 const verticals = ["Automotive", "Insurance", "Healthcare", "Home Services"];
 
-const pipeline = [
-  { icon: Bell, color: "#0EA5E9", label: "Signal" },
-  { icon: BrainCircuit, color: "#6366F1", label: "Intel" },
-  { icon: Sparkles, color: "#2563EB", label: "AI" },
-  { icon: ClipboardCheck, color: "#D97706", label: "Review" },
-  { icon: Workflow, color: "#0891B2", label: "Flow" },
-  { icon: Banknote, color: "#16A34A", label: "Revenue" },
-];
-
-// The scenario library that drives the full-viewport showcase cards. Content is
-// edited here in one place. Each href resolves to a real scenarios/[id] route.
-// Note: copy uses spaced hyphens, not em dashes, to satisfy the safety scan.
 const showcaseScenarios = [
   {
     id: "automotive-retail",
@@ -186,7 +159,6 @@ const showcaseScenarios = [
   },
 ];
 
-// Accent tokens per card. Kept to existing semantic tokens (primary, success).
 const showcaseAccents = {
   blue: { bar: "bg-primary", cta: "bg-primary hover:bg-primary/90" },
   green: { bar: "bg-success", cta: "bg-success hover:bg-success/90" },
@@ -275,7 +247,7 @@ function SiteNav() {
 
 function Hero() {
   return (
-    <header className="relative overflow-hidden px-6 pb-14 pt-20">
+    <header className="relative overflow-hidden px-6 pb-12 pt-20">
       <div className="pointer-events-none absolute inset-0 hero-grid" />
       <div className="pointer-events-none absolute left-1/2 top-[-120px] h-[420px] w-[760px] -translate-x-1/2 hero-glow" />
       <div className="relative mx-auto max-w-3xl text-center">
@@ -311,122 +283,8 @@ function Hero() {
           Deterministic demo. No live SMS, email, or voice. No external model
           calls. No real customer data.
         </p>
-        <ProductMock />
       </div>
     </header>
-  );
-}
-
-function ProductMock() {
-  return (
-    <div className="mx-auto mt-12 max-w-[1000px] overflow-hidden rounded-2xl border border-border bg-card text-left shadow-xl">
-      <div className="flex h-10 items-center gap-4 border-b border-border bg-secondary px-4">
-        <div className="flex gap-[7px]">
-          <span className="h-[11px] w-[11px] rounded-full bg-border-strong" />
-          <span className="h-[11px] w-[11px] rounded-full bg-border-strong" />
-          <span className="h-[11px] w-[11px] rounded-full bg-border-strong" />
-        </div>
-        <div className="flex h-6 max-w-[360px] flex-1 items-center gap-[7px] rounded-md border border-border bg-card px-2.5 font-mono text-[11px] text-muted-foreground">
-          <Lock className="h-3 w-3" />
-          app.signalflow.io/dashboard
-        </div>
-      </div>
-      <div className="grid min-h-[420px] grid-cols-1 sm:grid-cols-[188px_1fr]">
-        <aside className="hidden border-r border-border bg-card p-3 sm:block">
-          {[
-            { icon: LayoutDashboard, label: "Dashboard", on: true },
-            { icon: Radar, label: "Command Center", on: false },
-            { icon: Sparkles, label: "AI Center", on: false },
-            { icon: ClipboardCheck, label: "Review Queue", on: false },
-            { icon: PhoneCall, label: "Voice", on: false },
-            { icon: Gauge, label: "Executive", on: false },
-          ].map((item) => {
-            const ItemIcon = item.icon;
-            return (
-              <div
-                key={item.label}
-                className={`flex items-center gap-2.5 rounded-md px-2.5 py-[7px] text-xs font-medium ${
-                  item.on
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground"
-                }`}
-              >
-                <ItemIcon className="h-[15px] w-[15px]" />
-                {item.label}
-              </div>
-            );
-          })}
-        </aside>
-        <div className="bg-background p-[18px]">
-          <p className="text-[15px] font-semibold text-foreground">
-            Revenue command center
-          </p>
-          <p className="mb-3.5 mt-0.5 font-mono text-[11.5px] text-muted-foreground">
-            Deterministic view. Nothing sent.
-          </p>
-          <div className="mb-3.5 grid grid-cols-3 gap-2.5">
-            {[
-              { l: "Influenced", v: "$1.24M", d: "+18%", warn: false },
-              { l: "High intent", v: "38", d: "+6", warn: false },
-              { l: "In review", v: "7", d: "pending", warn: true },
-            ].map((m) => (
-              <div
-                key={m.l}
-                className="rounded-[10px] border border-border bg-card p-3"
-              >
-                <p className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {m.l}
-                </p>
-                <p className="mt-1 text-xl font-semibold tabular-nums tracking-tight text-foreground">
-                  {m.v}
-                </p>
-                <p
-                  className={`mt-[3px] flex items-center gap-[3px] text-[9.5px] ${
-                    m.warn ? "text-warning" : "text-success"
-                  }`}
-                >
-                  {m.warn ? (
-                    <Clock className="h-[11px] w-[11px]" />
-                  ) : (
-                    <TrendingUp className="h-[11px] w-[11px]" />
-                  )}
-                  {m.d}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="rounded-[10px] border border-border bg-card p-4">
-            <p className="mb-3.5 text-[11px] font-semibold text-muted-foreground">
-              Signal to revenue pipeline
-            </p>
-            <div className="flex items-start">
-              {pipeline.map((node, index) => {
-                const NodeIcon = node.icon;
-                return (
-                  <div
-                    key={node.label}
-                    className="relative flex flex-1 flex-col items-center gap-[7px]"
-                  >
-                    {index < pipeline.length - 1 ? (
-                      <span className="absolute left-1/2 top-4 -z-0 h-[2px] w-full bg-border-strong" />
-                    ) : null}
-                    <span
-                      className="z-10 flex h-8 w-8 items-center justify-center rounded-[9px] text-white"
-                      style={{ background: node.color }}
-                    >
-                      <NodeIcon className="h-[15px] w-[15px]" />
-                    </span>
-                    <span className="text-[9.5px] font-semibold text-foreground">
-                      {node.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -437,7 +295,7 @@ function ScenarioShowcase() {
       aria-labelledby="scenarios-heading"
       className="relative"
     >
-      <div className="mx-auto max-w-3xl px-6 pb-4 pt-20 text-center sm:pt-24">
+      <div className="mx-auto max-w-3xl px-6 pb-4 pt-10 text-center sm:pt-14">
         <p className="mb-3 text-[12.5px] font-semibold uppercase tracking-wide text-primary">
           Scenario library
         </p>
@@ -454,7 +312,11 @@ function ScenarioShowcase() {
         </p>
       </div>
       {showcaseScenarios.map((scenario, index) => (
-        <ScenarioCard key={scenario.id} scenario={scenario} priority={index === 0} />
+        <ScenarioCard
+          key={scenario.id}
+          scenario={scenario}
+          priority={index === 0}
+        />
       ))}
     </section>
   );
@@ -467,15 +329,29 @@ function ScenarioCard({
   scenario: (typeof showcaseScenarios)[number];
   priority: boolean;
 }) {
+  return (
+    <>
+      <DesktopScenarioCard scenario={scenario} priority={priority} />
+      <MobileScenarioCard scenario={scenario} priority={priority} />
+    </>
+  );
+}
+
+function DesktopScenarioCard({
+  scenario,
+  priority,
+}: {
+  scenario: (typeof showcaseScenarios)[number];
+  priority: boolean;
+}) {
   const accent = showcaseAccents[scenario.accent];
-  const headingId = `scenario-${scenario.id}-heading`;
+  const headingId = `scenario-${scenario.id}-desktop-heading`;
 
   return (
     <article
       aria-labelledby={headingId}
-      className="group relative flex min-h-[90vh] items-center overflow-hidden"
+      className="group relative hidden min-h-[90vh] items-center overflow-hidden lg:flex"
     >
-      {/* TODO: replace with licensed stock photo (see public/scenarios/README.md). */}
       <Image
         src={scenario.image}
         alt={scenario.imageAlt}
@@ -483,13 +359,12 @@ function ScenarioCard({
         priority={priority}
         unoptimized
         sizes="100vw"
-        className="object-cover motion-safe:transition-transform motion-safe:duration-700 motion-safe:ease-out motion-safe:group-hover:scale-[1.03]"
+        className="object-cover object-center motion-safe:transition-transform motion-safe:duration-700 motion-safe:ease-out motion-safe:group-hover:scale-[1.03]"
       />
-      {/* Dark scrim built from the foreground (deep navy) token so text stays
-          legible over any photo. */}
+      <div aria-hidden="true" className="absolute inset-0 bg-slate-950/10" />
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-foreground/95 via-foreground/80 to-foreground/55"
+        className="absolute inset-0 bg-gradient-to-r from-slate-950/60 via-slate-950/28 to-transparent"
       />
       <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-16">
         <div className="max-w-2xl">
@@ -506,72 +381,151 @@ function ScenarioCard({
           >
             {scenario.headline}
           </h3>
-          <p className="mt-5 text-pretty text-base leading-relaxed text-white/85 sm:text-[17px]">
+          <p className="mt-5 text-pretty text-base font-medium leading-relaxed text-white sm:text-[17px]">
             {scenario.narrative}
           </p>
 
-          <ul className="mt-8 space-y-3">
-            {scenario.proofPoints.map((point) => (
-              <li
-                key={point.signal}
-                className="rounded-xl border border-white/15 bg-white/[0.06] p-4 backdrop-blur-sm"
-              >
-                <dl className="grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-center">
-                  <div>
-                    <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/55">
-                      Signal
-                    </dt>
-                    <dd className="mt-0.5 text-sm font-medium text-white">
-                      {point.signal}
-                    </dd>
-                  </div>
-                  <ArrowRight
-                    aria-hidden="true"
-                    className="hidden h-4 w-4 shrink-0 text-white/40 sm:block"
-                  />
-                  <div>
-                    <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/55">
-                      Action
-                    </dt>
-                    <dd className="mt-0.5 text-sm font-medium text-white">
-                      {point.action}
-                    </dd>
-                  </div>
-                  <ArrowRight
-                    aria-hidden="true"
-                    className="hidden h-4 w-4 shrink-0 text-white/40 sm:block"
-                  />
-                  <div>
-                    <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/55">
-                      Outcome
-                    </dt>
-                    <dd className="mt-0.5 text-sm font-semibold text-white">
-                      {point.outcome}
-                    </dd>
-                  </div>
-                </dl>
-              </li>
-            ))}
-          </ul>
+          <ProofPoints points={scenario.proofPoints} />
 
-          <div className="mt-9 flex flex-wrap items-center gap-3">
-            <Link
-              href={scenario.href}
-              className={`inline-flex h-12 items-center gap-2 rounded-[9px] px-6 text-[15px] font-medium text-primary-foreground shadow-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-foreground ${accent.cta}`}
-            >
-              See how it works
-              <ArrowRight className="h-[17px] w-[17px]" />
-            </Link>
-            <Link
-              href="/demo"
-              className="inline-flex h-12 items-center rounded-[9px] border border-white/25 bg-white/10 px-6 text-[15px] font-medium text-white transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-foreground"
-            >
-              Run the 60-second demo
-            </Link>
-          </div>
+          <ScenarioActions scenario={scenario} />
         </div>
       </div>
     </article>
+  );
+}
+
+function MobileScenarioCard({
+  scenario,
+  priority,
+}: {
+  scenario: (typeof showcaseScenarios)[number];
+  priority: boolean;
+}) {
+  const accent = showcaseAccents[scenario.accent];
+  const headingId = `scenario-${scenario.id}-mobile-heading`;
+
+  return (
+    <article
+      aria-labelledby={headingId}
+      className="mx-4 mb-8 overflow-hidden rounded-3xl border border-border bg-slate-950 shadow-xl lg:hidden"
+    >
+      <div className="relative aspect-[16/9] overflow-hidden bg-slate-950">
+        <Image
+          src={scenario.image}
+          alt={scenario.imageAlt}
+          fill
+          priority={priority}
+          unoptimized
+          sizes="100vw"
+          className="object-cover object-left-center"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-t from-slate-950/25 via-transparent to-transparent"
+        />
+      </div>
+
+      <div className="px-5 py-6 sm:px-7 sm:py-8">
+        <span
+          aria-hidden="true"
+          className={`mb-5 block h-1 w-12 rounded-full ${accent.bar}`}
+        />
+        <p className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
+          {scenario.eyebrow}
+        </p>
+        <h3
+          id={headingId}
+          className="mt-3 text-balance text-2xl font-semibold leading-[1.08] tracking-tight text-white sm:text-3xl"
+        >
+          {scenario.headline}
+        </h3>
+        <p className="mt-5 text-pretty text-[15px] font-medium leading-relaxed text-white">
+          {scenario.narrative}
+        </p>
+
+        <ProofPoints points={scenario.proofPoints} />
+
+        <ScenarioActions scenario={scenario} />
+      </div>
+    </article>
+  );
+}
+
+function ProofPoints({
+  points,
+}: {
+  points: (typeof showcaseScenarios)[number]["proofPoints"];
+}) {
+  return (
+    <ul className="mt-8 space-y-3">
+      {points.map((point) => (
+        <li
+          key={point.signal}
+          className="rounded-xl border border-white/15 bg-white/[0.06] p-4 backdrop-blur-sm"
+        >
+          <dl className="grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-center">
+            <div>
+              <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/75">
+                Signal
+              </dt>
+              <dd className="mt-0.5 text-sm font-medium text-white">
+                {point.signal}
+              </dd>
+            </div>
+            <ArrowRight
+              aria-hidden="true"
+              className="hidden h-4 w-4 shrink-0 text-white/40 sm:block"
+            />
+            <div>
+              <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/75">
+                Action
+              </dt>
+              <dd className="mt-0.5 text-sm font-medium text-white">
+                {point.action}
+              </dd>
+            </div>
+            <ArrowRight
+              aria-hidden="true"
+              className="hidden h-4 w-4 shrink-0 text-white/40 sm:block"
+            />
+            <div>
+              <dt className="text-[10.5px] font-semibold uppercase tracking-wide text-white/75">
+                Outcome
+              </dt>
+              <dd className="mt-0.5 text-sm font-semibold text-white">
+                {point.outcome}
+              </dd>
+            </div>
+          </dl>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ScenarioActions({
+  scenario,
+}: {
+  scenario: (typeof showcaseScenarios)[number];
+}) {
+  const accent = showcaseAccents[scenario.accent];
+
+  return (
+    <div className="mt-9 flex flex-wrap items-center gap-3">
+      <Link
+        href={scenario.href}
+        className={`inline-flex h-12 items-center gap-2 rounded-[9px] px-6 text-[15px] font-medium text-primary-foreground shadow-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-foreground ${accent.cta}`}
+      >
+        See how it works
+        <ArrowRight className="h-[17px] w-[17px]" />
+      </Link>
+      <Link
+        href="/demo"
+        className="inline-flex h-12 items-center rounded-[9px] border border-white/25 bg-white/10 px-6 text-[15px] font-medium text-white transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-foreground"
+      >
+        Run the 60-second demo
+      </Link>
+    </div>
   );
 }
 
@@ -685,7 +639,9 @@ function NotJustCRM() {
               <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-sky-300/15 font-mono text-xs font-semibold text-sky-300">
                 {index + 1}
               </span>
-              <span className="text-sm font-medium text-[#E8EEF8]">{step}</span>
+              <span className="text-sm font-medium text-[#E8EEF8]">
+                {step}
+              </span>
             </div>
           ))}
         </div>
