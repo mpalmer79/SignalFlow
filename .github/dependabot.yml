@@ -1,0 +1,24 @@
+version: 2
+
+# Supply-chain hygiene for a deterministic, demo-safe portfolio app. Dependabot
+# opens grouped weekly update PRs so dependency drift stays visible and
+# reviewable. Updates are proposed only, never auto-merged, and the existing CI
+# gates still run on every PR. No provider SDKs are introduced here.
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # Batch low-risk updates together to reduce PR noise.
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
