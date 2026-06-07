@@ -7,12 +7,39 @@ import { ProjectAssistant } from "@/components/project-assistant/ProjectAssistan
 import { appConfig } from "@/lib/config/app";
 import "./globals.css";
 
+const siteUrl = "https://signalflow-revenue.vercel.app";
+const socialImage = "/og-signalflow.png";
+const socialTitle = `${appConfig.name}: ${appConfig.subtitle}`;
+const socialDescription = appConfig.positioning;
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
-    default: `${appConfig.name}: ${appConfig.subtitle}`,
+    default: socialTitle,
     template: `%s | ${appConfig.name}`,
   },
-  description: appConfig.positioning,
+  description: socialDescription,
+  openGraph: {
+    title: socialTitle,
+    description: socialDescription,
+    url: siteUrl,
+    siteName: appConfig.name,
+    type: "website",
+    images: [
+      {
+        url: socialImage,
+        width: 1200,
+        height: 630,
+        alt: "SignalFlow AI-native revenue workflow platform",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: socialTitle,
+    description: socialDescription,
+    images: [socialImage],
+  },
 };
 
 export default function RootLayout({
