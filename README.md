@@ -135,6 +135,7 @@ These rules are enforced by:
 - Provider Sandbox
 - Executive Insights
 - Scenario Library
+- Local project assistant: a deterministic, repository-grounded helper with no external API, no model provider, and no network calls (see `docs/PROJECT_ASSISTANT.md`)
 
 ## Demo safety boundaries
 

@@ -1,18 +1,86 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send, Sparkles, X } from "lucide-react";
+import { FileText, Send, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DEMO_SAFE_LABEL,
   EMPTY_STATE,
   STARTER_QUESTIONS,
 } from "@/lib/project-assistant/knowledge";
-import type { AssistantMessage } from "@/lib/project-assistant/types";
+import type {
+  AssistantAnswer,
+  AssistantMessage,
+  ConfidenceLevel,
+} from "@/lib/project-assistant/types";
 
 // The chat panel. Presentational and controlled: it receives the message list
 // and reports user intent up to the controller. All answers are resolved from
 // local knowledge by the controller, so this component makes no network call.
+
+const CONFIDENCE_LABEL: Record<ConfidenceLevel, string> = {
+  high: "Strong match",
+  medium: "Good match",
+  low: "Loose match",
+};
+
+function AnswerMeta({
+  answer,
+  onAskText,
+}: {
+  answer: AssistantAnswer;
+  onAskText: (text: string) => void;
+}) {
+  // Source chips: knowledge sources, plus any supporting document sources, kept
+  // compact and de-duplicated. All point at local repository files only.
+  const docSources = answer.docMatches.map((match) => match.source);
+  const sources = Array.from(new Set([...answer.sources, ...docSources])).slice(0, 4);
+
+  return (
+    <div className="mt-1.5 space-y-2">
+      {!answer.isFallback ? (
+        <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          {CONFIDENCE_LABEL[answer.confidence]} from local knowledge
+        </p>
+      ) : null}
+
+      {sources.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5" aria-label="Sources in this repository">
+          {sources.map((source) => (
+            <span
+              key={source}
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+            >
+              <FileText className="h-3 w-3" aria-hidden="true" />
+              {source}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {answer.related.length > 0 ? (
+        <div className="space-y-1">
+          <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Related
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {answer.related.map((related) => (
+              <button
+                key={related.id}
+                type="button"
+                onClick={() => onAskText(related.label)}
+                className="rounded-full border border-border bg-background px-2.5 py-1 text-left text-[11px] font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {related.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function ProjectAssistantPanel({
   messages,
   onClose,
@@ -93,8 +161,8 @@ export function ProjectAssistantPanel({
             <div
               key={message.id}
               className={cn(
-                "flex",
-                message.role === "user" ? "justify-end" : "justify-start",
+                "flex flex-col",
+                message.role === "user" ? "items-end" : "items-start",
               )}
             >
               <div
@@ -107,6 +175,11 @@ export function ProjectAssistantPanel({
               >
                 {message.text}
               </div>
+              {message.role === "assistant" && message.answer ? (
+                <div className="max-w-[92%]">
+                  <AnswerMeta answer={message.answer} onAskText={onAskText} />
+                </div>
+              ) : null}
             </div>
           ))
         )}

@@ -22,6 +22,7 @@ This register separates two kinds of readiness on purpose:
 | Provider sandbox writes one audit row per scenario per visit | Audit log growth | Low | Batch or rate limit sandbox audit writes | 1 hour |
 | No interactive provider or feature flag management UI | Read-only governance | Low | Add gated management actions, still locked off in demo mode | 1 to 2 days |
 | `VoiceCallOutcome.customerId` and `opportunityId` are denormalized strings | Integrity relies on the writer | Low | Acceptable for the analytics read path; documented in DATA_MODEL.md | n/a |
+| Project assistant matching is lexical, not semantic | A question phrased far from curated wording can fall back rather than match | Low | This is intentional: semantic search would add an embeddings dependency the project deliberately avoids. Expand curated knowledge and document chunks as needed | Ongoing |
 
 Note on the Revenue Command Center split: the page is roughly 980 lines and the
 service roughly 620 lines. Both are flagged Low severity. The hardening and
