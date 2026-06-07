@@ -248,11 +248,11 @@ function SiteNav() {
 
 function Hero() {
   return (
-    <header className="relative overflow-hidden px-6 pb-12 pt-20">
+    <header className="relative isolate overflow-hidden px-6 pb-12 pt-20">
       <div className="pointer-events-none absolute inset-0 hero-grid" />
       <div className="pointer-events-none absolute left-1/2 top-[-120px] h-[420px] w-[760px] -translate-x-1/2 hero-glow" />
       <SignalWaveBackground />
-      <div className="relative mx-auto max-w-3xl text-center">
+      <div className="relative z-10 mx-auto max-w-3xl text-center">
         <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[12.5px] font-semibold text-primary shadow-sm">
           <Radio className="h-3.5 w-3.5" />
           AI-native revenue platform

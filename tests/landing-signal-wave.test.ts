@@ -25,9 +25,13 @@ describe("signal wave background component", () => {
     expect(COMPONENT).toContain("pointer-events-none");
   });
 
-  it("sits behind the hero content", () => {
-    expect(COMPONENT).toContain("-z-0");
+  it("sits behind the hero content with a clear stacking context", () => {
+    expect(COMPONENT).toContain("z-0");
+    // The brittle negative z-index is gone in favor of an isolated context.
+    expect(COMPONENT).not.toContain("-z-0");
     expect(COMPONENT).toContain("absolute inset-0");
+    expect(PAGE).toContain("relative isolate overflow-hidden");
+    expect(PAGE).toContain("relative z-10 mx-auto max-w-3xl");
   });
 
   it("is hidden on mobile and shown from md up", () => {
@@ -35,9 +39,15 @@ describe("signal wave background component", () => {
     expect(COMPONENT).toContain("md:block");
   });
 
-  it("uses a semantic navy token at low opacity, not a hardcoded hex", () => {
+  it("uses a semantic navy token, not a hardcoded hex", () => {
     expect(COMPONENT).toContain("text-foreground");
     expect(COMPONENT).not.toMatch(/#[0-9a-fA-F]{6}/);
+  });
+
+  it("is visible but subtle: raised opacity and stroke width", () => {
+    expect(COMPONENT).toContain("strokeOpacity={0.14}");
+    expect(COMPONENT).toContain("strokeOpacity={0.08}");
+    expect(COMPONENT).toContain("strokeWidth={2}");
   });
 
   it("contains no em dashes", () => {
@@ -62,6 +72,10 @@ describe("reduced motion and drift", () => {
 
   it("only animates when motion is not reduced", () => {
     expect(GLOBALS).toContain("prefers-reduced-motion: no-preference");
+  });
+
+  it("uses a calm but perceptible drift duration", () => {
+    expect(GLOBALS).toContain("signal-wave-drift 20s linear infinite");
   });
 
   it("disables the animation under reduced motion", () => {

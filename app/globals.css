@@ -198,7 +198,7 @@
   }
   @media (prefers-reduced-motion: no-preference) {
     .signal-wave {
-      animation: signal-wave-drift 28s linear infinite;
+      animation: signal-wave-drift 20s linear infinite;
     }
   }
   @keyframes signal-wave-drift {
