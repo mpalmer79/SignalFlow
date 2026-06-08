@@ -252,7 +252,7 @@ function Hero() {
       <div className="pointer-events-none absolute inset-0 hero-grid" />
       <div className="pointer-events-none absolute left-1/2 top-[-120px] h-[420px] w-[760px] -translate-x-1/2 hero-glow" />
       <SignalWaveBackground />
-      <div className="relative z-10 mx-auto max-w-3xl rounded-[2rem] border border-primary/15 bg-gradient-to-br from-blue-100/90 via-sky-50/90 to-white/75 px-8 py-10 text-center shadow-[0_28px_90px_rgba(37,99,235,0.18)] backdrop-blur-sm sm:px-12 sm:py-12">
+      <div className="relative z-10 mx-auto max-w-3xl rounded-[2rem] border border-blue-300/60 bg-gradient-to-br from-blue-200/95 via-sky-100/95 to-blue-50/90 px-8 py-10 text-center shadow-[0_30px_100px_rgba(37,99,235,0.26)] backdrop-blur-sm sm:px-12 sm:py-12">
         <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[12.5px] font-semibold text-primary shadow-sm">
           <Radio className="h-3.5 w-3.5" />
           AI-native revenue platform
