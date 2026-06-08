@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getEntryById } from "@/lib/project-assistant/knowledge";
 import { getAssistantResponse } from "@/lib/project-assistant/matchQuestion";
+import { shouldAutoOpenAssistant } from "@/lib/project-assistant/deep-link";
 import type {
   AssistantAnswer,
   AssistantMessage,
@@ -72,6 +73,16 @@ export function ProjectAssistant() {
     },
     [appendExchange],
   );
+
+  // Deep link: open automatically when the URL requests it, for example
+  // /?assistant=open or /#assistant. Runs once on mount and leaves the URL
+  // untouched, so the manual launcher and close button still work normally.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (shouldAutoOpenAssistant(window.location.search, window.location.hash)) {
+      setIsOpen(true);
+    }
+  }, []);
 
   // Escape closes the panel from anywhere while it is open.
   useEffect(() => {
